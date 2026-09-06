@@ -96,20 +96,19 @@ const sound = new SoundKit();
 
 setLoading(0.2, 'Kart lehimleniyor…');
 
-const board = createBoard();
-scene.add(board.group);
+let board = null; // created in boot() once the fonts are ready (the artwork is drawn on canvas)
 
 const monitor = createMonitor();
-monitor.group.position.set(1.7, 0, -3.15);
+monitor.group.position.set(2.3, 0, -3.5);
 monitor.group.rotation.y = 0.3;
 scene.add(monitor.group);
 
 const book = createBook();
-book.position.set(3.35, 0, 0.5);
+book.position.set(3.7, 0, -1.4);
 scene.add(book);
 
 const wristband = createWristband();
-wristband.position.set(0.85, 0, 2.95);
+wristband.position.set(2.35, 0, 2.2);
 wristband.rotation.y = 0.4;
 scene.add(wristband);
 
@@ -191,7 +190,7 @@ function attachWires(animated) {
 
 function updateGndWire(snap) {
   const from = padTop('gnd2');
-  const to = state.gnd ? objectTop(wristband) : new THREE.Vector3(1.9, 0.03, 1.6);
+  const to = state.gnd ? objectTop(wristband) : new THREE.Vector3(2.4, 0.03, 1.1);
   gndWire.setEnds(from, to, { sag: state.gnd ? 0.45 : 0.25 });
   if (snap) sound.play('clip', { volume: 0.7 });
 }
@@ -397,7 +396,8 @@ function focus(viewName, duration = 1.25) {
 // ---------------------------------------------------------------------------
 
 const ctx = {
-  board, monitor, tweens, sound, later, focus, touch, touchAll, attachWires, unplug, plugIn, pulsePads, ledShow, playMelody, pressDpadSequence,
+  get board() { return board; },
+  monitor, tweens, sound, later, focus, touch, touchAll, attachWires, unplug, plugIn, pulsePads, ledShow, playMelody, pressDpadSequence,
   showPadTags, showPinTags, clearTags, setGnd, toast, state,
   get objects() { return objects; },
   goStep: (i) => goStep(i),
@@ -805,10 +805,13 @@ function frame() {
 
 async function boot() {
   const fontsReady = document.fonts?.ready ? Promise.race([document.fonts.ready, new Promise((r) => setTimeout(r, 2500))]) : Promise.resolve();
-  setLoading(0.45, 'Kıskaçlar takılıyor…');
-  buildObjects(state.set);
   await fontsReady;
-  setLoading(0.75, 'Masa hazırlanıyor…');
+  setLoading(0.45, 'Kaplumbağa çiziliyor…');
+  board = createBoard();
+  scene.add(board.group);
+  setLoading(0.65, 'Kıskaçlar takılıyor…');
+  buildObjects(state.set);
+  setLoading(0.8, 'Masa hazırlanıyor…');
   document.querySelectorAll('[data-set]').forEach((b) => b.setAttribute('aria-checked', String(b.dataset.set === state.set)));
   setToggle('sound', false);
   setToggle('autoplay', false);

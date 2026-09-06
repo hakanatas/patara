@@ -54,28 +54,28 @@ export const OBJECT_SETS = {
     { id: 'muz', name: 'Muz', key: 'up', kind: 'banana', pos: [-3.4, 0, -2.0] },
     { id: 'elma', name: 'Elma', key: 'left', kind: 'apple', pos: [-3.6, 0, -0.6] },
     { id: 'hamur', name: 'Oyun hamuru', key: 'right', kind: 'dough', pos: [-3.3, 0, 0.75] },
-    { id: 'kasik', name: 'Kaşık', key: 'down', kind: 'spoon', pos: [-2.5, 0, 2.05] },
-    { id: 'kalem', name: 'Kalem çizgisi', key: 'space', kind: 'pencil', pos: [2.45, 0, 2.35] },
+    { id: 'kasik', name: 'Kaşık', key: 'down', kind: 'spoon', pos: [-2.9, 0, 1.9] },
+    { id: 'kalem', name: 'Kalem çizgisi', key: 'space', kind: 'pencil', pos: [2.95, 0, 0.6] },
   ],
   kirtasiye: [
     { id: 'folyo', name: 'Alüminyum folyo', key: 'up', kind: 'foil', pos: [-3.4, 0, -2.0] },
     { id: 'para', name: 'Madeni para', key: 'left', kind: 'coin', pos: [-3.6, 0, -0.6] },
-    { id: 'anahtar', name: 'Anahtar', key: 'right', kind: 'key', pos: [-3.3, 0, 0.75] },
-    { id: 'hamur2', name: 'Oyun hamuru', key: 'down', kind: 'dough', pos: [-2.5, 0, 2.05], color: '#e6a3c6' },
-    { id: 'kalem2', name: 'Kalem çizgisi', key: 'space', kind: 'pencil', pos: [2.45, 0, 2.35] },
+    { id: 'anahtar', name: 'Anahtar', key: 'right', kind: 'key', pos: [-3.5, 0, 0.6] },
+    { id: 'hamur2', name: 'Oyun hamuru', key: 'down', kind: 'dough', pos: [-2.9, 0, 1.9], color: '#e6a3c6' },
+    { id: 'kalem2', name: 'Kalem çizgisi', key: 'space', kind: 'pencil', pos: [2.95, 0, 0.6] },
   ],
 };
 
 /** Camera presets used by the chapters. */
 export const VIEWS = {
-  overview: { target: [-0.35, 0.3, -0.1], pos: [1.1, 6.1, 8.5] },
-  usb: { target: [-0.6, 0.3, -1.4], pos: [-1.9, 4.6, 3.8] },
+  overview: { target: [-0.35, 0.3, -0.2], pos: [1.1, 6.2, 8.6] },
+  usb: { target: [0, 0.2, -2.6], pos: [-1.3, 4.3, 1.9] },
   objects: { target: [-1.9, 0.25, 0.0], pos: [-3.4, 5.4, 7.4] },
-  arms: { target: [-1.6, 0.2, -0.6], pos: [-2.6, 4.6, 5.0] },
-  body: { target: [0, 0.2, -0.5], pos: [0.2, 4.7, 4.1] },
-  bottom: { target: [0, 0.15, 0.6], pos: [0.3, 4.4, 5.6] },
-  monitor: { target: [1.7, 0.55, -2.9], pos: [0.6, 4.2, 2.6] },
-  book: { target: [3.3, 0.15, 0.5], pos: [2.2, 3.9, 5.2] },
+  arms: { target: [-1.6, 0.1, -0.7], pos: [-2.6, 4.6, 4.6] },
+  body: { target: [0, 0.1, -0.3], pos: [0.2, 4.8, 4.4] },
+  bottom: { target: [0, 0.1, 1.0], pos: [0.3, 4.4, 6.0] },
+  monitor: { target: [2.2, 0.55, -3.2], pos: [1.0, 4.3, 2.4] },
+  book: { target: [3.7, 0.1, -1.4], pos: [2.6, 3.9, 3.7] },
   wide: { target: [-0.2, 0.3, -0.1], pos: [1.4, 7.2, 10.2] },
 };
 
