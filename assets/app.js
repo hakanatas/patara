@@ -201,7 +201,7 @@
 
   /* ---------- Final matrix twinkle ---------- */
   const fm = $('#finalMatrix');
-  for (let i = 0; i < 140; i++) fm.appendChild(document.createElement('i'));
+  for (let i = 0; i < 140; i++) { const c = document.createElement('i'); if (Math.random() < 0.18) c.classList.add('on'); fm.appendChild(c); }
   const cells = $$('i', fm);
   if (!reduced) setInterval(() => {
     cells.forEach(c => { if (Math.random() < 0.02) c.classList.toggle('on'); });

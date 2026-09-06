@@ -275,8 +275,9 @@ button { font: inherit; color: inherit; }
 .tcard p b { color: var(--ink); }
 @media (max-width: 900px) {
   .tour-layout { grid-template-columns: 1fr; gap: 0; }
-  .tour-sticky { top: var(--nav-h); z-index: 2; background: linear-gradient(var(--bg) 85%, transparent); padding-bottom: 10px; }
-  .tour-board { max-width: 320px; margin: 0 auto; }
+  .tour-sticky { top: var(--nav-h); z-index: 2; background: var(--bg); padding: 8px 0 6px; border-bottom: 1px solid var(--line); }
+  .tour-board { max-width: 260px; margin: 0 auto; }
+  .tour-caption { margin-top: 4px; font-size: 1rem; }
   .tour-cards { gap: 40px; padding: 30px 0 60px; }
   .tcard { opacity: 1; transform: none; }
 }
@@ -342,7 +343,7 @@ details p { color: var(--ink-2); margin: 0 0 18px; }
 .final-card h2 { position: relative; }
 .final-card p { position: relative; color: var(--ink-2); font-size: 1.15rem; margin-bottom: 2rem; }
 .final-card .cta { position: relative; justify-content: center; }
-.final-matrix { position: absolute; inset: 0; display: grid; grid-template-columns: repeat(auto-fill, 46px); grid-auto-rows: 46px; gap: 10px; padding: 10px; opacity: .25; pointer-events: none; mask-image: radial-gradient(ellipse at center, transparent 30%, #000 100%); -webkit-mask-image: radial-gradient(ellipse at center, transparent 30%, #000 100%); }
+.final-matrix { position: absolute; inset: 0; display: grid; grid-template-columns: repeat(auto-fill, 46px); grid-auto-rows: 46px; gap: 10px; padding: 10px; opacity: .4; pointer-events: none; mask-image: radial-gradient(ellipse at center, transparent 30%, #000 100%); -webkit-mask-image: radial-gradient(ellipse at center, transparent 30%, #000 100%); }
 .final-matrix i { border-radius: 8px; background: #1e2a55; transition: background .6s; }
 .final-matrix i.on { background: var(--yellow); box-shadow: 0 0 20px var(--yellow); }
 
