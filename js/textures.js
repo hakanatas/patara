@@ -146,3 +146,60 @@ export function makePcbTexture(color = PALETTE.moss) {
   }
   return finish(c, { repeat: [3, 3] });
 }
+
+/** Bubbly two-line product title for the shell: orange letters with a dark outline. */
+export function makeTitleText() {
+  const c = canvas(512, 256);
+  const ctx = c.getContext('2d');
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.lineJoin = 'round';
+  const draw = (text, y, size) => {
+    ctx.font = `800 ${size}px "Fraunces", Georgia, serif`;
+    ctx.lineWidth = 14;
+    ctx.strokeStyle = '#5a2d0c';
+    ctx.strokeText(text, 256, y);
+    ctx.fillStyle = '#f26b21';
+    ctx.fillText(text, 256, y);
+  };
+  draw('PATARA', 84, 96);
+  draw('BOARD', 186, 84);
+  return finish(c);
+}
+
+/** Small white pictogram + caption for the feet (mouse / keyboard). */
+export function makeFootLabel(kind) {
+  const c = canvas(256, 256);
+  const ctx = c.getContext('2d');
+  ctx.strokeStyle = '#ffffff';
+  ctx.fillStyle = '#ffffff';
+  ctx.lineWidth = 8;
+  ctx.lineJoin = 'round';
+  if (kind === 'mouse') {
+    ctx.beginPath();
+    ctx.roundRect(88, 40, 80, 120, 40);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(128, 40);
+    ctx.lineTo(128, 96);
+    ctx.moveTo(88, 96);
+    ctx.lineTo(168, 96);
+    ctx.stroke();
+    ctx.font = '700 44px "Instrument Sans", Arial, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('MOUSE', 128, 215);
+  } else {
+    ctx.beginPath();
+    ctx.roundRect(36, 60, 184, 100, 16);
+    ctx.stroke();
+    for (let r = 0; r < 2; r++) for (let i = 0; i < 6; i++) {
+      ctx.beginPath();
+      ctx.roundRect(52 + i * 27, 78 + r * 30, 18, 18, 4);
+      ctx.fill();
+    }
+    ctx.font = '700 48px "Instrument Sans", Arial, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('WASD', 128, 215);
+  }
+  return finish(c);
+}

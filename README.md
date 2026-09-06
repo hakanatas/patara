@@ -1,7 +1,7 @@
 # Patara Board — 3B ürün tanıtım sitesi
 
 [Patara Board](https://github.com/Robotistan/Patara-Board) için, masa üstünde duran etkileşimli bir 3B sahne olarak
-tasarlanmış ürün tanıtım sitesi. Muz, elma, kaşık ve oyun hamuru kıskaçlı kablolarla karta bağlı; nesnelere
+tasarlanmış ürün tanıtım sitesi. Safari şapkalı kaplumbağa Patara masada duruyor; muz, elma, kaşık ve oyun hamuru kıskaçlı kablolarla kollarındaki pedlere bağlı; nesnelere
 tıkladığınızda akım kablo boyunca ilerler, ped yanar, LED matris ok gösterir ve arkadaki bilgisayar tuşu görür.
 
 Sekiz bölümlük tur (Tak → Kıskaçla → Oyna → Kollar → LED & piyano → Tuşlar → Etkinlikler → Kutuda) ürünü adım adım
@@ -28,7 +28,7 @@ ES modülleri `http://` gerektirir; `index.html` dosyasını diskten doğrudan a
 
 | Özellik | Nerede |
 | --- | --- |
-| Kart modeli: gövde, kollar, altın pedler, 5×5 LED matris, dokunmatik piyano, yön / X / Y tuşları, alt pin başlığı, USB soketi ve fişi | `js/board.js` |
+| Kaplumbağa kart modeli: sarı kabuk, şapkalı baş, pedli kollar (↑ ← → ↓ GND / Space L.Click R.Click Enter GND), 5×5 LED matris, C‑D‑E‑F‑G‑A‑B‑C piyano, yön / X / Y tuşları, MOUSE ve WASD pinli ayaklar, USB soketi ve fişi | `js/board.js` |
 | İletken nesneler (muz, elma, oyun hamuru, kaşık, kalem çizgisi; folyo, madeni para, anahtar), kıskaçlı kablolar, GND bilekliği, etkinlik kitabı | `js/objects.js`, `js/config.js` |
 | Bilgisayar ekranı: kartın kontrol ettiği mini oyun ve “bilgisayarın gördüğü” tuş günlüğü | `js/monitor.js` |
 | Sekiz bölümlük tur, kamera odakları ve yüzen etiketler | `js/steps.js`, `js/main.js` |

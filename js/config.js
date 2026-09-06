@@ -11,9 +11,9 @@ export const PALETTE = {
   mossDeep: '#154538',
   gold: '#d9b25a',
   goldDeep: '#a8843a',
-  led: '#ffd23f',
-  ledWarm: '#ff7a59',
-  ledOff: '#1b2431',
+  led: '#ff3b2f',
+  ledWarm: '#ffd23f',
+  ledOff: '#4a3410',
   matrixBg: '#0e141c',
   paper: '#fbf5ea',
   metal: '#b9bfc9',
@@ -23,20 +23,21 @@ export const PALETTE = {
 
 /** Keys a pad can emit, with UI labels. */
 export const KEYS = {
-  up: { label: '↑', name: 'Yukarı ok' },
-  down: { label: '↓', name: 'Aşağı ok' },
-  left: { label: '←', name: 'Sol ok' },
-  right: { label: '→', name: 'Sağ ok' },
-  space: { label: 'Space', name: 'Boşluk' },
-  enter: { label: 'Enter', name: 'Enter' },
-  click: { label: 'Click', name: 'Sol tık' },
-  rclick: { label: 'R.Click', name: 'Sağ tık' },
-  gnd: { label: 'GND', name: 'Toprak (GND)' },
-  gnd2: { label: 'GND', name: 'Toprak (GND)' },
+  up: { label: '↑', short: 'UP', name: 'Yukarı ok' },
+  down: { label: '↓', short: 'DOWN', name: 'Aşağı ok' },
+  left: { label: '←', short: 'LEFT', name: 'Sol ok' },
+  right: { label: '→', short: 'RIGHT', name: 'Sağ ok' },
+  space: { label: 'Space', short: 'SPACE', name: 'Boşluk' },
+  enter: { label: 'Enter', short: 'ENTER', name: 'Enter' },
+  click: { label: 'L.Click', short: 'L.CLICK', name: 'Sol tık' },
+  rclick: { label: 'R.Click', short: 'R.CLICK', name: 'Sağ tık' },
+  gnd: { label: 'GND', short: 'GND', name: 'Toprak (GND)' },
+  gnd2: { label: 'GND', short: 'GND', name: 'Toprak (GND)' },
 };
 
-export const PADS_LEFT = ['space', 'enter', 'click', 'rclick', 'gnd'];
-export const PADS_RIGHT = ['up', 'down', 'left', 'right', 'gnd2'];
+/** Pads from the shell outwards to the arm tip. */
+export const PADS_LEFT = ['gnd', 'down', 'right', 'left', 'up'];
+export const PADS_RIGHT = ['gnd2', 'enter', 'rclick', 'click', 'space'];
 
 export const WIRE_COLORS = {
   up: '#c4623d',
@@ -50,32 +51,32 @@ export const WIRE_COLORS = {
 /** Two sets of conductive objects that sit around the board. */
 export const OBJECT_SETS = {
   mutfak: [
-    { id: 'muz', name: 'Muz', key: 'up', kind: 'banana', pos: [3.1, 0, -1.05] },
-    { id: 'elma', name: 'Elma', key: 'down', kind: 'apple', pos: [3.25, 0, 0.3] },
-    { id: 'hamur', name: 'Oyun hamuru', key: 'left', kind: 'dough', pos: [2.9, 0, 1.5], color: '#7cc47f' },
-    { id: 'kasik', name: 'Kaşık', key: 'right', kind: 'spoon', pos: [2.15, 0, 2.5] },
-    { id: 'kalem', name: 'Kalem çizgisi', key: 'space', kind: 'pencil', pos: [-1.35, 0, 2.55] },
+    { id: 'muz', name: 'Muz', key: 'up', kind: 'banana', pos: [-3.4, 0, -2.0] },
+    { id: 'elma', name: 'Elma', key: 'left', kind: 'apple', pos: [-3.6, 0, -0.6] },
+    { id: 'hamur', name: 'Oyun hamuru', key: 'right', kind: 'dough', pos: [-3.3, 0, 0.75] },
+    { id: 'kasik', name: 'Kaşık', key: 'down', kind: 'spoon', pos: [-2.5, 0, 2.05] },
+    { id: 'kalem', name: 'Kalem çizgisi', key: 'space', kind: 'pencil', pos: [2.45, 0, 2.35] },
   ],
   kirtasiye: [
-    { id: 'folyo', name: 'Alüminyum folyo', key: 'up', kind: 'foil', pos: [3.1, 0, -1.05] },
-    { id: 'para', name: 'Madeni para', key: 'down', kind: 'coin', pos: [3.25, 0, 0.3] },
-    { id: 'anahtar', name: 'Anahtar', key: 'left', kind: 'key', pos: [2.9, 0, 1.5] },
-    { id: 'hamur2', name: 'Oyun hamuru', key: 'right', kind: 'dough', pos: [2.15, 0, 2.5], color: '#e6a3c6' },
-    { id: 'kalem2', name: 'Kalem çizgisi', key: 'space', kind: 'pencil', pos: [-1.35, 0, 2.55] },
+    { id: 'folyo', name: 'Alüminyum folyo', key: 'up', kind: 'foil', pos: [-3.4, 0, -2.0] },
+    { id: 'para', name: 'Madeni para', key: 'left', kind: 'coin', pos: [-3.6, 0, -0.6] },
+    { id: 'anahtar', name: 'Anahtar', key: 'right', kind: 'key', pos: [-3.3, 0, 0.75] },
+    { id: 'hamur2', name: 'Oyun hamuru', key: 'down', kind: 'dough', pos: [-2.5, 0, 2.05], color: '#e6a3c6' },
+    { id: 'kalem2', name: 'Kalem çizgisi', key: 'space', kind: 'pencil', pos: [2.45, 0, 2.35] },
   ],
 };
 
 /** Camera presets used by the chapters. */
 export const VIEWS = {
-  overview: { target: [0.9, 0.25, 0.3], pos: [2.5, 5.9, 8.6] },
-  usb: { target: [0.1, 0.2, -1.0], pos: [1.7, 4.2, 4.4] },
-  objects: { target: [1.6, 0.25, 0.8], pos: [3.0, 5.4, 7.6] },
-  arms: { target: [1.3, 0.12, 0.1], pos: [2.5, 3.5, 4.2] },
-  body: { target: [0, 0.12, -0.15], pos: [0.4, 4.6, 4.6] },
-  bottom: { target: [0.05, 0.1, 0.75], pos: [0.5, 4.2, 5.8] },
-  monitor: { target: [1.3, 0.55, -2.0], pos: [3.0, 4.0, 3.6] },
-  book: { target: [3.3, 0.15, -2.4], pos: [4.6, 3.8, 2.6] },
-  wide: { target: [0.9, 0.3, 0.1], pos: [3.3, 6.8, 10.0] },
+  overview: { target: [-0.35, 0.3, -0.1], pos: [1.1, 6.1, 8.5] },
+  usb: { target: [-0.6, 0.3, -1.4], pos: [-1.9, 4.6, 3.8] },
+  objects: { target: [-1.9, 0.25, 0.0], pos: [-3.4, 5.4, 7.4] },
+  arms: { target: [-1.6, 0.2, -0.6], pos: [-2.6, 4.6, 5.0] },
+  body: { target: [0, 0.2, -0.5], pos: [0.2, 4.7, 4.1] },
+  bottom: { target: [0, 0.15, 0.6], pos: [0.3, 4.4, 5.6] },
+  monitor: { target: [1.7, 0.55, -2.9], pos: [0.6, 4.2, 2.6] },
+  book: { target: [3.3, 0.15, 0.5], pos: [2.2, 3.9, 5.2] },
+  wide: { target: [-0.2, 0.3, -0.1], pos: [1.4, 7.2, 10.2] },
 };
 
 export const LED = {

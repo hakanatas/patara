@@ -3,7 +3,7 @@ import { createScene } from './scene.js';
 import { PALETTE, KEYS, OBJECT_SETS, WIRE_COLORS, VIEWS, STORAGE_KEY, PADS_LEFT, PADS_RIGHT } from './config.js';
 import { Tweens, Ease, rand } from './tween.js';
 import { SoundKit } from './audio.js';
-import { createBoard, BOARD_TOP } from './board.js';
+import { createBoard } from './board.js';
 import { createObject, createWire, createWristband, createBook } from './objects.js';
 import { createMonitor } from './monitor.js';
 import { STEPS } from './steps.js';
@@ -100,16 +100,16 @@ const board = createBoard();
 scene.add(board.group);
 
 const monitor = createMonitor();
-monitor.group.position.set(1.35, 0, -2.5);
-monitor.group.rotation.y = 0.12;
+monitor.group.position.set(1.7, 0, -3.15);
+monitor.group.rotation.y = 0.3;
 scene.add(monitor.group);
 
 const book = createBook();
-book.position.set(3.35, 0, -2.45);
+book.position.set(3.35, 0, 0.5);
 scene.add(book);
 
 const wristband = createWristband();
-wristband.position.set(0.6, 0, 2.85);
+wristband.position.set(0.85, 0, 2.95);
 wristband.rotation.y = 0.4;
 scene.add(wristband);
 
@@ -191,7 +191,7 @@ function attachWires(animated) {
 
 function updateGndWire(snap) {
   const from = padTop('gnd2');
-  const to = state.gnd ? objectTop(wristband) : new THREE.Vector3(1.15, 0.03, 1.95);
+  const to = state.gnd ? objectTop(wristband) : new THREE.Vector3(1.9, 0.03, 1.6);
   gndWire.setEnds(from, to, { sag: state.gnd ? 0.45 : 0.25 });
   if (snap) sound.play('clip', { volume: 0.7 });
 }
@@ -348,13 +348,13 @@ function setTags(list) {
   });
 }
 function showPadTags() {
-  const names = { up: '↑ yukarı', down: '↓ aşağı', left: '← sol', right: '→ sağ', gnd: 'GND', space: 'Space', enter: 'Enter', click: 'Click', rclick: 'Sağ click', gnd2: 'GND' };
-  setTags([...PADS_LEFT, ...PADS_RIGHT].map((k) => ({ pos: padTop(k).add(new THREE.Vector3(k.startsWith('gnd') ? 0 : 0, 0.05, 0)), text: names[k], cls: 'tag--key', dx: PADS_LEFT.includes(k) ? -62 : 62 })));
+  const names = { up: '↑ yukarı', down: '↓ aşağı', left: '← sol', right: '→ sağ', gnd: 'GND', space: 'Space', enter: 'Enter', click: 'Sol tık', rclick: 'Sağ tık', gnd2: 'GND' };
+  setTags([...PADS_LEFT, ...PADS_RIGHT].map((k) => ({ pos: padTop(k).add(new THREE.Vector3(0, 0.05, 0)), text: names[k], cls: 'tag--key', dx: PADS_LEFT.includes(k) ? -66 : 66 })));
 }
 function showPinTags() {
-  const list = board.parts.pins.userData.labels.map((l, i) => ({ pos: l.pos, text: ['Fare yönü', 'GND', 'W A S D'][i], dy: 34 }));
-  list.push({ pos: new THREE.Vector3(-0.5, BOARD_TOP + 0.1, 0.7), text: 'Yön tuşları', dy: -30 });
-  list.push({ pos: new THREE.Vector3(0.46, BOARD_TOP + 0.1, 0.7), text: 'X · Y', dy: -30 });
+  const list = board.parts.pins.userData.labels.map((l) => ({ pos: l.pos, text: l.label, dy: 34 }));
+  list.push({ pos: board.positions.dpad, text: 'Yön tuşları', dy: -30 });
+  list.push({ pos: board.positions.xy, text: 'X · Y', dy: -30 });
   setTags(list);
 }
 function updateTags() {
@@ -365,7 +365,7 @@ function updateTags() {
     const sx = r.left + ((tmpV.x + 1) / 2) * r.width + (t.dx || 0);
     const sy = r.top + ((1 - tmpV.y) / 2) * r.height + (t.dy || 0);
     // keep labels out of the hero copy / lesson panel column on wide screens
-    const underCopy = r.width > 900 && sx < r.width * 0.32;
+    const underCopy = r.width > 900 && sx > r.width * 0.68;
     t.el.style.transform = `translate(${sx}px, ${sy}px) translate(-50%, -50%)`;
     t.el.style.visibility = behind || underCopy || state.uiHidden ? 'hidden' : 'visible';
   }
@@ -536,6 +536,8 @@ function labelFor(p) {
       return 'Etkinlik kitabı <em>· 12 macera</em>';
     case 'monitor':
       return 'Bilgisayar <em>· Patara’yı klavye sanıyor</em>';
+    case 'foot':
+      return p.key === 'mouse' ? 'Fare pinleri <em>· fare yönü, jumper ile</em>' : 'W A S D pinleri <em>· jumper ile</em>';
     default:
       return '';
   }
@@ -581,6 +583,9 @@ function activate(p) {
       break;
     case 'monitor':
       toast('Bilgisayar yalnızca tuşları görür: Patara ona sıradan bir klavye gibi görünür.');
+      break;
+    case 'foot':
+      goStep(5);
       break;
     default:
       break;

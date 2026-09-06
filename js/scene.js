@@ -91,7 +91,7 @@ export function createScene(canvas, { isMobile = false } = {}) {
   function applyFraming() {
     const aspect = state.width / state.height;
     camera.aspect = aspect;
-    if (aspect > 1.35) camera.setViewOffset(state.width, state.height, -state.width * 0.07, -state.height * 0.02, state.width, state.height);
+    if (aspect > 1.35) camera.setViewOffset(state.width, state.height, state.width * 0.09, -state.height * 0.02, state.width, state.height);
     else if (aspect < 0.8) camera.setViewOffset(state.width, state.height, 0, -state.height * 0.06, state.width, state.height);
     else camera.clearViewOffset();
     camera.updateProjectionMatrix();

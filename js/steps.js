@@ -12,7 +12,7 @@ export const STEPS = [
     label: 'Tak',
     title: 'Bir kabloyla başlar',
     body: `
-      <p>Patara'yı USB kablosuyla bilgisayara tak. O kadar. Bilgisayar onu sıradan bir <b>klavye ve fare</b> sanır; sürücü, kurulum, uygulama gerekmez.</p>
+      <p>Safari şapkalı kaplumbağa Patara'yı USB kablosuyla bilgisayara tak. O kadar. Bilgisayar onu sıradan bir <b>klavye ve fare</b> sanır; sürücü, kurulum, uygulama gerekmez.</p>
       <p>Windows, macOS, Linux ya da Chromebook fark etmez. <span class="moss">Raspberry Pi</span> tabanlı küçük işlemci, kabloyu taktığın an hazır.</p>
       <p class="note">Klavye gibi göründüğü için Scratch oyunları, sunumlar, müzik uygulamaları… klavyeyle çalışan her şeyle çalışır.</p>`,
     focus: 'usb',
@@ -73,8 +73,8 @@ export const STEPS = [
     label: 'Kollar',
     title: 'İki kol, on ped',
     body: `
-      <p>Bir kolda yön pedleri <span class="key">↑</span> <span class="key">↓</span> <span class="key">←</span> <span class="key">→</span>; öbür kolda <span class="key">Space</span>, <span class="key">Enter</span>, fare için <span class="key">Click</span> ve <span class="key">R.Click</span>.</p>
-      <p>Her kolun ucunda bir <span class="warm">GND</span> pedi var. Kıskaçlar büyük, altın kaplama pedlere kolayca tutunur; küçük eller için tasarlandı.</p>`,
+      <p>Sol kolda yön pedleri <span class="key">↑</span> <span class="key">←</span> <span class="key">→</span> <span class="key">↓</span>; sağ kolda <span class="key">Space</span>, fare için <span class="key">L.Click</span> ve <span class="key">R.Click</span>, bir de <span class="key">Enter</span>.</p>
+      <p>Her kolun kabuğa yakın ucunda bir <span class="warm">GND</span> pedi var. Kıskaçlar büyük, beyaz pedlere kolayca tutunur; küçük eller için tasarlandı.</p>`,
     focus: 'arms',
     action: 'Pedleri yak',
     enter(c) {
@@ -91,8 +91,8 @@ export const STEPS = [
     label: 'LED & piyano',
     title: 'Işık ve ses kartın üstünde',
     body: `
-      <p><b>5×5 LED matris</b> hangi tuşa basıldığını gösterir; oklar, kalpler, yüzler ve küçük animasyonlar için 25 ışık.</p>
-      <p>Altındaki <b>dokunmatik piyano</b> hiçbir kablo istemez: parmağını dokundur, çalsın. Kapasitif tuşlar, iletkenlik dersinin en tatlı hali. Tuşlara tıklayıp deneyebilirsin.</p>`,
+      <p>Kabuğun üstündeki <b>5×5 LED matris</b> hangi tuşa basıldığını gösterir; oklar, kalpler, yüzler ve küçük animasyonlar için 25 ışık.</p>
+      <p>Kabuğun altındaki <b>dokunmatik piyano</b> (C‑D‑E‑F‑G‑A‑B‑C) hiçbir kablo istemez: parmağını dokundur, çalsın. Kapasitif tuşlar, iletkenlik dersinin en tatlı hali. Tuşlara tıklayıp deneyebilirsin.</p>`,
     focus: 'body',
     action: 'Bir melodi çal',
     action2: 'Kalp göster',
@@ -116,7 +116,7 @@ export const STEPS = [
     title: 'Kıskaçsız da oynanır',
     body: `
       <p>Kartın üstündeki <b>yön tuşları</b> ile <span class="warm">X</span> ve <span class="warm">Y</span> fonksiyon tuşları hazır bir oyun kolu gibi çalışır; kıskaç ve GND gerekmez.</p>
-      <p>Alt kenardaki pin girişleri bir sonraki adım: <b>fare yön kontrolü</b>, birden çok <b>GND</b> ve jumper kabloyla sürülen <b>W A S D</b> pinleri. Kıskaçtan jumper'a, oradan breadboard'a.</p>`,
+      <p>Ayaklardaki pin girişleri bir sonraki adım: <b>fare yön kontrolü</b>, birden çok <b>GND</b> ve jumper kabloyla sürülen <b>W A S D</b> pinleri. Kıskaçtan jumper'a, oradan breadboard'a.</p>`,
     focus: 'bottom',
     action: 'Yön tuşlarına bas',
     enter(c) {

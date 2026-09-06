@@ -81,6 +81,7 @@ button:focus-visible, a:focus-visible, canvas:focus-visible { outline: 2px solid
 .ui { transition: opacity 0.45s var(--ease), transform 0.45s var(--ease), visibility 0.45s; }
 body.ui-hidden .ui { opacity: 0; visibility: hidden; pointer-events: none; }
 body.ui-hidden .hero { transform: translateY(-8px); }
+.topbar__right { align-items: center; }
 body.ui-hidden .reveal { display: inline-flex; }
 
 .topbar { position: fixed; top: 0; left: 0; right: 0; display: flex; align-items: center; justify-content: space-between; padding: 20px 28px; z-index: 10; pointer-events: none; }
@@ -93,7 +94,7 @@ body.ui-hidden .reveal { display: inline-flex; }
 .reveal:hover { opacity: 1; }
 
 /* hero */
-.hero { position: fixed; left: 28px; top: 84px; max-width: 400px; z-index: 5; pointer-events: none; }
+.hero { position: fixed; right: 28px; top: 84px; width: min(400px, 34vw); z-index: 5; pointer-events: none; }
 .hero > * { pointer-events: auto; }
 .eyebrow { margin: 0 0 12px; font-size: 12px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: var(--terracotta-deep); }
 .headline { margin: 0 0 14px; font-family: var(--serif); font-variation-settings: 'SOFT' 100, 'WONK' 1, 'opsz' 144; font-weight: 500; font-size: clamp(40px, 4.8vw, 66px); line-height: 0.98; letter-spacing: -0.025em; text-wrap: balance; }
@@ -106,7 +107,7 @@ body.ui-hidden .reveal { display: inline-flex; }
 /* lesson panel */
 .lesson {
   position: fixed;
-  left: 28px;
+  right: 28px;
   bottom: 96px;
   width: min(410px, calc(100vw - 56px));
   max-height: calc(100vh - 380px);
@@ -199,7 +200,7 @@ body.ui-hidden .reveal { display: inline-flex; }
 .toggle[data-toggle='gnd'][aria-pressed='true'] { border-color: rgba(29, 92, 75, 0.4); }
 .toggle[data-toggle='gnd'][aria-pressed='true'] i { background: var(--moss); }
 
-.keys { position: fixed; right: 28px; top: 74px; margin: 0; text-align: right; font-size: 12px; color: var(--ink-soft); z-index: 9; }
+.keys { position: fixed; left: 28px; top: 62px; margin: 0; text-align: left; font-size: 12px; color: var(--ink-soft); z-index: 9; }
 .keys kbd { display: inline-block; min-width: 18px; padding: 1px 5px; margin: 0 1px; border-radius: 5px; border: 1px solid var(--line); background: rgba(255, 255, 255, 0.7); font: 11px var(--sans); text-align: center; }
 
 /* hover label, toast */
@@ -225,7 +226,7 @@ body.ui-hidden .reveal { display: inline-flex; }
 @media (max-width: 900px) {
   .topbar { padding: 14px 16px; }
   .pill--link { display: none; }
-  .hero { left: 16px; right: 16px; top: 64px; max-width: none; }
+  .hero { left: 16px; right: 16px; top: 64px; width: auto; max-width: none; }
   .headline { font-size: clamp(30px, 8vw, 42px); }
   .lede, .hint { display: none; }
   .lesson { left: 10px; right: 10px; width: auto; bottom: 78px; max-height: 32vh; padding: 12px 14px 14px; }
