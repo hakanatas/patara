@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Patara Board — Dünyayı kumandaya dönüştür</title>
+  <meta name="description" content="Patara Board: muzdan, elmadan, oyun hamurundan, kalem çiziminden klavye ve fare yapan Raspberry Pi tabanlı maker kartı. Tak, kıskaçla, oyna." />
+  <meta property="og:title" content="Patara Board — Dünyayı kumandaya dönüştür" />
+  <meta property="og:description" content="Gündelik nesneleri klavye ve fareye dönüştüren eğitici maker kartı." />
+  <meta name="theme-color" content="#0b1020" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230b1020'/%3E%3Cg fill='%23ffd23f'%3E%3Crect x='14' y='14' width='8' height='8' rx='2'/%3E%3Crect x='28' y='14' width='8' height='8' rx='2'/%3E%3Crect x='42' y='14' width='8' height='8' rx='2'/%3E%3Crect x='14' y='28' width='8' height='8' rx='2'/%3E%3Crect x='42' y='28' width='8' height='8' rx='2'/%3E%3Crect x='14' y='42' width='8' height='8' rx='2'/%3E%3Crect x='28' y='42' width='8' height='8' rx='2'/%3E%3Crect x='42' y='42' width='8' height='8' rx='2'/%3E%3C/g%3E%3Crect x='28' y='28' width='8' height='8' rx='2' fill='%23ff5c7a'/%3E%3C/svg%3E" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/style.css" />
+</head>
+<body>
+  <a class="skip" href="#/">İçeriğe atla</a>
+
+  <!-- ============ NAV ============ -->
+  <header class="nav" id="nav">
+    <a class="brand" href="#/" aria-label="Patara Board ana sayfa">
+      <span class="brand-mark" aria-hidden="true">
+        <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+      </span>
+      <span class="brand-name">Patara<b>Board</b></span>
+    </a>
+    <nav class="nav-links" aria-label="Sayfa bölümleri">
+      <a href="#/nasil-calisir">Nasıl çalışır</a>
+      <a href="#/dene">Dene</a>
+      <a href="#/kart">Kart</a>
+      <a href="#/etkinlikler">Etkinlikler</a>
+      <a href="#/teknik">Teknik</a>
+      <a href="#/sss">SSS</a>
+    </nav>
+    <a class="btn btn-sm btn-primary" href="https://www.robotistan.com/patara-board-urun-kiti" target="_blank" rel="noopener">Kiti incele</a>
+    <button class="nav-toggle" id="navToggle" aria-label="Menüyü aç" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </header>
+
+  <main>
+    <!-- ============ HERO ============ -->
+    <section class="hero" id="hero" data-route="/">
+      <div class="hero-bg" aria-hidden="true">
+        <span class="blob b1"></span><span class="blob b2"></span><span class="blob b3"></span>
+        <span class="grid"></span>
+      </div>
+
+      <div class="hero-inner">
+        <div class="hero-copy">
+          <p class="eyebrow reveal"><span class="dot"></span> Raspberry Pi tabanlı · USB klavye &amp; fare · Kodlamasız başlangıç</p>
+          <h1 class="reveal">Dünyayı<br /><span class="grad">kumandaya</span><br />dönüştür.</h1>
+          <p class="lead reveal">
+            Bir muz, bir kaşık, kurşun kalemle çizdiğin bir çizgi ya da arkadaşının eli…
+            Patara’ya kıskaçla, bilgisayarın onu <strong>klavye tuşu</strong> ya da <strong>fare tıklaması</strong> olarak görsün.
+            Sürücü yok, kurulum yok. Tak, kıskaçla, oyna.
+          </p>
+          <div class="cta reveal">
+            <a class="btn btn-primary btn-lg" href="https://www.robotistan.com/patara-board-urun-kiti" target="_blank" rel="noopener">
+              Ürün kitini incele <span aria-hidden="true">→</span>
+            </a>
+            <a class="btn btn-ghost btn-lg" href="#/dene">Tarayıcıda dene</a>
+          </div>
+          <ul class="hero-stats reveal" aria-label="Öne çıkanlar">
+            <li><b>10</b><span>kıskaç pedi</span></li>
+            <li><b>5×5</b><span>LED matris</span></li>
+            <li><b>12</b><span>etkinlik</span></li>
+            <li><b>0</b><span>sürücü</span></li>
+          </ul>
+        </div>
+
+        <div class="hero-visual reveal" aria-hidden="true">
+          <div class="scene">
+            <div class="float obj obj-banana" style="--d:0s">🍌</div>
+            <div class="float obj obj-apple" style="--d:.8s">🍎</div>
+            <div class="float obj obj-dough" style="--d:1.6s">🟢</div>
+            <div class="float obj obj-pencil" style="--d:2.4s">✏️</div>
+            <svg class="wires" viewBox="0 0 600 520" preserveAspectRatio="none">
+              <path class="wire w1" d="M62 80 C 30 200, 90 240, 132 258" />
+              <path class="wire w2" d="M540 90 C 570 200, 520 250, 470 258" />
+              <path class="wire w3" d="M60 440 C 90 350, 110 330, 132 314" />
+              <path class="wire w4" d="M540 430 C 510 350, 490 330, 470 314" />
+            </svg>
+            <div class="board-wrap" id="heroBoard"></div>
+            <div class="screen-tip" id="heroTip"><span class="key">↑</span> tuşuna basıldı</div>
+          </div>
+        </div>
+      </div>
+
+      <a class="scroll-hint" href="#/nasil-calisir" aria-label="Aşağı kaydır"><span></span></a>
+    </section>
+
+    <!-- ============ HOW IT WORKS ============ -->
+    <section class="section how" id="nasil-calisir" data-route="/nasil-calisir">
+      <div class="container">
+        <p class="eyebrow reveal">Nasıl çalışır?</p>
+        <h2 class="reveal">Üç adım. Hepsi bu.</h2>
+        <p class="sub reveal">Patara, bilgisayara USB ile bağlandığında bir <em>klavye ve fare</em> gibi tanınır. Geri kalanı senin hayal gücüne kalmış.</p>
+
+        <ol class="steps">
+          <li class="step reveal">
+            <div class="step-art">
+              <svg viewBox="0 0 160 120" aria-hidden="true">
+                <rect x="20" y="30" width="120" height="70" rx="10" class="s-body"/>
+                <rect x="60" y="8" width="40" height="22" rx="5" class="s-usb"/>
+                <path d="M80 8 V -20" class="s-cable"/>
+                <g class="s-leds"><circle cx="50" cy="65" r="6"/><circle cx="80" cy="65" r="6"/><circle cx="110" cy="65" r="6"/></g>
+              </svg>
+            </div>
+            <span class="step-no">01</span>
+            <h3>Tak</h3>
+            <p>USB kablosunu bilgisayara tak. Windows, macOS, Linux ya da Chromebook fark etmez; Patara anında <strong>klavye + fare</strong> olarak tanınır.</p>
+          </li>
+          <li class="step reveal">
+            <div class="step-art">
+              <svg viewBox="0 0 160 120" aria-hidden="true">
+                <circle cx="45" cy="60" r="22" class="s-pad"/>
+                <text x="45" y="66" class="s-pad-t">↑</text>
+                <path d="M67 60 C 100 60, 100 30, 130 30" class="s-clip"/>
+                <circle cx="130" cy="30" r="8" class="s-clip-end"/>
+                <circle cx="45" cy="105" r="10" class="s-gnd"/>
+                <text x="45" y="109" class="s-gnd-t">GND</text>
+                <path d="M55 105 C 100 105, 100 90, 130 90" class="s-clip"/>
+                <circle cx="130" cy="90" r="8" class="s-clip-end"/>
+              </svg>
+            </div>
+            <span class="step-no">02</span>
+            <h3>Kıskaçla</h3>
+            <p>Kıskaçlı kablonun bir ucunu kolundaki bir pede (↑ ↓ ← → Space Enter Click), diğer ucunu iletken bir nesneye tak. <strong>GND</strong>'yi de kendine bağla: devre böyle tamamlanır.</p>
+          </li>
+          <li class="step reveal">
+            <div class="step-art">
+              <svg viewBox="0 0 160 120" aria-hidden="true">
+                <rect x="15" y="15" width="130" height="80" rx="8" class="s-screen"/>
+                <g class="s-game">
+                  <rect x="40" y="70" width="14" height="14" rx="3"/>
+                  <rect x="70" y="55" width="14" height="14" rx="3"/>
+                  <rect x="100" y="40" width="14" height="14" rx="3"/>
+                  <circle cx="125" cy="30" r="7" class="s-star"/>
+                </g>
+                <rect x="55" y="100" width="50" height="6" rx="3" class="s-stand"/>
+              </svg>
+            </div>
+            <span class="step-no">03</span>
+            <h3>Oyna</h3>
+            <p>Muza dokun: ↑. Elmaya dokun: Space. Scratch oyunun, klavye kısayolun, piyano uygulaman… <strong>klavyeyle çalışan her şey</strong> artık senin nesnelerinle çalışır.</p>
+          </li>
+        </ol>
+
+        <div class="why reveal">
+          <div class="why-card">
+            <span class="why-ico">⚡</span>
+            <h4>Neden çalışıyor?</h4>
+            <p>İnsan vücudu ve pek çok gündelik nesne az da olsa elektrik iletir. Patara, ped ile GND arasından geçen bu çok küçük akımı algılar ve bilgisayara “tuşa basıldı” der.</p>
+          </div>
+          <div class="why-card">
+            <span class="why-ico">🧪</span>
+            <h4>Neler iletken?</h4>
+            <p>Meyve ve sebzeler, oyun hamuru, alüminyum folyo, su, kurşun kalem çizgileri, metal kaşık, bitkiler… ve insanlar! Plastik, ahşap ve kâğıt ise iletmez. Deneyerek öğren.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ TRY IT ============ -->
+    <section class="section demo" id="dene" data-route="/dene">
+      <div class="container">
+        <p class="eyebrow reveal">Tarayıcıda dene</p>
+        <h2 class="reveal">Kıskaçla, dokun, gör.</h2>
+        <p class="sub reveal">Bu küçük simülatör gerçek Patara'nın mantığını gösterir: önce <strong>GND</strong>'yi bağla, sonra nesnelere dokun. Klavyenin ok tuşları ve boşluk tuşu da çalışır.</p>
+
+        <div class="sim reveal" id="sim">
+          <div class="sim-left">
+            <div class="gnd-row">
+              <button class="gnd-btn" id="gndBtn" aria-pressed="false">
+                <span class="gnd-band"></span>
+                <span>GND bilekliğini tak</span>
+              </button>
+              <p class="gnd-hint" id="gndHint">Devre tamamlanmadı. Nesneler henüz tepki vermez.</p>
+            </div>
+
+            <div class="objects" role="group" aria-label="İletken nesneler">
+              <button class="object" data-key="up"    style="--c:#ffd23f"><span class="emoji">🍌</span><span class="lbl">Muz</span><span class="map">↑</span></button>
+              <button class="object" data-key="down"  style="--c:#ff5c7a"><span class="emoji">🍎</span><span class="lbl">Elma</span><span class="map">↓</span></button>
+              <button class="object" data-key="left"  style="--c:#5be8a8"><span class="emoji">🟢</span><span class="lbl">Oyun hamuru</span><span class="map">←</span></button>
+              <button class="object" data-key="right" style="--c:#8fb4ff"><span class="emoji">🥄</span><span class="lbl">Kaşık</span><span class="map">→</span></button>
+              <button class="object" data-key="space" style="--c:#c9a2ff"><span class="emoji">✏️</span><span class="lbl">Kalem çizgisi</span><span class="map">Space</span></button>
+              <button class="object insulator" data-key="none" style="--c:#8b93a7"><span class="emoji">🧱</span><span class="lbl">Plastik</span><span class="map">✕</span></button>
+            </div>
+
+            <div class="sim-board" id="simBoard"></div>
+          </div>
+
+          <div class="sim-right">
+            <div class="monitor">
+              <div class="monitor-bar"><i></i><i></i><i></i><span>patara-oyun.sb3</span></div>
+              <div class="stage" id="stage" aria-label="Oyun sahnesi">
+                <div class="star" id="star">⭐</div>
+                <div class="player" id="player">🤖</div>
+                <div class="toast" id="toast">Muzu ↑ tuşuna kıskaçla!</div>
+              </div>
+              <div class="keylog" id="keylog" aria-live="polite">
+                <span class="keylog-lbl">Bilgisayarın gördüğü:</span>
+                <span class="keylog-keys" id="keylogKeys"><em>—</em></span>
+              </div>
+            </div>
+            <p class="score" id="score">Yıldız: <b>0</b></p>
+          </div>
+        </div>
+
+        <div class="piano-wrap reveal">
+          <div class="piano-head">
+            <h3>Dokunmatik piyano</h3>
+            <p>Kartın üzerindeki piyano hiçbir bağlantı gerektirmez: parmağını dokundur, çalsın.</p>
+          </div>
+          <div class="piano" id="piano" role="group" aria-label="Piyano tuşları">
+            <button data-note="261.63">Do</button>
+            <button data-note="293.66">Re</button>
+            <button data-note="329.63">Mi</button>
+            <button data-note="349.23">Fa</button>
+            <button data-note="392.00">Sol</button>
+            <button data-note="440.00">La</button>
+            <button data-note="493.88">Si</button>
+            <button data-note="523.25">Do</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ BOARD TOUR ============ -->
+    <section class="section tour" id="kart" data-route="/kart">
+      <div class="container">
+        <p class="eyebrow reveal">Kartı tanıyalım</p>
+        <h2 class="reveal">Her köşesi bir fikir.</h2>
+        <p class="sub reveal">Kaydırdıkça kartın ilgili bölümü ışıldar.</p>
+      </div>
+
+      <div class="tour-layout">
+        <div class="tour-sticky">
+          <div class="tour-board" id="tourBoard"></div>
+          <p class="tour-caption" id="tourCaption">Patara Board</p>
+        </div>
+        <div class="tour-cards">
+          <article class="tcard" data-part="arms">
+            <span class="tcard-ico">🦾</span>
+            <h3>Kollar: 10 kıskaç pedi</h3>
+            <p>Sol ve sağ kolda büyük, kıskaca uygun pedler: <b>↑ ↓ ← →</b>, <b>Space</b>, <b>Enter</b>, fare <b>Click</b> ve <b>Sağ Click</b>. İki tane de <b>GND</b> pedi var; devreyi tamamlamak için hep birini kullanırsın.</p>
+          </article>
+          <article class="tcard" data-part="matrix">
+            <span class="tcard-ico">✨</span>
+            <h3>5×5 LED matris</h3>
+            <p>25 LED ile ok işaretleri, kalpler, yüzler ve animasyonlar. Hangi tuşa basıldığını göstermek ya da küçük oyunlara sahne olmak için ideal.</p>
+          </article>
+          <article class="tcard" data-part="piano">
+            <span class="tcard-ico">🎹</span>
+            <h3>Dokunmatik piyano</h3>
+            <p>Kart üzerindeki kapasitif tuşlar, hiçbir ek bağlantı olmadan çalar. İlk “iletkenlik” dersini parmağının ucuyla ver.</p>
+          </article>
+          <article class="tcard" data-part="func">
+            <span class="tcard-ico">🎮</span>
+            <h3>X–Y fonksiyon ve yön tuşları</h3>
+            <p>Kıskaç takmadan da oynayabilirsin: kartın üstündeki yön tuşları ve <b>X</b>, <b>Y</b> fonksiyon tuşları hazır bir oyun kolu gibi çalışır.</p>
+          </article>
+          <article class="tcard" data-part="pins">
+            <span class="tcard-ico">🔌</span>
+            <h3>Alt pin girişleri</h3>
+            <p>Kartın altında fare yön kontrolü için pin girişleri, birden çok <b>GND</b> pini ve jumper kabloyla <b>W A S D</b> tuşlarını sürmek için pin bağlantıları bulunur. Kıskaçtan jumper'a geçiş, breadboard dünyasına ilk adım.</p>
+          </article>
+          <article class="tcard" data-part="usb">
+            <span class="tcard-ico">🔋</span>
+            <h3>USB ile güç ve veri</h3>
+            <p>Tek kablo: hem güç hem iletişim. Raspberry Pi tabanlı işlemci, bilgisayara standart bir <b>USB klavye/fare</b> (HID) olarak görünür; sürücü ya da kurulum gerekmez.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ ACTIVITIES ============ -->
+    <section class="section acts" id="etkinlikler" data-route="/etkinlikler">
+      <div class="container">
+        <p class="eyebrow reveal">Etkinlik kitabı</p>
+        <h2 class="reveal">Patara ile 12 macera.</h2>
+        <p class="sub reveal">Kitle birlikte gelen etkinlik kitabı, her biri bir hikâyeye sarılı 12 uygulama içerir. Kolaydan zora doğru ilerler; her etkinlik yeni bir malzeme ve yeni bir fikir tanıtır.</p>
+
+        <div class="act-grid" id="actGrid">
+          <article class="act reveal" style="--h:12"><span class="act-no">09</span><span class="act-ico">🎸</span><h3>En Ünlü Gitarist</h3><p>Kalem çizgileri ve folyoyla telsiz bir gitar; her tel bir nota.</p></article>
+          <article class="act reveal" style="--h:150"><span class="act-no">13</span><span class="act-ico">🔬</span><h3>İletken mi, Yalıtkan mı?</h3><p>Evdeki nesneleri sınıflandır: hangileri Patara'yı tetikler?</p></article>
+          <article class="act reveal" style="--h:200"><span class="act-no">16</span><span class="act-ico">🧭</span><h3>Küçük Yol Bulucu</h3><p>Yön pedleriyle labirentte yön bul; oyun hamurundan bir kumanda yap.</p></article>
+          <article class="act reveal" style="--h:30"><span class="act-no">19</span><span class="act-ico">🐿️</span><h3>Patara ve Küçük Sincap</h3><p>Sincaba fındık toplat; zıplama için Space pedini kullan.</p></article>
+          <article class="act reveal" style="--h:275"><span class="act-no">22</span><span class="act-ico">👯</span><h3>Patara ve Pataralar</h3><p>Arkadaşlarınla el ele tutuşun; insan zinciri devreyi tamamlar mı?</p></article>
+          <article class="act reveal" style="--h:340"><span class="act-no">25</span><span class="act-ico">🎂</span><h3>Gorki'nin Doğum Günü</h3><p>Dokunmatik piyanoda “İyi ki doğdun”u çal, LED matriste mum yak.</p></article>
+          <article class="act reveal" style="--h:100"><span class="act-no">28</span><span class="act-ico">🗺️</span><h3>Kâşif Patara ve Arkadaşları</h3><p>Fare Click pedleriyle haritada keşfe çık.</p></article>
+          <article class="act reveal" style="--h:20"><span class="act-no">32</span><span class="act-ico">🏀</span><h3>Basketbolcu Patara</h3><p>Zamanlamayla şut at; meyveler oyun kolun olsun.</p></article>
+          <article class="act reveal" style="--h:190"><span class="act-no">35</span><span class="act-ico">🏖️</span><h3>Patara ve Roby Plajda</h3><p>Suyun iletkenliğini keşfet; su dolu kaplarla kumanda kur.</p></article>
+          <article class="act reveal" style="--h:320"><span class="act-no">38</span><span class="act-ico">💃</span><h3>Dansçı Patara</h3><p>Yere serilen folyo pedallarla dans et; ayakların tuş olsun.</p></article>
+          <article class="act reveal" style="--h:230"><span class="act-no">41</span><span class="act-ico">📚</span><h3>Güçlü Patara Kütüphanede</h3><p>Enter pedini kullanarak kitap sayfalarını çevir; sessiz kumanda tasarla.</p></article>
+          <article class="act reveal" style="--h:45"><span class="act-no">45</span><span class="act-ico">🏁</span><h3>Koş Patara Koş</h3><p>Final yarışı: WASD pinleri ve jumper kablolarla kendi yarış kumandanı yap.</p></article>
+        </div>
+        <p class="act-note reveal">Numaralar etkinlik kitabındaki sayfa numaralarıdır. Özetler tanıtım amaçlıdır; her etkinliğin adım adım yönergesi kitapta ve <a href="https://github.com/Robotistan/Patara-Board/tree/main/Activities" target="_blank" rel="noopener">GitHub deposunda</a> yer alır.</p>
+      </div>
+    </section>
+
+    <!-- ============ WHO ============ -->
+    <section class="section who" id="kimler-icin" data-route="/kimler-icin">
+      <div class="container">
+        <p class="eyebrow reveal">Kimler için?</p>
+        <h2 class="reveal">Klavyeye sığmayan herkes için.</h2>
+
+        <div class="who-grid">
+          <div class="who-card reveal">
+            <span class="who-ico">🧒</span>
+            <h3>Çocuklar &amp; yeni başlayanlar</h3>
+            <p>Kod yazmadan “yapmaya” başla. İlk günden elle tutulur bir sonuç: dokunduğun şey ekranda bir şey yaptırıyor.</p>
+          </div>
+          <div class="who-card reveal">
+            <span class="who-ico">🏫</span>
+            <h3>Öğretmenler &amp; atölyeler</h3>
+            <p>Fen (iletkenlik, devre), teknoloji, sanat ve müzik tek kartta birleşir. Etkinlik kitabı hazır ders planı gibi kullanılabilir.</p>
+          </div>
+          <div class="who-card reveal">
+            <span class="who-ico">🛠️</span>
+            <h3>Makerlar</h3>
+            <p>Kıskaçtan jumper'a, WASD pinlerinden fare kontrolüne… Kendi kontrolcünü, oyun kabinini, erişilebilirlik cihazını tasarla.</p>
+          </div>
+          <div class="who-card reveal">
+            <span class="who-ico">♿</span>
+            <h3>Erişilebilirlik</h3>
+            <p>Standart klavye herkese uymaz. Büyük pedler, ayak pedalları ya da her boyutta özel tuşlarla bilgisayarı herkes için kullanılabilir yap.</p>
+          </div>
+        </div>
+
+        <div class="gains reveal">
+          <h3>Kazanımlar</h3>
+          <ul>
+            <li><b>Motor beceriler</b><span>Kıskaç takma, ölçme, kesme, yerleştirme</span></li>
+            <li><b>Devre mantığı</b><span>Kapalı devre, GND, iletken/yalıtkan</span></li>
+            <li><b>Hesaplamalı düşünme</b><span>Girdi → işlem → çıktı; Scratch ile oyun tasarımı</span></li>
+            <li><b>Yaratıcılık</b><span>Sıradan nesnelerden sıra dışı arayüzler</span></li>
+            <li><b>İş birliği</b><span>Grup etkinlikleri, “insan zinciri” devreleri</span></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ SPECS ============ -->
+    <section class="section specs" id="teknik" data-route="/teknik">
+      <div class="container">
+        <p class="eyebrow reveal">Teknik özellikler</p>
+        <h2 class="reveal">Kutunun içi.</h2>
+
+        <div class="spec-layout">
+          <table class="spec-table reveal">
+            <tbody>
+              <tr><th>Platform</th><td>Raspberry Pi tabanlı</td></tr>
+              <tr><th>Bilgisayar bağlantısı</th><td>USB; standart klavye ve fare (HID) olarak tanınır, sürücü gerekmez</td></tr>
+              <tr><th>Kol pedleri</th><td>↑ ↓ ← → · Space · Enter · Click (sol) · Sağ Click · 2× GND</td></tr>
+              <tr><th>Ekran</th><td>5×5 LED matris</td></tr>
+              <tr><th>Ses / müzik</th><td>Dokunmatik piyano</td></tr>
+              <tr><th>Kart üstü tuşlar</th><td>Yön tuşları · X ve Y fonksiyon tuşları</td></tr>
+              <tr><th>Alt pin girişleri</th><td>Fare yön kontrolü · çoklu GND · W A S D için jumper pinleri</td></tr>
+              <tr><th>Bağlantı yöntemi</th><td>Kıskaçlı (timsah) kablolar ve jumper kablolar</td></tr>
+              <tr><th>Uyumluluk</th><td>Windows, macOS, Linux, ChromeOS; Scratch, oyunlar ve klavye kullanan tüm uygulamalar</td></tr>
+              <tr><th>Lisans</th><td>Apache‑2.0 (kaynak kod ve dokümanlar)</td></tr>
+            </tbody>
+          </table>
+
+          <div class="box reveal">
+            <h3>Kit içeriği</h3>
+            <ul class="box-list">
+              <li><span>🟩</span> Patara Board</li>
+              <li><span>🔌</span> USB kablo</li>
+              <li><span>🐊</span> Kıskaçlı bağlantı kabloları</li>
+              <li><span>🧵</span> Jumper kablolar</li>
+              <li><span>📘</span> 12 etkinlikli etkinlik kitabı</li>
+            </ul>
+            <p class="box-note">Güncel kit içeriği ve fiyat için <a href="https://www.robotistan.com/patara-board-urun-kiti" target="_blank" rel="noopener">ürün sayfasına</a> bakın.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ FAQ ============ -->
+    <section class="section faq" id="sss" data-route="/sss">
+      <div class="container narrow">
+        <p class="eyebrow reveal">Sıkça sorulan sorular</p>
+        <h2 class="reveal">Merak edilenler.</h2>
+
+        <div class="faq-list">
+          <details class="reveal">
+            <summary>Kod yazmam gerekiyor mu?</summary>
+            <p>Hayır. Patara kutudan çıktığı gibi bir klavye/fare olarak çalışır. Kod yazmak isteyenler için ise Scratch gibi ortamlarda kendi oyununu yazıp Patara'yı kumanda olarak kullanmak çok keyifli.</p>
+          </details>
+          <details class="reveal">
+            <summary>Neden GND'ye de bağlanmam gerekiyor?</summary>
+            <p>Patara, ped ile GND arasında kapalı bir devre oluşup oluşmadığına bakar. Bir elinle GND'ye (ya da GND'ye bağlı bir kıskaca) dokunurken diğer elinle nesneye dokunduğunda devre vücudun üzerinden tamamlanır ve tuş tetiklenir.</p>
+          </details>
+          <details class="reveal">
+            <summary>Güvenli mi?</summary>
+            <p>Evet. Patara USB'nin sağladığı düşük gerilimle çalışır ve pedlerden geçen akım hissedilemeyecek kadar küçüktür. Kıskaçlı kablolarla çalışırken yetişkin gözetimi önerilir.</p>
+          </details>
+          <details class="reveal">
+            <summary>Hangi nesneler çalışır?</summary>
+            <p>Az da olsa elektrik ileten her şey: meyveler, sebzeler, oyun hamuru, alüminyum folyo, su, madeni paralar, kurşun kalemle koyu çizilmiş çizgiler ve insanlar. Plastik, cam, kuru kâğıt ve ahşap yalıtkandır.</p>
+          </details>
+          <details class="reveal">
+            <summary>Fareyi de kontrol edebilir miyim?</summary>
+            <p>Evet. Kollarda sol Click ve sağ Click pedleri, kartın altında ise fare yön kontrolü için pin girişleri bulunur.</p>
+          </details>
+          <details class="reveal">
+            <summary>Nereden destek alabilirim?</summary>
+            <p>Sorularınız için <a href="https://community.robotistan.com/" target="_blank" rel="noopener">Robotistan Community</a> forumuna yazabilirsiniz. Kaynak kod ve etkinlikler <a href="https://github.com/Robotistan/Patara-Board" target="_blank" rel="noopener">GitHub</a>'da.</p>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ FINAL CTA ============ -->
+    <section class="final" id="final">
+      <div class="container">
+        <div class="final-card reveal">
+          <div class="final-matrix" id="finalMatrix" aria-hidden="true"></div>
+          <h2>Bir sonraki kumandan<br />mutfakta duruyor.</h2>
+          <p>Patara Board ürün kiti: kart, kablolar ve 12 etkinlikli kitap. Tak, kıskaçla, oyna.</p>
+          <div class="cta">
+            <a class="btn btn-primary btn-lg" href="https://www.robotistan.com/patara-board-urun-kiti" target="_blank" rel="noopener">Robotistan'da incele <span aria-hidden="true">→</span></a>
+            <a class="btn btn-ghost btn-lg" href="https://github.com/Robotistan/Patara-Board" target="_blank" rel="noopener">GitHub deposu</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer-inner">
+      <p>Patara Board, <a href="https://www.robotistan.com/" target="_blank" rel="noopener">REX / Robotistan</a> ürünüdür. Kaynak kod ve dokümanlar Apache‑2.0 lisanslıdır.</p>
+      <nav aria-label="Bağlantılar">
+        <a href="https://github.com/Robotistan/Patara-Board" target="_blank" rel="noopener">GitHub</a>
+        <a href="https://www.robotistan.com/patara-board-urun-kiti" target="_blank" rel="noopener">Ürün kiti</a>
+        <a href="https://community.robotistan.com/" target="_blank" rel="noopener">Topluluk</a>
+      </nav>
+    </div>
+  </footer>
+
+  <script src="assets/board.js"></script>
+  <script src="assets/app.js"></script>
+</body>
+</html>
