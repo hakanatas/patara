@@ -51,17 +51,17 @@ export const WIRE_COLORS = {
 /** Two sets of conductive objects that sit around the board. */
 export const OBJECT_SETS = {
   mutfak: [
-    { id: 'muz', name: 'Muz', key: 'up', kind: 'banana', pos: [-3.4, 0, -2.0] },
-    { id: 'elma', name: 'Elma', key: 'left', kind: 'apple', pos: [-3.6, 0, -0.6] },
+    { id: 'muz', name: 'Muz', key: 'up', kind: 'banana', pos: [-3.45, 0, -2.3] },
+    { id: 'elma', name: 'Elma', key: 'left', kind: 'apple', pos: [-3.65, 0, -0.95] },
     { id: 'hamur', name: 'Oyun hamuru', key: 'right', kind: 'dough', pos: [-3.3, 0, 0.75] },
-    { id: 'kasik', name: 'Kaşık', key: 'down', kind: 'spoon', pos: [-2.9, 0, 1.9] },
+    { id: 'kasik', name: 'Kaşık', key: 'down', kind: 'spoon', pos: [-3.0, 0, 1.7] },
     { id: 'kalem', name: 'Kalem çizgisi', key: 'space', kind: 'pencil', pos: [2.95, 0, 0.6] },
   ],
   kirtasiye: [
-    { id: 'folyo', name: 'Alüminyum folyo', key: 'up', kind: 'foil', pos: [-3.4, 0, -2.0] },
-    { id: 'para', name: 'Madeni para', key: 'left', kind: 'coin', pos: [-3.6, 0, -0.6] },
-    { id: 'anahtar', name: 'Anahtar', key: 'right', kind: 'key', pos: [-3.5, 0, 0.6] },
-    { id: 'hamur2', name: 'Oyun hamuru', key: 'down', kind: 'dough', pos: [-2.9, 0, 1.9], color: '#e6a3c6' },
+    { id: 'folyo', name: 'Alüminyum folyo', key: 'up', kind: 'foil', pos: [-3.45, 0, -2.3] },
+    { id: 'para', name: 'Madeni para', key: 'left', kind: 'coin', pos: [-3.65, 0, -0.95] },
+    { id: 'anahtar', name: 'Anahtar', key: 'right', kind: 'key', pos: [-3.55, 0, 0.35] },
+    { id: 'hamur2', name: 'Oyun hamuru', key: 'down', kind: 'dough', pos: [-3.0, 0, 1.7], color: '#e6a3c6' },
     { id: 'kalem2', name: 'Kalem çizgisi', key: 'space', kind: 'pencil', pos: [2.95, 0, 0.6] },
   ],
 };
@@ -69,7 +69,7 @@ export const OBJECT_SETS = {
 /** Camera presets used by the chapters. */
 export const VIEWS = {
   overview: { target: [-0.35, 0.3, -0.2], pos: [1.1, 6.2, 8.6] },
-  usb: { target: [0, 0.2, -2.6], pos: [-1.3, 4.3, 1.9] },
+  usb: { target: [0, 0.2, -2.8], pos: [-1.3, 4.3, 1.7] },
   objects: { target: [-1.9, 0.25, 0.0], pos: [-3.4, 5.4, 7.4] },
   arms: { target: [-1.6, 0.1, -0.7], pos: [-2.6, 4.6, 4.6] },
   body: { target: [0, 0.1, -0.3], pos: [0.2, 4.8, 4.4] },

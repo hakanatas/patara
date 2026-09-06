@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { PALETTE, KEYS, PADS_LEFT, PADS_RIGHT, LED } from './config.js';
-import { ART, armPads, FEET, HEAD, USB, makeFrontTexture, makeBackTexture, makeOutlineShape } from './artwork.js';
+import { ART, armPads, FEET, HEAD, USB, SHELL, makeFrontTexture, makeBackTexture, makeOutlineShape } from './artwork.js';
 import { makePadLabel } from './textures.js';
 
 /** PCB thickness: the top surface of the board. */
@@ -89,7 +89,7 @@ export function createBoard() {
     leds[r] = [];
     for (let c = 0; c < 5; c++) {
       const m = new THREE.Mesh(ledGeo, new THREE.MeshStandardMaterial({ color: PALETTE.ledOff, roughness: 0.4, emissive: PALETTE.led, emissiveIntensity: 0 }));
-      m.position.copy(toWorld(-0.28 + c * 0.14, 0.6 - r * 0.14, BOARD_TOP + 0.015));
+      m.position.copy(toWorld(-0.28 + c * 0.14, 0.62 - r * 0.14, BOARD_TOP + 0.015));
       m.userData.on = false;
       matrixG.add(m);
       leds[r][c] = m;
@@ -112,12 +112,12 @@ export function createBoard() {
     funcG.add(m);
     return m;
   };
-  dpad.up = disc(-0.72, 0.53, 0.1, '▲', { type: 'dpad', key: 'up' });
-  dpad.down = disc(-0.72, 0.09, 0.1, '▼', { type: 'dpad', key: 'down' });
-  dpad.left = disc(-0.94, 0.31, 0.1, '◀', { type: 'dpad', key: 'left' });
-  dpad.right = disc(-0.5, 0.31, 0.1, '▶', { type: 'dpad', key: 'right' });
-  const btnX = disc(0.72, 0.52, 0.12, 'X', { type: 'fn', key: 'X' });
-  const btnY = disc(0.96, 0.12, 0.12, 'Y', { type: 'fn', key: 'Y' });
+  dpad.up = disc(-0.74, 0.55, 0.1, '▲', { type: 'dpad', key: 'up' });
+  dpad.down = disc(-0.74, 0.11, 0.1, '▼', { type: 'dpad', key: 'down' });
+  dpad.left = disc(-0.96, 0.33, 0.1, '◀', { type: 'dpad', key: 'left' });
+  dpad.right = disc(-0.52, 0.33, 0.1, '▶', { type: 'dpad', key: 'right' });
+  const btnX = disc(0.74, 0.55, 0.12, 'X', { type: 'fn', key: 'X' });
+  const btnY = disc(0.98, 0.14, 0.12, 'Y', { type: 'fn', key: 'Y' });
   group.add(funcG);
   parts.func = funcG;
   parts.func.userData.meshes = [...Object.values(dpad), btnX, btnY];
@@ -128,11 +128,11 @@ export function createBoard() {
   const NOTE_NAMES = ['C', 'D', 'E', 'F', 'G', 'A', 'B', 'C'];
   const NOTE_TR = ['Do', 'Re', 'Mi', 'Fa', 'Sol', 'La', 'Si', 'Do'];
   const NOTE_FREQ = [261.63, 293.66, 329.63, 349.23, 392.0, 440.0, 493.88, 523.25];
-  const KW = 0.325, u0 = -1.3, vTop = -0.34;
-  const shellBottom = (u) => -0.15 - 1.55 * Math.sqrt(Math.max(0, 1 - (u / 1.48) ** 2));
+  const KW = 0.33, u0 = -1.32, vTop = -0.36;
+  const shellBottom = (u) => SHELL.v - (SHELL.ry - 0.15) * Math.sqrt(Math.max(0, 1 - (u / (SHELL.rx - 0.15)) ** 2));
   for (let i = 0; i < 8; i++) {
     const uc = u0 + (i + 0.5) * KW;
-    const vBottom = Math.max(shellBottom(uc) + 0.1, -1.68);
+    const vBottom = Math.max(shellBottom(uc) + 0.08, -1.78);
     const len = vTop - vBottom;
     const k = new THREE.Mesh(new THREE.BoxGeometry(KW - 0.03, 0.014, len), whiteMat.clone());
     k.position.copy(toWorld(uc, (vTop + vBottom) / 2, BOARD_TOP + 0.007));
@@ -146,8 +146,8 @@ export function createBoard() {
     pianoKeys.push(k);
   }
   [1, 2, 4, 5, 6].forEach((i) => {
-    const b = new THREE.Mesh(new THREE.BoxGeometry(0.17, 0.022, 0.62), darkMat);
-    b.position.copy(toWorld(u0 + i * KW, vTop - 0.31, BOARD_TOP + 0.011));
+    const b = new THREE.Mesh(new THREE.BoxGeometry(0.17, 0.022, 0.64), darkMat);
+    b.position.copy(toWorld(u0 + i * KW, vTop - 0.32, BOARD_TOP + 0.011));
     b.castShadow = true;
     pianoG.add(b);
   });
@@ -160,15 +160,15 @@ export function createBoard() {
   const pinLabels = [];
   const headers = [];
   FEET.forEach((f) => {
-    const hp = footPoint(f, -f.side * 0.19, 0);
-    const header = new THREE.Mesh(new THREE.BoxGeometry(0.075, 0.05, 0.42), darkMat.clone());
+    const hp = footPoint(f, -f.side * 0.26, 0);
+    const header = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.05, 0.46), darkMat.clone());
     header.position.copy(toWorld(hp.u, hp.v, BOARD_TOP + 0.025));
     header.rotation.y = f.rot;
     header.castShadow = true;
     pinsG.add(header);
     headers.push(header);
     for (let i = 0; i < 4; i++) {
-      const pp = footPoint(f, -f.side * 0.19, -0.18 + i * 0.12);
+      const pp = footPoint(f, -f.side * 0.26, -0.2 + i * 0.13);
       const pin = new THREE.Mesh(new THREE.BoxGeometry(0.024, 0.09, 0.024), goldMat);
       pin.position.copy(toWorld(pp.u, pp.v, BOARD_TOP + 0.06));
       pinsG.add(pin);
@@ -212,9 +212,9 @@ export function createBoard() {
   const api = {
     group, parts, pads, leds, pianoKeys, dpad, btnX, btnY, pickables, plug, PLUG_IN, PLUG_OUT,
     positions: {
-      dpad: toWorld(-0.72, 0.31, BOARD_TOP + 0.1),
-      xy: toWorld(0.84, 0.32, BOARD_TOP + 0.1),
-      matrix: toWorld(0, 0.32, BOARD_TOP + 0.1),
+      dpad: toWorld(-0.74, 0.33, BOARD_TOP + 0.1),
+      xy: toWorld(0.86, 0.35, BOARD_TOP + 0.1),
+      matrix: toWorld(0, 0.34, BOARD_TOP + 0.1),
       piano: toWorld(0, -1.0, BOARD_TOP + 0.1),
       head: toWorld(HEAD.u, HEAD.v, 0.4),
     },
