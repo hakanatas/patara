@@ -1,35 +1,56 @@
-# Patara Board — Ürün Tanıtım Sitesi
+# Patara Board — 3B ürün tanıtım sitesi
 
-[Patara Board](https://github.com/Robotistan/Patara-Board) için hazırlanmış, tek sayfalık, kaydırma‑odaklı (scroll‑driven) bir ürün tanıtım sitesi.
-Bağımlılık yok; saf HTML + CSS + JavaScript. Herhangi bir statik sunucudan yayınlanabilir.
+[Patara Board](https://github.com/Robotistan/Patara-Board) için, masa üstünde duran etkileşimli bir 3B sahne olarak
+tasarlanmış ürün tanıtım sitesi. Muz, elma, kaşık ve oyun hamuru kıskaçlı kablolarla karta bağlı; nesnelere
+tıkladığınızda akım kablo boyunca ilerler, ped yanar, LED matris ok gösterir ve arkadaki bilgisayar tuşu görür.
+
+Sekiz bölümlük tur (Tak → Kıskaçla → Oyna → Kollar → LED & piyano → Tuşlar → Etkinlikler → Kutuda) ürünü adım adım
+anlatır. Her şey yereldir: derleme adımı, paket yöneticisi ya da CDN yoktur.
+
+## Canlı
+
+GitHub Pages ile yayınlanır: <https://hakanatas.github.io/patara/>
+`.github/workflows/pages.yml` iş akışı `main` ve geliştirme dalına yapılan her push'ta siteyi yeniden yayınlar.
+Depo ayarlarında **Settings → Pages → Source: GitHub Actions** seçili olmalıdır (iş akışı ilk çalıştığında Pages'i
+kendisi etkinleştirmeyi dener).
 
 ## Yerelde çalıştırma
 
 ```bash
+node serve.mjs          # → http://localhost:8080
+# ya da
 python3 -m http.server 8080
-# http://localhost:8080
 ```
 
-## Sayfa bölümleri (hash yönlendirme ile)
+ES modülleri `http://` gerektirir; `index.html` dosyasını diskten doğrudan açmak çalışmaz.
 
-| Rota | Bölüm |
+## İçerik
+
+| Özellik | Nerede |
 | --- | --- |
-| `#/` | Giriş (hero) |
-| `#/nasil-calisir` | 3 adımda nasıl çalışır |
-| `#/dene` | Etkileşimli tarayıcı simülatörü |
-| `#/kart` | Kart turu (parçalar tek tek vurgulanır) |
-| `#/etkinlikler` | Etkinlik kitabındaki 12 etkinlik |
-| `#/kimler-icin` | Hedef kitle ve kazanımlar |
-| `#/teknik` | Teknik özellikler |
-| `#/sss` | Sıkça sorulan sorular |
+| Kart modeli: gövde, kollar, altın pedler, 5×5 LED matris, dokunmatik piyano, yön / X / Y tuşları, alt pin başlığı, USB soketi ve fişi | `js/board.js` |
+| İletken nesneler (muz, elma, oyun hamuru, kaşık, kalem çizgisi; folyo, madeni para, anahtar), kıskaçlı kablolar, GND bilekliği, etkinlik kitabı | `js/objects.js`, `js/config.js` |
+| Bilgisayar ekranı: kartın kontrol ettiği mini oyun ve “bilgisayarın gördüğü” tuş günlüğü | `js/monitor.js` |
+| Sekiz bölümlük tur, kamera odakları ve yüzen etiketler | `js/steps.js`, `js/main.js` |
+| Sentezlenmiş ses efektleri (ses dosyası yok) | `js/audio.js` |
+| Kaydırmalı klasik sürüm (önceki tasarım) | `klasik/` |
 
-## Yayınlama
+### Kontroller
 
-`.github/workflows/pages.yml` iş akışı, `main` dalına yapılan her push'ta siteyi GitHub Pages'e yayınlar.
-Depo ayarlarında **Settings → Pages → Source: GitHub Actions** seçilmelidir.
+- **Mutfak / Kırtasiye** nesne setini değiştirir · **GND** bilekliği takar/çıkarır (kapalıyken devre açık kalır ve nesneler tepki vermez)
+- **Ses**, **Otomatik** (bölümleri kendi kendine gezer) · **Arayüzü gizle** (veya `H`)
+- Klavye: `←` `→` bölüm · `W` `A` `S` `D` yön nesnelerine dokun · boşluk = Space nesnesi · `Enter` bölüm eylemi · `G` GND · `M` ses · `O` otomatik · `R` oyunu sıfırla
+- Fare: nesnelere, pedlere, piyano tuşlarına, yön ve X/Y tuşlarına, bilekliğe ve kitaba tıklanabilir; sürükleyerek döndür, tekerlekle yaklaş
+
+`prefers-reduced-motion` animasyonları kısaltır.
 
 ## Kaynaklar
 
 - Ürün deposu: <https://github.com/Robotistan/Patara-Board> (Apache‑2.0)
 - Ürün kiti: <https://www.robotistan.com/patara-board-urun-kiti>
 - Destek: <https://community.robotistan.com/>
+
+## Üçüncü taraf
+
+- Three.js r170 (MIT) — `vendor/three/` (bkz. `vendor/three/LICENSE`)
+- Fraunces ve Instrument Sans (SIL Open Font License) — `assets/fonts/`
