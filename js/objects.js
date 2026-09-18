@@ -243,47 +243,6 @@ export function createBook() {
   return g;
 }
 
-/** A friendly cartoon hand: index finger pointing along -z, fingertip at the origin. */
-export function createHand() {
-  const g = new THREE.Group();
-  g.name = 'hand';
-  const skin = std({ color: '#e9b88e', roughness: 0.75 });
-  const finger = shadow(new THREE.Mesh(new THREE.CapsuleGeometry(0.065, 0.34, 6, 14), skin));
-  finger.rotation.x = Math.PI / 2;
-  finger.position.set(0, 0.035, 0.22);
-  const palm = shadow(new THREE.Mesh(new THREE.SphereGeometry(0.23, 26, 18), skin));
-  palm.scale.set(1.15, 0.5, 1.15);
-  palm.position.set(0.14, 0.07, 0.62);
-  const knuckles = [0.16, 0.29, 0.4].map((x, i) => {
-    const k = shadow(new THREE.Mesh(new THREE.SphereGeometry(0.08 - i * 0.008, 14, 10), skin));
-    k.position.set(x, 0.035, 0.44 + i * 0.03);
-    return k;
-  });
-  const thumb = shadow(new THREE.Mesh(new THREE.CapsuleGeometry(0.06, 0.2, 6, 12), skin));
-  thumb.position.set(-0.2, 0.06, 0.6);
-  thumb.rotation.set(0.6, 0, 0.9);
-  const arm = shadow(new THREE.Mesh(new THREE.CylinderGeometry(0.135, 0.16, 0.8, 22), skin));
-  arm.rotation.x = Math.PI / 2;
-  arm.position.set(0.14, 0.085, 1.28);
-  g.add(finger, palm, ...knuckles, thumb, arm);
-  const wristLocal = new THREE.Vector3(0.14, 0.085, 0.95);
-  const pathLocal = [new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0.04, 0.3), new THREE.Vector3(0.1, 0.09, 0.65), wristLocal.clone()];
-  return {
-    group: g,
-    wristLocal,
-    moving: false,
-    wristWorld() {
-      g.updateMatrixWorld(true);
-      return g.localToWorld(wristLocal.clone());
-    },
-    /** Fingertip → wrist, in world space (the current's path through the hand). */
-    pathWorld() {
-      g.updateMatrixWorld(true);
-      return new THREE.CatmullRomCurve3(pathLocal.map((p) => g.localToWorld(p.clone())));
-    },
-  };
-}
-
 /** A glowing pulse that travels along a list of curves, with a short trail. */
 export function createPulse() {
   const g = new THREE.Group();

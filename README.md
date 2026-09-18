@@ -37,7 +37,7 @@ ES modülleri `http://` gerektirir; `index.html` dosyasını diskten doğrudan a
 
 ### Kontroller
 
-- **Mutfak / Kırtasiye** nesne setini değiştirir · **GND** bilekliği takar/çıkarır (kapalıyken devre açık kalır ve nesneler tepki vermez)
+- **Mutfak / Kırtasiye** nesne setini değiştirir · **GND** kıskacını bilekliğe takar/çıkarır (takılı değilken devre açık kalır: akım nesneden "senin vücudun" yayıyla bilekliğe gelir ve orada durur)
 - **Ses**, **Otomatik** (bölümleri kendi kendine gezer) · **Arayüzü gizle** (veya `H`)
 - Klavye: `←` `→` bölüm · `W` `A` `S` `D` yön nesnelerine dokun · boşluk = Space nesnesi · `Enter` bölüm eylemi · `G` GND · `M` ses · `O` otomatik · `R` oyunu sıfırla
 - Fare: nesnelere, pedlere, piyano tuşlarına, yön ve X/Y tuşlarına, bilekliğe ve kitaba tıklanabilir; sürükleyerek döndür, tekerlekle yaklaş
