@@ -34,15 +34,19 @@ export const STEPS = [
     body: `
       <p>Kıskaçlı kablonun bir ucunu koldaki bir pede, öbür ucunu iletken bir nesneye tak: muz, kaşık, oyun hamuru, kurşun kalemle çizilmiş koyu bir çizgi…</p>
       <p>Bir kablo da <span class="warm">GND</span> pedinden sana gelir (bileklik ya da elinde tuttuğun bir kıskaç). Sen nesneye dokununca devre <b>vücudunun üzerinden</b> tamamlanır; Patara bu minicik akımı algılar.</p>
-      <p class="note">GND bağlı değilse hiçbir şey olmaz. Denemek için alttaki <b>GND</b> anahtarını kapat ve bir nesneye tıkla.</p>`,
+      <p class="note">GND bağlı değilse hiçbir şey olmaz: bir nesneye tıkla, devre açık uyarısını gör. Sonra bilekliği tak ve tekrar dene.</p>`,
     focus: 'objects',
-    action: 'Kabloları yeniden tak',
+    action: 'GND bilekliğini tak',
+    action2: 'Kabloları yeniden tak',
     enter(c) {
       c.board.highlight(null);
       c.board.setLed('smile');
       c.attachWires(true);
     },
     act(c) {
+      c.setGnd(!c.state.gnd);
+    },
+    act2(c) {
       c.attachWires(true);
     },
   },
@@ -52,7 +56,8 @@ export const STEPS = [
     title: 'Dokun, tuş bassın',
     body: `
       <p>Muza dokun: <span class="key">↑</span>. Kaşığa dokun: <span class="key">→</span>. Kalem çizgisine dokun: <span class="key">Space</span>. Arkadaki bilgisayar yalnızca tuşları görüyor; robotu yıldıza sen götürüyorsun.</p>
-      <p>Nesnelere tıklayarak ya da klavyende <span class="key">W</span> <span class="key">A</span> <span class="key">S</span> <span class="key">D</span> ve boşluk tuşuyla dene. Üstteki <b>Mutfak / Kırtasiye</b> anahtarı nesne setini değiştirir.</p>`,
+      <p>Nesnelere tıklayarak ya da klavyende <span class="key">W</span> <span class="key">A</span> <span class="key">S</span> <span class="key">D</span> ve boşluk tuşuyla dene. Üstteki <b>Mutfak / Kırtasiye</b> anahtarı nesne setini değiştirir.</p>
+      <p class="note">Unutma: devre ancak <span class="warm">GND</span> bilekliği takılıyken kapanır. Bilekliği çıkarırsan nesneler susar.</p>`,
     focus: 'overview',
     action: 'Muza dokun',
     action2: 'Hepsine dokun',
@@ -67,6 +72,7 @@ export const STEPS = [
     act2(c) {
       c.touchAll();
     },
+    autoAct: true,
   },
   {
     id: 'kollar',

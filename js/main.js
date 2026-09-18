@@ -43,7 +43,7 @@ const isMobile = window.matchMedia('(pointer: coarse)').matches || window.innerW
 
 const state = {
   set: 'mutfak',
-  gnd: true,
+  gnd: false, // the circuit is open until the GND wristband is worn
   sound: false,
   autoplay: false,
   uiHidden: false,
@@ -236,7 +236,7 @@ function touch(id, via = 'pointer') {
     sound.play('buzz');
     board.setLed('x', true);
     monitor.say('Devre açık: tuş gelmedi');
-    toast('Devre açık! GND bilekliğini tak; akım vücudunun üzerinden dönmeli.', { warn: true, ms: 3200 });
+    toast('Devre açık! Akım vücudundan toprağa dönmeli: GND bilekliğini tak (bilekliğe tıkla, alttaki GND anahtarı ya da G).', { warn: true, ms: 3600 });
     obj.userData.shake = 0.5;
     return;
   }
@@ -556,7 +556,7 @@ function activate(p) {
       } else if (!state.gnd) {
         sound.play('buzz');
         board.setLed('x', true);
-        toast('Pede dokundun ama GND yok: devre açık.', { warn: true });
+        toast('Pede dokundun ama GND bağlı değil: devre açık, tuş gelmez.', { warn: true });
       } else {
         emit(p.key);
       }
@@ -816,7 +816,7 @@ async function boot() {
   document.querySelectorAll('[data-set]').forEach((b) => b.setAttribute('aria-checked', String(b.dataset.set === state.set)));
   setToggle('sound', false);
   setToggle('autoplay', false);
-  updateGndWire(false);
+  setGnd(false, { silent: true });
   if (window.matchMedia('(pointer: coarse)').matches) dom.hint.innerHTML = '<span class="hint__key">İpucu</span> Dokunmak için nesnelere dokun.';
   controls.target.fromArray(VIEWS.wide.target);
   camera.position.copy(controls.target).add(new THREE.Vector3().fromArray(VIEWS.wide.pos).sub(controls.target).multiplyScalar(api.fitFactor()));
