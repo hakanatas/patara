@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { createScene } from './scene.js';
 import { PALETTE, KEYS, OBJECT_SETS, WIRE_COLORS, VIEWS, STORAGE_KEY, PADS_LEFT, PADS_RIGHT } from './config.js';
-import { Tweens, Ease, rand } from './tween.js';
+import { Tweens, Ease, Context, CancelledError } from './tween.js';
 import { SoundKit } from './audio.js';
 import { createBoard } from './board.js';
 import { loadArtwork } from './artwork.js';
-import { createObject, createWire, createWristband, createBook } from './objects.js';
+import { createObject, createWire, createWristband, createBook, createHand, createPulse } from './objects.js';
 import { createMonitor } from './monitor.js';
 import { STEPS } from './steps.js';
 
@@ -108,10 +108,18 @@ const book = createBook();
 book.position.set(3.8, 0, -1.6);
 scene.add(book);
 
+/** Where the wristband lies when it is not worn, and where the hand rests. */
+const WRIST_TABLE = new THREE.Vector3(1.25, 0, 2.05);
+const HAND_REST = new THREE.Vector3(1.9, 0.3, 1.95);
 const wristband = createWristband();
-wristband.position.set(2.45, 0, 2.15);
+wristband.position.copy(WRIST_TABLE);
 wristband.rotation.y = 0.4;
 scene.add(wristband);
+const hand = createHand();
+hand.group.position.copy(HAND_REST);
+scene.add(hand.group);
+const pulse = createPulse();
+scene.add(pulse.group);
 
 const gndWire = createWire(WIRE_COLORS.gnd);
 scene.add(gndWire.group);
@@ -189,10 +197,15 @@ function attachWires(animated) {
   tweens.wait(ctx, 0.25 + objects.length * 0.32).then(() => updateGndWire(true)).catch(() => {});
 }
 
+function wristbandTop() {
+  if (wristband.parent === hand.group) return hand.wristWorld().add(new THREE.Vector3(0.16, 0.1, 0));
+  wristband.updateMatrixWorld(true);
+  return wristband.localToWorld(wristband.userData.top.clone());
+}
 function updateGndWire(snap) {
   const from = padTop('gnd2');
-  const to = state.gnd ? objectTop(wristband) : new THREE.Vector3(2.5, 0.03, 1.0);
-  gndWire.setEnds(from, to, { sag: state.gnd ? 0.45 : 0.25 });
+  const to = state.gnd || wristband.userData.flying ? wristbandTop() : new THREE.Vector3(1.7, 0.03, 1.3);
+  gndWire.setEnds(from, to, { sag: state.gnd ? 0.4 : 0.25 });
   if (snap) sound.play('clip', { volume: 0.7 });
 }
 
@@ -223,33 +236,74 @@ function emit(key) {
   }
 }
 
-let touchBusy = false;
-function touch(id, via = 'pointer') {
+let handCtx = null;
+function moveHand(ctx, to, dur, ease = Ease.inOutCubic) {
+  const from = hand.group.position.clone();
+  hand.moving = true;
+  return tweens
+    .run(ctx, dur, (t) => {
+      hand.group.position.lerpVectors(from, to, t);
+      hand.group.position.y += Math.sin(t * Math.PI) * 0.12;
+      if (state.gnd) updateGndWire(false);
+    }, ease)
+    .finally(() => (hand.moving = false));
+}
+const swallowCancel = (e) => {
+  if (!(e instanceof CancelledError)) throw e;
+};
+
+/** The hand reaches out and touches an object; the current then travels the whole loop. */
+async function touch(id, via = 'pointer') {
   const obj = objectFor(id);
   if (!obj) return;
   sound.unlock();
   dom.hint.style.opacity = '0';
+  if (handCtx) handCtx.cancel();
+  handCtx = new Context();
+  const c = handCtx;
+  pulse.hide();
   const key = obj.userData.def.key;
-  obj.userData.squash = 0.55;
-  showTouchRing(objectTop(obj));
-  if (!state.gnd) {
-    sound.play('buzz');
-    board.setLed('x', true);
-    monitor.say('Devre açık: tuş gelmedi');
-    toast('Devre açık! Akım vücudundan toprağa dönmeli: GND bilekliğini tak (bilekliğe tıkla, alttaki GND anahtarı ya da G).', { warn: true, ms: 3600 });
-    obj.userData.shake = 0.5;
-    return;
-  }
-  const w = wires.get(key);
-  w?.firePulse();
-  sound.play('pulse', { volume: 0.6 });
-  tweens.wait(null, 0.36).then(() => emit(key));
+  const top = objectTop(obj);
   void via;
+  try {
+    await moveHand(c, top.clone().add(new THREE.Vector3(0.05, 0.42, 0.25)), state.reducedMotion ? 0.2 : 0.45);
+    await moveHand(c, top.clone().add(new THREE.Vector3(0, 0.015, 0)), 0.16, Ease.outCubic);
+    obj.userData.squash = 0.55;
+    showTouchRing(top);
+    sound.play('click');
+    const w = wires.get(key);
+    const handPath = hand.pathWorld();
+    sound.play('pulse', { volume: 0.6 });
+    if (!state.gnd) {
+      // the current gets to the wrist and finds no way back to GND
+      await pulse.run(tweens, c, [{ curve: w.state.curve, dur: 0.45 }, { curve: handPath, dur: 0.35 }], Ease.linear);
+      showSpark(hand.wristWorld());
+      sound.play('buzz');
+      board.setLed('x', true);
+      monitor.say('Devre açık: tuş gelmedi');
+      toast('Devre açık! Akım bileğe kadar geldi ama toprağa dönemiyor: GND bilekliğini tak.', { warn: true, ms: 3600 });
+      obj.userData.shake = 0.5;
+    } else {
+      // pad → clip lead → object → finger → wrist → GND lead → GND pad: a closed loop
+      board.pressPad(key);
+      await pulse.run(tweens, c, [
+        { curve: w.state.curve, dur: 0.4 },
+        { curve: handPath, dur: 0.3 },
+        { curve: gndWire.state.curve, dur: 0.4, reverse: true },
+      ], Ease.linear);
+      board.pressPad('gnd2');
+      emit(key);
+    }
+    await tweens.wait(c, 0.55);
+    await moveHand(c, HAND_REST, 0.6);
+  } catch (e) {
+    swallowCancel(e);
+  }
 }
 
 function touchAll() {
   const list = objects.slice();
-  list.forEach((o, i) => tweens.wait(null, i * 0.55).then(() => touch(o.userData.def.id, 'auto')));
+  list.forEach((o, i) => tweens.wait(null, i * 2.0).then(() => touch(o.userData.def.id, 'auto')));
 }
 
 function showTouchRing(pos) {
@@ -257,19 +311,82 @@ function showTouchRing(pos) {
   touchRing.visible = true;
   touchRing.userData.t = 0;
 }
-
-function setGnd(on, { silent = false } = {}) {
-  state.gnd = on;
-  document.querySelector('[data-toggle="gnd"]').setAttribute('aria-pressed', String(on));
-  updateGndWire(true);
-  board.pressPad('gnd2');
-  board.setLed(on ? 'check' : 'x', !on);
-  if (!silent) toast(on ? 'GND bağlandı. Devre hazır!' : 'GND çıkarıldı. Nesneler artık tepki vermez.', { warn: !on });
+const sparkRing = new THREE.Mesh(new THREE.TorusGeometry(0.22, 0.03, 8, 40), new THREE.MeshBasicMaterial({ color: PALETTE.led, transparent: true, opacity: 0, depthWrite: false }));
+sparkRing.visible = false;
+scene.add(sparkRing);
+function showSpark(pos) {
+  sparkRing.position.copy(pos);
+  sparkRing.visible = true;
+  sparkRing.userData.t = 0;
 }
 
-// ---------------------------------------------------------------------------
-// Chapter helpers
-// ---------------------------------------------------------------------------
+let gndCtx = null;
+/** Wear (or drop) the GND wristband: the band flies onto the wrist and the GND lead follows. */
+async function setGnd(on, { silent = false } = {}) {
+  state.gnd = on;
+  document.querySelector('[data-toggle="gnd"]').setAttribute('aria-pressed', String(on));
+  if (gndCtx) gndCtx.cancel();
+  gndCtx = new Context();
+  const c = gndCtx;
+  if (silent) {
+    if (on) wearBand();
+    else dropBand(WRIST_TABLE);
+    updateGndWire(false);
+    board.setLed(on ? 'check' : 'smile');
+    return;
+  }
+  try {
+    if (on) {
+      // detach from wherever it is, fly to the wrist
+      const from = wristband.parent === hand.group ? hand.wristWorld() : wristband.position.clone();
+      dropBand(from);
+      wristband.userData.flying = true;
+      const to = hand.wristWorld();
+      await tweens.run(c, state.reducedMotion ? 0.2 : 0.55, (t) => {
+        wristband.position.lerpVectors(from, to, t);
+        wristband.position.y += Math.sin(t * Math.PI) * 0.35;
+        wristband.rotation.x = (Math.PI / 2) * (1 - t);
+        updateGndWire(false);
+      }, Ease.inOutCubic);
+      wristband.userData.flying = false;
+      wearBand();
+      updateGndWire(true);
+      board.pressPad('gnd2');
+      board.setLed('check');
+      monitor.say('GND bağlı: devre hazır');
+      toast('GND bilekliği takıldı. Artık akım vücudundan toprağa dönebilir: devre kapalı.');
+    } else {
+      const from = hand.wristWorld();
+      dropBand(from);
+      wristband.userData.flying = true;
+      await tweens.run(c, state.reducedMotion ? 0.2 : 0.5, (t) => {
+        wristband.position.lerpVectors(from, WRIST_TABLE, t);
+        wristband.position.y += Math.sin(t * Math.PI) * 0.25;
+        wristband.rotation.x = (Math.PI / 2) * t;
+        updateGndWire(false);
+      }, Ease.inOutCubic);
+      wristband.userData.flying = false;
+      wristband.position.copy(WRIST_TABLE);
+      updateGndWire(true);
+      board.setLed('x', true);
+      toast('GND çıkarıldı. Devre açık: nesneler artık tepki vermez.', { warn: true });
+    }
+  } catch (e) {
+    swallowCancel(e);
+  }
+}
+function wearBand() {
+  hand.group.add(wristband);
+  wristband.position.copy(hand.wristLocal);
+  wristband.rotation.set(0, 0, 0);
+  wristband.scale.setScalar(0.85);
+}
+function dropBand(worldPos) {
+  scene.add(wristband);
+  wristband.position.copy(worldPos);
+  wristband.rotation.set(0, 0.4, 0);
+  wristband.scale.setScalar(1);
+}
 
 function unplug(animated) {
   board.plug.position.z = board.PLUG_OUT;
@@ -532,7 +649,7 @@ function labelFor(p) {
     case 'fn':
       return `${p.key} fonksiyon tuşu`;
     case 'gnd':
-      return `GND bilekliği <em>· tıkla: ${state.gnd ? 'çıkar' : 'tak'}</em>`;
+      return `GND bilekliği <em>· ${state.gnd ? 'bilekte, tıkla: çıkar' : 'masada, tıkla: tak'}</em>`;
     case 'book':
       return 'Etkinlik kitabı <em>· 12 macera</em>';
     case 'monitor':
@@ -778,6 +895,16 @@ function frame() {
       o.position.x = u.def.pos[0] + Math.sin(time * 60) * 0.03 * u.shake;
     } else o.position.x = u.def.pos[0];
   }
+  if (sparkRing.visible) {
+    sparkRing.userData.t += dt * 2.5;
+    const t = sparkRing.userData.t;
+    if (t >= 1) sparkRing.visible = false;
+    else {
+      const s = 0.5 + t * 1.6;
+      sparkRing.scale.set(s, s, s);
+      sparkRing.material.opacity = 1 - t;
+    }
+  }
   if (touchRing.visible) {
     touchRing.userData.t += dt * 2.2;
     const t = touchRing.userData.t;
@@ -825,7 +952,7 @@ async function boot() {
   setLoading(1, 'Hazır.');
   frame();
   goStep(0);
-  window.__patara = { state, board, monitor, objects: () => objects, touch, goStep, setGnd, camera, controls, get time() { return time; } };
+  window.__patara = { state, board, monitor, objects: () => objects, touch, goStep, setGnd, hand, camera, controls, get time() { return time; } };
   requestAnimationFrame(() => {
     dom.loading.classList.add('is-done');
     if (state.reducedMotion) toast('Azaltılmış hareket açık: daha sakin animasyonlar.', { ms: 3200 });

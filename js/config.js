@@ -55,20 +55,20 @@ export const OBJECT_SETS = {
     { id: 'elma', name: 'Elma', key: 'left', kind: 'apple', pos: [-3.55, 0, -1.6] },
     { id: 'hamur', name: 'Oyun hamuru', key: 'right', kind: 'dough', pos: [-3.65, 0, -0.1], color: '#7cc47f' },
     { id: 'kasik', name: 'Kaşık', key: 'down', kind: 'spoon', pos: [-3.3, 0, 1.4] },
-    { id: 'kalem', name: 'Kalem çizgisi', key: 'space', kind: 'pencil', pos: [3.0, 0, 0.7] },
+    { id: 'kalem', name: 'Kalem çizgisi', key: 'space', kind: 'pencil', pos: [3.3, 0, -0.3] },
   ],
   kirtasiye: [
     { id: 'folyo', name: 'Alüminyum folyo', key: 'up', kind: 'foil', pos: [-2.9, 0, -2.75] },
     { id: 'para', name: 'Madeni para', key: 'left', kind: 'coin', pos: [-3.55, 0, -1.6] },
     { id: 'anahtar', name: 'Anahtar', key: 'right', kind: 'key', pos: [-3.65, 0, -0.1] },
     { id: 'hamur2', name: 'Oyun hamuru', key: 'down', kind: 'dough', pos: [-3.3, 0, 1.4], color: '#e6a3c6' },
-    { id: 'kalem2', name: 'Kalem çizgisi', key: 'space', kind: 'pencil', pos: [3.0, 0, 0.7] },
+    { id: 'kalem2', name: 'Kalem çizgisi', key: 'space', kind: 'pencil', pos: [3.3, 0, -0.3] },
   ],
 };
 
 /** Camera presets used by the chapters. */
 export const VIEWS = {
-  overview: { target: [-0.3, 0.3, -0.6], pos: [1.2, 6.8, 8.8] },
+  overview: { target: [-0.3, 0.3, -0.35], pos: [1.2, 6.9, 9.2] },
   usb: { target: [0, 0.2, -3.3], pos: [-1.3, 4.3, 1.2] },
   objects: { target: [-1.9, 0.25, -0.4], pos: [-3.4, 5.6, 7.2] },
   arms: { target: [-1.5, 0.1, -1.2], pos: [-2.5, 4.6, 4.1] },
