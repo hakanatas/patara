@@ -538,7 +538,7 @@ function labelFor(p) {
     case 'monitor':
       return 'Bilgisayar <em>· Patara’yı klavye sanıyor</em>';
     case 'foot':
-      return p.key === 'mouse' ? 'Fare pinleri <em>· fare yönü, jumper ile</em>' : 'W A S D pinleri <em>· jumper ile</em>';
+      return p.key === 'mouse' ? 'Fare pinleri <em>· fare yönü, jumper ile</em>' : p.key === 'ground' ? 'GND pinleri <em>· çoklu toprak</em>' : 'W A S D pinleri <em>· jumper ile</em>';
     default:
       return '';
   }

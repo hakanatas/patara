@@ -2,8 +2,11 @@ import * as THREE from 'three';
 import { PALETTE, PADS_LEFT, PADS_RIGHT, LED } from './config.js';
 import { P, BOARD_W } from './artwork.js';
 
-/** PCB thickness: the top surface of the board. */
-export const BOARD_TOP = 0.05;
+/** PCB thickness: the top surface of the board (above the lift). */
+const THICK = 0.05;
+/** The board rests on the pin headers soldered to its back, so it sits slightly above the table. */
+export const LIFT = 0.1;
+export const BOARD_TOP = THICK + LIFT;
 
 const toWorld = (u, v, y = BOARD_TOP) => new THREE.Vector3(u, y, -v);
 const W = (fx, fy, y) => {
@@ -20,10 +23,12 @@ const DPAD_POS = { up: [0.347, 0.5425], left: [0.3, 0.5825], right: [0.393, 0.58
 const XY_POS = { X: [0.631, 0.54], Y: [0.751, 0.6075] };
 const MATRIX = { fx: 0.52, fy: 0.608, step: 0.16, size: 0.09 };
 const PIANO = { fx0: 0.2, fx1: 0.803, fyTop: 0.7075, fyBottom: 0.995 };
-/* Four through-holes per foot, running along the foot's diagonal beside the printed icons. */
-const FEET_PINS = {
-  mouse: [[0.166, 0.884], [0.184, 0.903], [0.202, 0.922], [0.22, 0.941]],
-  keyboard: [[0.752, 0.904], [0.767, 0.89], [0.782, 0.876], [0.797, 0.862]],
+/* Through-holes of the three pin headers soldered to the back of the board (as on the back print):
+   MOUSE under the left foot, DSAW under the right foot and GROUND under the bottom of the shell. */
+const HEADERS = {
+  mouse: { holes: [[0.166, 0.884], [0.184, 0.903], [0.202, 0.922], [0.22, 0.941]], label: 'Fare pinleri' },
+  keyboard: { holes: [[0.752, 0.904], [0.767, 0.89], [0.782, 0.876], [0.797, 0.862]], label: 'W A S D pinleri' },
+  ground: { holes: [[0.545, 0.878], [0.545, 0.9], [0.545, 0.922], [0.545, 0.944]], label: 'GND pinleri' },
 };
 const USB_POS = [0.493, 0.03];
 
@@ -34,8 +39,9 @@ export function createBoard(art) {
   const pickables = [];
 
   // --- the PCB itself: the real print on a thin extruded silhouette ------------
-  const geo = new THREE.ExtrudeGeometry(art.shape, { depth: BOARD_TOP, bevelEnabled: false, curveSegments: 4 });
+  const geo = new THREE.ExtrudeGeometry(art.shape, { depth: THICK, bevelEnabled: false, curveSegments: 4 });
   geo.rotateX(-Math.PI / 2);
+  geo.translate(0, LIFT, 0);
   const faceMat = new THREE.MeshStandardMaterial({ map: art.frontTex, roughness: 0.6, metalness: 0.02 });
   const edgeMat = new THREE.MeshStandardMaterial({ color: '#2e7a2a', roughness: 0.7 });
   const pcb = new THREE.Mesh(geo, [faceMat, edgeMat]);
@@ -45,7 +51,7 @@ export function createBoard(art) {
   const backGeo = new THREE.ShapeGeometry(art.shape, 4);
   backGeo.rotateX(Math.PI / 2);
   const backMesh = new THREE.Mesh(backGeo, new THREE.MeshStandardMaterial({ map: art.backTex, roughness: 0.7 }));
-  backMesh.position.y = -0.001;
+  backMesh.position.y = LIFT - 0.001;
   group.add(backMesh);
 
   const goldMat = new THREE.MeshStandardMaterial({ color: PALETTE.gold, roughness: 0.3, metalness: 0.9 });
@@ -147,32 +153,49 @@ export function createBoard(art) {
   parts.piano.userData.meshes = [];
   parts.piano.userData.overlays = pianoKeys;
 
-  // --- feet: through-hole pin headers ----------------------------------------------
+  // --- pin headers: plated holes on the front, black headers with pins underneath ----
   const pinsG = new THREE.Group();
   const pinLabels = [];
-  const headers = [];
-  for (const kind in FEET_PINS) {
-    const pts = FEET_PINS[kind].map(([fx, fy]) => W(fx, fy, BOARD_TOP + 0.025));
+  const holeRings = [];
+  const footPicks = [];
+  for (const kind in HEADERS) {
+    const { holes, label } = HEADERS[kind];
+    const pts = holes.map(([fx, fy]) => W(fx, fy));
     const mid = pts[0].clone().add(pts[3]).multiplyScalar(0.5);
     const dir = pts[3].clone().sub(pts[0]);
-    const header = new THREE.Mesh(new THREE.BoxGeometry(0.075, 0.045, dir.length() + 0.1), darkMat.clone());
-    header.position.copy(mid);
-    header.rotation.y = -Math.atan2(dir.x, dir.z);
-    header.castShadow = true;
-    pinsG.add(header);
-    headers.push(header);
     pts.forEach((p) => {
-      const pin = new THREE.Mesh(new THREE.BoxGeometry(0.025, 0.09, 0.025), goldMat);
-      pin.position.copy(p).setY(BOARD_TOP + 0.055);
+      if (kind === 'ground') return; // the GROUND header shows only on the back
+      // plated through-hole seen from the front
+      const ring = flat(new THREE.Mesh(new THREE.RingGeometry(0.02, 0.042, 24), new THREE.MeshStandardMaterial({ color: PALETTE.gold, roughness: 0.35, metalness: 0.85 })), 0);
+      ring.position.copy(p).setY(BOARD_TOP + 0.002);
+      pinsG.add(ring);
+      holeRings.push(ring);
+      // the pin itself hangs below the board
+      const pin = new THREE.Mesh(new THREE.BoxGeometry(0.024, LIFT - 0.02, 0.024), goldMat);
+      pin.position.copy(p).setY(LIFT / 2 + 0.01);
       pinsG.add(pin);
     });
-    header.userData.pick = { type: 'foot', key: kind };
-    pickables.push(header);
-    pinLabels.push({ label: kind === 'mouse' ? 'Fare pinleri' : 'W A S D pinleri', pos: mid.clone().setY(BOARD_TOP + 0.14) });
+    const header = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.06, dir.length() + 0.12), darkMat.clone());
+    header.position.copy(mid).setY(LIFT - 0.03);
+    header.rotation.y = Math.atan2(dir.x, dir.z);
+    header.castShadow = true;
+    pinsG.add(header);
+    // invisible pick area over the holes
+    const pick = flat(new THREE.Mesh(new THREE.PlaneGeometry(0.22, dir.length() + 0.2), overlayMat()), 0);
+    pick.position.copy(mid).setY(BOARD_TOP + 0.004);
+    pick.rotation.z = -Math.atan2(dir.x, dir.z);
+    pick.userData.pick = { type: 'foot', key: kind };
+    if (kind !== 'ground') pickables.push(pick);
+    if (kind !== 'ground') {
+      pinsG.add(pick);
+      footPicks.push(pick);
+      pinLabels.push({ label, pos: mid.clone().setY(BOARD_TOP + 0.12) });
+    }
   }
   group.add(pinsG);
   parts.pins = pinsG;
-  parts.pins.userData.meshes = headers;
+  parts.pins.userData.meshes = holeRings;
+  parts.pins.userData.overlays = footPicks;
   parts.pins.userData.labels = pinLabels;
 
   // --- USB-C at the top of the hat --------------------------------------------------
@@ -194,7 +217,7 @@ export function createBoard(art) {
   const PLUG_IN = -(up.v + 0.26), PLUG_OUT = -(up.v + 1.05);
   plug.position.set(up.u, BOARD_TOP + 0.02, PLUG_IN);
   usbG.add(plug);
-  const cableCurve = new THREE.CatmullRomCurve3([new THREE.Vector3(0, 0, -0.55), new THREE.Vector3(-0.05, -0.05, -1.2), new THREE.Vector3(-0.4, -0.06, -2.4), new THREE.Vector3(-0.9, -0.06, -4.2)]);
+  const cableCurve = new THREE.CatmullRomCurve3([new THREE.Vector3(0, 0, -0.55), new THREE.Vector3(-0.05, -0.08, -1.2), new THREE.Vector3(-0.4, -0.16, -2.4), new THREE.Vector3(-0.9, -0.16, -4.2)]);
   const cable = new THREE.Mesh(new THREE.TubeGeometry(cableCurve, 40, 0.028, 10, false), new THREE.MeshStandardMaterial({ color: '#2b211b', roughness: 0.6 }));
   cable.castShadow = true;
   plug.add(cable);
@@ -244,7 +267,7 @@ export function createBoard(art) {
         p.core.material.emissive.set(PALETTE.led);
         p.core.material.emissiveIntensity = p.heat * 0.5;
       }
-      [...pianoKeys, ...Object.values(dpad), btnX, btnY].forEach((k) => {
+      [...pianoKeys, ...Object.values(dpad), btnX, btnY, ...footPicks].forEach((k) => {
         const target = k.userData.pressed ? 0.75 : 0;
         k.material.opacity += (target - k.material.opacity) * Math.min(1, dt * 16);
       });

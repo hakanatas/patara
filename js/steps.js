@@ -116,7 +116,7 @@ export const STEPS = [
     title: 'Kıskaçsız da oynanır',
     body: `
       <p>Kartın üstündeki <b>yön tuşları</b> ile <span class="warm">X</span> ve <span class="warm">Y</span> fonksiyon tuşları hazır bir oyun kolu gibi çalışır; kıskaç ve GND gerekmez.</p>
-      <p>Ayaklardaki pin girişleri bir sonraki adım: <b>fare yön kontrolü</b>, birden çok <b>GND</b> ve jumper kabloyla sürülen <b>W A S D</b> pinleri. Kıskaçtan jumper'a, oradan breadboard'a.</p>`,
+      <p>Kartın arkasına lehimli pin başlıkları bir sonraki adım (ön yüzde altın delikler olarak görünür): <b>fare yön kontrolü</b>, birden çok <b>GND</b> ve jumper kabloyla sürülen <b>W A S D</b> pinleri. Kıskaçtan jumper'a, oradan breadboard'a.</p>`,
     focus: 'bottom',
     action: 'Yön tuşlarına bas',
     enter(c) {
