@@ -149,6 +149,26 @@ body.ui-hidden .reveal { display: inline-flex; }
 .glossary dd { margin: 0; color: var(--ink-soft); }
 .links { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
 .lesson__actions { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+
+/* circuit diagram in the clip chapter */
+.circuit { width: 100%; height: auto; margin: 10px 0 8px; display: block; }
+.circuit .c-board { fill: #e9f2e3; stroke: var(--moss); stroke-width: 1.5; }
+.circuit .c-pad { fill: #d9b25a; stroke: #a8843a; stroke-width: 1.2; }
+.circuit .c-gnd { fill: #3c3c3c; stroke: #d9b25a; }
+.circuit .c-pin { font: 700 8px var(--sans); fill: #2b211b; text-anchor: middle; }
+.circuit .c-gnd + .c-pin { fill: #d9b25a; }
+.circuit .c-lbl { font: 600 10px var(--sans); fill: var(--ink-soft); text-anchor: middle; }
+.circuit .c-inner { fill: none; stroke: var(--moss); stroke-width: 1.2; stroke-dasharray: 3 3; opacity: 0; }
+.circuit .c-banana { fill: #f2c14e; stroke: #b98a1d; stroke-width: 1.2; }
+.circuit .c-you circle, .circuit .c-you rect { fill: var(--terracotta); }
+.circuit .c-you .c-arm { fill: none; stroke: var(--terracotta); stroke-width: 6; stroke-linecap: round; }
+.circuit .c-flow { fill: none; stroke: var(--terracotta); stroke-width: 2.5; stroke-linecap: round; stroke-dasharray: 6 5; animation: c-dash 0.9s linear infinite; }
+.circuit .c-gap line { stroke: #b3261e; stroke-width: 3; stroke-linecap: round; }
+.circuit .c-gap .c-lbl { fill: #b3261e; font-weight: 700; }
+body.gnd-on .circuit .c-gap { display: none; }
+body:not(.gnd-on) .circuit .c-return { stroke: #c9b9ad; animation: none; stroke-dasharray: 2 5; }
+@keyframes c-dash { to { stroke-dashoffset: -11; } }
+.tag--band b { font-family: var(--serif); font-size: 14px; }
 .lesson__actions:empty { display: none; }
 
 /* buttons */

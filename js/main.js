@@ -5,7 +5,7 @@ import { Tweens, Ease, Context, CancelledError } from './tween.js';
 import { SoundKit } from './audio.js';
 import { createBoard } from './board.js';
 import { loadArtwork } from './artwork.js';
-import { createObject, createWire, createWristband, createBook, createPulse } from './objects.js';
+import { createObject, createWire, createBook, createPulse, createPerson } from './objects.js';
 import { createMonitor } from './monitor.js';
 import { STEPS } from './steps.js';
 
@@ -43,7 +43,7 @@ const isMobile = window.matchMedia('(pointer: coarse)').matches || window.innerW
 
 const state = {
   set: 'mutfak',
-  gnd: false, // the circuit is open until the GND wristband is worn
+  gnd: false, // the circuit is open until you hold the GND clip
   sound: false,
   autoplay: false,
   uiHidden: false,
@@ -108,36 +108,43 @@ const book = createBook();
 book.position.set(3.8, 0, -1.6);
 scene.add(book);
 
-/** The wristband stands for you: it sits in front of the board; the GND lead clips onto it. */
-const WRIST_TABLE = new THREE.Vector3(1.35, 0, 2.05);
-/** Where the loose GND clip lies when it is not attached to the wristband. */
-const GND_LOOSE = new THREE.Vector3(1.85, 0.03, 1.45);
-const wristband = createWristband();
-wristband.position.copy(WRIST_TABLE);
-wristband.rotation.y = 0.4;
-scene.add(wristband);
+/** "You" stand in front of the board: left hand for the GND clip, right hand to touch things. */
+const YOU_POS = new THREE.Vector3(1.45, 0, 2.85);
+/** Where the GND clip lies on the table when you are not holding it. */
+const GND_LOOSE = new THREE.Vector3(1.4, 0.03, 1.75);
+const person = createPerson();
+person.position.copy(YOU_POS);
+person.rotation.y = -0.75;
+person.scale.setScalar(0.82);
+scene.add(person);
 const pulse = createPulse();
 scene.add(pulse.group);
-// translucent arc that stands for your body while the current passes through you
+// translucent arc from your fingertip to the object you touch
 const bodyPath = new THREE.Mesh(new THREE.BufferGeometry(), new THREE.MeshBasicMaterial({ color: PALETTE.terracotta, transparent: true, opacity: 0, depthWrite: false }));
 bodyPath.visible = false;
 scene.add(bodyPath);
 const bodyTag = document.createElement('span');
 bodyTag.className = 'tag tag--key';
-bodyTag.textContent = 'senin vücudun';
+bodyTag.textContent = 'dokunuyorsun';
 bodyTag.style.position = 'fixed';
 bodyTag.style.zIndex = '9';
 document.body.appendChild(bodyTag);
 let bodyTagPos = null;
-// permanent status label over the wristband: "you", connected to GND or not
+// permanent status label over your head
 const bandTag = document.createElement('span');
 bandTag.className = 'tag tag--band is-on';
 bandTag.style.position = 'fixed';
 bandTag.style.zIndex = '9';
 document.body.appendChild(bandTag);
 function refreshBandTag() {
-  bandTag.innerHTML = state.gnd ? '<b>sen</b> · GND’ye bağlı ✓' : '<b>sen</b> · GND’ye bağlı değil · tıkla';
+  bandTag.innerHTML = state.gnd ? '<b>sen</b> · GND kıskacı elinde ✓' : '<b>sen</b> · GND kıskacı elinde değil · tıkla';
   bandTag.classList.toggle('is-off', !state.gnd);
+  document.body.classList.toggle('gnd-on', state.gnd);
+  person.userData.clip.visible = state.gnd;
+}
+function handWorld(which) {
+  person.updateMatrixWorld(true);
+  return person.localToWorld(person.userData[which].clone());
 }
 
 const gndWire = createWire(WIRE_COLORS.gnd);
@@ -216,20 +223,23 @@ function attachWires(animated) {
   tweens.wait(ctx, 0.25 + objects.length * 0.32).then(() => updateGndWire(true)).catch(() => {});
 }
 
-function wristbandTop() {
-  wristband.updateMatrixWorld(true);
-  return wristband.localToWorld(wristband.userData.top.clone());
-}
-/** Redraw the GND lead: clipped onto the wristband, or lying loose beside it. */
+/** Redraw the GND lead: in your left hand, or lying loose on the table. */
 function updateGndWire(snap, blend = state.gnd ? 1 : 0) {
   const from = padTop('gnd2');
-  const to = GND_LOOSE.clone().lerp(wristbandTop(), blend);
-  gndWire.setEnds(from, to, { sag: 0.25 + 0.15 * blend });
+  const to = GND_LOOSE.clone().lerp(handWorld('handL'), blend);
+  gndWire.setEnds(from, to, { sag: 0.25 + 0.2 * blend });
   if (snap) sound.play('clip', { volume: 0.7 });
 }
-/** Show the arc "through you" from an object to the wristband; returns its curve. */
+/** The path of the current through you: right hand → body → left hand (the GND clip). */
+function bodyCurve() {
+  const r = handWorld('handR'), l = handWorld('handL');
+  person.updateMatrixWorld(true);
+  const chest = person.localToWorld(new THREE.Vector3(0, 0.9, 0));
+  return new THREE.CatmullRomCurve3([r, chest, l]);
+}
+/** Show the touch arc from an object to your right hand; returns its curve. */
 function showBodyPath(from) {
-  const to = wristbandTop();
+  const to = handWorld('handR');
   const mid = from.clone().lerp(to, 0.5);
   mid.y = Math.max(from.y, to.y) + 0.9;
   const curve = new THREE.CatmullRomCurve3([from, mid, to]);
@@ -279,7 +289,7 @@ const swallowCancel = (e) => {
   if (!(e instanceof CancelledError)) throw e;
 };
 
-/** Touch an object: the current runs pad → lead → object → you → wristband → GND lead → GND pad. */
+/** Touch an object: the current runs pad → lead → object → your right hand → body → left hand (GND clip) → GND lead → GND pad. */
 async function touch(id, via = 'pointer') {
   const obj = objectFor(id);
   if (!obj) return;
@@ -299,16 +309,16 @@ async function touch(id, via = 'pointer') {
     const w = wires.get(key);
     board.pressPad(key);
     sound.play('pulse', { volume: 0.6 });
-    const body = showBodyPath(top);
+    const reach = showBodyPath(top);
     const speed = state.reducedMotion ? 0.5 : 1;
-    await pulse.run(tweens, c, [{ curve: w.state.curve, dur: 0.4 * speed }, { curve: body, dur: 0.5 * speed }], Ease.linear);
+    await pulse.run(tweens, c, [{ curve: w.state.curve, dur: 0.4 * speed }, { curve: reach, dur: 0.45 * speed }, { curve: bodyCurve(), dur: 0.3 * speed }], Ease.linear);
     if (!state.gnd) {
-      // the current reaches you, but the GND clip is not on the wristband: no way back
-      showSpark(wristbandTop());
+      // the current crossed you to the left hand, but there is no GND clip in it: no way back
+      showSpark(handWorld('handL'));
       sound.play('buzz');
       board.setLed('x', true);
       monitor.say('Devre açık: tuş gelmedi');
-      toast('Devre açık! Akım sana kadar geldi ama GND kıskacı bileklikte değil: toprağa dönemiyor.', { warn: true, ms: 3600 });
+      toast('Devre açık! Akım senin üzerinden geçti ama elinde GND kıskacı yok: karta dönemiyor.', { warn: true, ms: 3600 });
       obj.userData.shake = 0.5;
     } else {
       await pulse.run(tweens, c, [{ curve: gndWire.state.curve, dur: 0.4 * speed, reverse: true }], Ease.linear);
@@ -342,7 +352,7 @@ function showSpark(pos) {
 }
 
 let gndCtx = null;
-/** Clip the GND lead onto the wristband (or take it off). */
+/** Take the GND clip in your left hand (or put it down). */
 async function setGnd(on, { silent = false } = {}) {
   state.gnd = on;
   document.querySelector('[data-toggle="gnd"]').setAttribute('aria-pressed', String(on));
@@ -367,13 +377,13 @@ async function setGnd(on, { silent = false } = {}) {
     updateGndWire(true);
     board.pressPad('gnd2');
     if (on) {
-      wristband.userData.pop = 1;
+      person.userData.pop = 1;
       board.setLed('check');
       monitor.say('GND bağlı: devre hazır');
-      toast('GND kıskacı bilekliğe takıldı. Artık akım senin üzerinden toprağa dönebilir: devre kapalı.');
+      toast('GND kıskacı artık elinde. Dokunduğun şeyden gelen akım senin üzerinden karta dönebilir: devre kapalı.');
     } else {
       board.setLed('x', true);
-      toast('GND kıskacı çıkarıldı. Devre açık: nesneler artık tepki vermez.', { warn: true });
+      toast('GND kıskacını bıraktın. Devre açık: nesneler artık tepki vermez.', { warn: true });
     }
   } catch (e) {
     swallowCancel(e);
@@ -579,7 +589,7 @@ let hovered = null;
 let hoverPoint = new THREE.Vector3();
 
 function pickables() {
-  const list = [...board.pickables, ...wristband.userData.picks, ...book.userData.picks, ...monitor.group.userData.picks];
+  const list = [...board.pickables, ...person.userData.picks, ...book.userData.picks, ...monitor.group.userData.picks];
   objects.forEach((o) => list.push(...o.userData.picks));
   return list;
 }
@@ -641,7 +651,7 @@ function labelFor(p) {
     case 'fn':
       return `${p.key} fonksiyon tuşu`;
     case 'gnd':
-      return `GND bilekliği: sen <em>· ${state.gnd ? 'kıskaç takılı, tıkla: çıkar' : 'kıskaç takılı değil, tıkla: tak'}</em>`;
+      return `Sen <em>· ${state.gnd ? 'GND kıskacı elinde, tıkla: bırak' : 'GND kıskacı elinde değil, tıkla: eline al'}</em>`;
     case 'book':
       return 'Etkinlik kitabı <em>· 12 macera</em>';
     case 'monitor':
@@ -895,20 +905,18 @@ function frame() {
     }
   }
   {
-    tmpV.copy(WRIST_TABLE).add(new THREE.Vector3(0, 0.35, 0)).project(camera);
+    tmpV.copy(YOU_POS).add(new THREE.Vector3(0, 1.55, 0)).project(camera);
     const r = canvas.getBoundingClientRect();
     bandTag.style.transform = `translate(${r.left + ((tmpV.x + 1) / 2) * r.width}px, ${r.top + ((1 - tmpV.y) / 2) * r.height}px) translate(-50%, -100%)`;
     bandTag.style.visibility = state.uiHidden ? 'hidden' : 'visible';
-    if (!state.gnd) wristband.userData.idle = (wristband.userData.idle || 0) + dt;
   }
   if (bodyTagPos) {
     tmpV.copy(bodyTagPos).project(camera);
     const r = canvas.getBoundingClientRect();
     bodyTag.style.transform = `translate(${r.left + ((tmpV.x + 1) / 2) * r.width}px, ${r.top + ((1 - tmpV.y) / 2) * r.height - 22}px) translate(-50%, -50%)`;
   }
-  const bandPop = (wristband.userData.pop = Math.max(0, (wristband.userData.pop || 0) - dt * 2.5));
-  const breathe = state.gnd ? 0 : Math.max(0, Math.sin(time * 2.4)) * 0.06;
-  wristband.scale.setScalar(1 + Math.sin(bandPop * Math.PI) * 0.18 + breathe);
+  const pop = (person.userData.pop = Math.max(0, (person.userData.pop || 0) - dt * 2.5));
+  person.position.y = Math.sin(pop * Math.PI) * 0.18 + (state.gnd ? 0 : Math.max(0, Math.sin(time * 2.4)) * 0.03);
   if (sparkRing.visible) {
     sparkRing.userData.t += dt * 2.5;
     const t = sparkRing.userData.t;

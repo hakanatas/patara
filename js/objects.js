@@ -277,3 +277,36 @@ export function createPulse() {
     },
   };
 }
+
+/** "You": a clean signage-style figure facing +z. Left hand holds the GND clip, right hand touches things. */
+export function createPerson() {
+  const g = new THREE.Group();
+  g.name = 'person';
+  const mat = std({ color: PALETTE.terracotta, roughness: 0.8 });
+  const limb = (a, b, r) => {
+    const dir = b.clone().sub(a);
+    const m = new THREE.Mesh(new THREE.CapsuleGeometry(r, dir.length(), 4, 12), mat);
+    m.position.copy(a).add(b).multiplyScalar(0.5);
+    m.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir.clone().normalize());
+    return shadow(m);
+  };
+  const head = shadow(new THREE.Mesh(new THREE.SphereGeometry(0.17, 24, 18), mat));
+  head.position.set(0, 1.24, 0);
+  const torso = shadow(new THREE.Mesh(new THREE.CapsuleGeometry(0.2, 0.42, 6, 16), mat));
+  torso.position.set(0, 0.74, 0);
+  const legL = limb(new THREE.Vector3(-0.1, 0.5, 0), new THREE.Vector3(-0.12, 0.05, 0), 0.075);
+  const legR = limb(new THREE.Vector3(0.1, 0.5, 0), new THREE.Vector3(0.12, 0.05, 0), 0.075);
+  const handL = new THREE.Vector3(-0.44, 0.52, 0.12); // holds the GND clip
+  const handR = new THREE.Vector3(0.5, 1.02, -0.32); // reaches out to touch
+  const armL = limb(new THREE.Vector3(-0.22, 0.95, 0), handL, 0.06);
+  const armR = limb(new THREE.Vector3(0.22, 0.95, 0), handR, 0.06);
+  const clip = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.07, 0.18), new THREE.MeshStandardMaterial({ color: '#8f97a3', roughness: 0.35, metalness: 0.9 }));
+  clip.position.copy(handL).add(new THREE.Vector3(-0.02, -0.05, 0.02));
+  clip.rotation.y = 0.3;
+  clip.visible = false;
+  g.add(head, torso, legL, legR, armL, armR, clip);
+  const picks = [head, torso, armL, armR];
+  picks.forEach((m) => (m.userData.pick = { type: 'gnd' }));
+  g.userData = { picks, handL, handR, clip, top: new THREE.Vector3(0, 1.5, 0) };
+  return g;
+}

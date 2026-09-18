@@ -32,11 +32,31 @@ export const STEPS = [
     label: 'Kıskaçla',
     title: 'Kıskaçla, devreyi kapat',
     body: `
-      <p>Kıskaçlı kablonun bir ucunu koldaki bir pede, öbür ucunu iletken bir nesneye tak: muz, kaşık, oyun hamuru, kurşun kalemle çizilmiş koyu bir çizgi…</p>
-      <p>Bir kablo da <span class="warm">GND</span> pedinden sana gelir: kıskacı bilekliğe takarsın (sahnedeki bileklik sensin). Nesneye dokununca akım kablodan nesneye, oradan <b>senin üzerinden</b> bilekliğe ve GND kablosuyla karta döner; devre böyle kapanır ve Patara bu minicik akımı algılar.</p>
-      <p class="note">GND kıskacı takılı değilse hiçbir şey olmaz: bir nesneye tıkla, akımın sende takılıp kaldığını gör. Sonra kıskacı bilekliğe tak ve tekrar dene.</p>`,
+      <p>Kıskaçlı kablonun bir ucunu koldaki bir pede, öbür ucunu iletken bir nesneye tak: muz, kaşık, oyun hamuru, kalemle çizilmiş koyu bir çizgi…</p>
+      <p>İkinci bir kablo <span class="warm">GND</span> pedinden <b>sana</b> gelir: kıskacını elinde tutarsın (sahnede önündeki figür sensin). Nesneye dokununca akım pedden nesneye, oradan <b>senin üzerinden</b> elindeki GND kıskacına ve karta geri döner. Halka böyle kapanır; Patara bu minicik akımı algılar.</p>
+      <svg class="circuit" viewBox="0 0 360 150" role="img" aria-label="Devre halkası: UP pedi, muz, sen, GND pedi">
+        <rect x="8" y="22" width="86" height="106" rx="14" class="c-board"/>
+        <text x="51" y="44" class="c-lbl">Patara</text>
+        <circle cx="70" cy="66" r="10" class="c-pad"/><text x="70" y="70" class="c-pin">UP</text>
+        <circle cx="70" cy="106" r="10" class="c-pad c-gnd"/><text x="70" y="110" class="c-pin">GND</text>
+        <path d="M100 96 Q 120 86 140 96" class="c-inner"/>
+        <ellipse cx="190" cy="52" rx="26" ry="16" class="c-banana"/><text x="190" y="57" class="c-lbl">muz</text>
+        <g class="c-you" transform="translate(300 60)">
+          <circle cx="0" cy="-30" r="10"/><rect x="-9" y="-18" width="18" height="34" rx="8"/>
+          <path d="M-9 -8 L-30 12" class="c-arm"/><path d="M9 -8 L34 -16" class="c-arm"/>
+          <path d="M-8 16 L-12 42 M8 16 L12 42" class="c-arm"/>
+          <text x="0" y="60" class="c-lbl">sen</text>
+        </g>
+        <path class="c-flow" d="M80 66 L164 52"/>
+        <path class="c-flow" d="M216 52 Q 260 40 334 44"/>
+        <path class="c-flow" d="M334 44 Q 300 20 270 72"/>
+        <path class="c-flow c-return" d="M270 72 Q 200 130 80 106"/>
+        <path class="c-flow" d="M70 96 L70 76"/>
+        <g class="c-gap"><line x1="238" y1="80" x2="256" y2="98"/><line x1="256" y1="80" x2="238" y2="98"/><text x="247" y="118" class="c-lbl">GND yok</text></g>
+      </svg>
+      <p class="note">GND kıskacı elinde değilse halka orada kopar: bir nesneye tıkla, akımın sende takılıp kaldığını gör. Sonra "GND kıskacını eline al" ve tekrar dene.</p>`,
     focus: 'objects',
-    action: 'GND kıskacını bilekliğe tak',
+    action: 'GND kıskacını eline al',
     action2: 'Kabloları yeniden tak',
     enter(c) {
       c.board.highlight(null);
@@ -57,7 +77,7 @@ export const STEPS = [
     body: `
       <p>Muza dokun: <span class="key">↑</span>. Kaşığa dokun: <span class="key">→</span>. Kalem çizgisine dokun: <span class="key">Space</span>. Arkadaki bilgisayar yalnızca tuşları görüyor; robotu yıldıza sen götürüyorsun.</p>
       <p>Nesnelere tıklayarak ya da klavyende <span class="key">W</span> <span class="key">A</span> <span class="key">S</span> <span class="key">D</span> ve boşluk tuşuyla dene. Üstteki <b>Mutfak / Kırtasiye</b> anahtarı nesne setini değiştirir.</p>
-      <p class="note">Unutma: devre ancak <span class="warm">GND</span> kıskacı bileklikteyken kapanır. Kıskacı çıkarırsan nesneler susar.</p>`,
+      <p class="note">Unutma: devre ancak <span class="warm">GND</span> kıskacı elindeyken kapanır. Kıskacı bırakırsan nesneler susar.</p>`,
     focus: 'overview',
     action: 'Muza dokun',
     action2: 'Hepsine dokun',
