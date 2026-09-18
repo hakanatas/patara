@@ -129,6 +129,16 @@ bodyTag.style.position = 'fixed';
 bodyTag.style.zIndex = '9';
 document.body.appendChild(bodyTag);
 let bodyTagPos = null;
+// permanent status label over the wristband: "you", connected to GND or not
+const bandTag = document.createElement('span');
+bandTag.className = 'tag tag--band is-on';
+bandTag.style.position = 'fixed';
+bandTag.style.zIndex = '9';
+document.body.appendChild(bandTag);
+function refreshBandTag() {
+  bandTag.innerHTML = state.gnd ? '<b>sen</b> · GND’ye bağlı ✓' : '<b>sen</b> · GND’ye bağlı değil · tıkla';
+  bandTag.classList.toggle('is-off', !state.gnd);
+}
 
 const gndWire = createWire(WIRE_COLORS.gnd);
 scene.add(gndWire.group);
@@ -339,6 +349,7 @@ async function setGnd(on, { silent = false } = {}) {
   if (gndCtx) gndCtx.cancel();
   gndCtx = new Context();
   const c = gndCtx;
+  refreshBandTag();
   if (silent) {
     updateGndWire(false);
     board.setLed(on ? 'check' : 'smile');
@@ -883,13 +894,21 @@ function frame() {
       bodyPath.userData.fading = false;
     }
   }
+  {
+    tmpV.copy(WRIST_TABLE).add(new THREE.Vector3(0, 0.35, 0)).project(camera);
+    const r = canvas.getBoundingClientRect();
+    bandTag.style.transform = `translate(${r.left + ((tmpV.x + 1) / 2) * r.width}px, ${r.top + ((1 - tmpV.y) / 2) * r.height}px) translate(-50%, -100%)`;
+    bandTag.style.visibility = state.uiHidden ? 'hidden' : 'visible';
+    if (!state.gnd) wristband.userData.idle = (wristband.userData.idle || 0) + dt;
+  }
   if (bodyTagPos) {
     tmpV.copy(bodyTagPos).project(camera);
     const r = canvas.getBoundingClientRect();
     bodyTag.style.transform = `translate(${r.left + ((tmpV.x + 1) / 2) * r.width}px, ${r.top + ((1 - tmpV.y) / 2) * r.height - 22}px) translate(-50%, -50%)`;
   }
   const bandPop = (wristband.userData.pop = Math.max(0, (wristband.userData.pop || 0) - dt * 2.5));
-  wristband.scale.setScalar(1 + Math.sin(bandPop * Math.PI) * 0.18);
+  const breathe = state.gnd ? 0 : Math.max(0, Math.sin(time * 2.4)) * 0.06;
+  wristband.scale.setScalar(1 + Math.sin(bandPop * Math.PI) * 0.18 + breathe);
   if (sparkRing.visible) {
     sparkRing.userData.t += dt * 2.5;
     const t = sparkRing.userData.t;
