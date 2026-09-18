@@ -20,9 +20,10 @@ const DPAD_POS = { up: [0.347, 0.5425], left: [0.3, 0.5825], right: [0.393, 0.58
 const XY_POS = { X: [0.631, 0.54], Y: [0.751, 0.6075] };
 const MATRIX = { fx: 0.52, fy: 0.608, step: 0.16, size: 0.09 };
 const PIANO = { fx0: 0.2, fx1: 0.803, fyTop: 0.7075, fyBottom: 0.995 };
+/* Four through-holes per foot, running along the foot's diagonal beside the printed icons. */
 const FEET_PINS = {
-  mouse: [[0.272, 0.868], [0.283, 0.893], [0.294, 0.918], [0.305, 0.943]],
-  keyboard: [[0.728, 0.868], [0.717, 0.893], [0.706, 0.918], [0.695, 0.943]],
+  mouse: [[0.166, 0.884], [0.184, 0.903], [0.202, 0.922], [0.22, 0.941]],
+  keyboard: [[0.752, 0.904], [0.767, 0.89], [0.782, 0.876], [0.797, 0.862]],
 };
 const USB_POS = [0.493, 0.03];
 
@@ -154,7 +155,7 @@ export function createBoard(art) {
     const pts = FEET_PINS[kind].map(([fx, fy]) => W(fx, fy, BOARD_TOP + 0.025));
     const mid = pts[0].clone().add(pts[3]).multiplyScalar(0.5);
     const dir = pts[3].clone().sub(pts[0]);
-    const header = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.05, dir.length() + 0.14), darkMat.clone());
+    const header = new THREE.Mesh(new THREE.BoxGeometry(0.075, 0.045, dir.length() + 0.1), darkMat.clone());
     header.position.copy(mid);
     header.rotation.y = -Math.atan2(dir.x, dir.z);
     header.castShadow = true;
@@ -162,7 +163,7 @@ export function createBoard(art) {
     headers.push(header);
     pts.forEach((p) => {
       const pin = new THREE.Mesh(new THREE.BoxGeometry(0.025, 0.09, 0.025), goldMat);
-      pin.position.copy(p).setY(BOARD_TOP + 0.06);
+      pin.position.copy(p).setY(BOARD_TOP + 0.055);
       pinsG.add(pin);
     });
     header.userData.pick = { type: 'foot', key: kind };
