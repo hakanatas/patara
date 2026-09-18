@@ -1,95 +1,97 @@
 import * as THREE from 'three';
-import { PALETTE, KEYS, PADS_LEFT, PADS_RIGHT, LED } from './config.js';
-import { ART, armPads, FEET, HEAD, USB, SHELL, makeFrontTexture, makeBackTexture, makeOutlineShape } from './artwork.js';
-import { makePadLabel } from './textures.js';
+import { PALETTE, PADS_LEFT, PADS_RIGHT, LED } from './config.js';
+import { P, BOARD_W } from './artwork.js';
 
 /** PCB thickness: the top surface of the board. */
 export const BOARD_TOP = 0.05;
-export const PLATE_TOP = BOARD_TOP;
 
 const toWorld = (u, v, y = BOARD_TOP) => new THREE.Vector3(u, y, -v);
+const W = (fx, fy, y) => {
+  const p = P(fx, fy);
+  return toWorld(p.u, p.v, y);
+};
 
-/** Local foot coordinates (canvas-style, y down) → board units. */
-function footPoint(f, lx, ly) {
-  return { u: f.u + lx * Math.cos(f.rot) + ly * Math.sin(f.rot), v: f.v + lx * Math.sin(f.rot) - ly * Math.cos(f.rot) };
-}
+/* Feature positions as fractions of the front print (x/width, y/height). */
+const PAD_POS = {
+  up: [0.268, 0.352], left: [0.205, 0.39], right: [0.152, 0.447], down: [0.137, 0.515], gnd: [0.142, 0.585],
+  space: [0.732, 0.352], click: [0.795, 0.39], rclick: [0.848, 0.447], enter: [0.863, 0.515], gnd2: [0.858, 0.585],
+};
+const DPAD_POS = { up: [0.347, 0.5425], left: [0.3, 0.5825], right: [0.393, 0.5825], down: [0.347, 0.6225] };
+const XY_POS = { X: [0.631, 0.54], Y: [0.751, 0.6075] };
+const MATRIX = { fx: 0.52, fy: 0.608, step: 0.16, size: 0.09 };
+const PIANO = { fx0: 0.2, fx1: 0.803, fyTop: 0.7075, fyBottom: 0.995 };
+const FEET_PINS = {
+  mouse: [[0.272, 0.868], [0.283, 0.893], [0.294, 0.918], [0.305, 0.943]],
+  keyboard: [[0.728, 0.868], [0.717, 0.893], [0.706, 0.918], [0.695, 0.943]],
+};
+const USB_POS = [0.493, 0.03];
 
-export function createBoard() {
+export function createBoard(art) {
   const group = new THREE.Group();
   group.name = 'board';
   const parts = {};
   const pickables = [];
 
-  // --- the PCB itself ----------------------------------------------------
-  const front = makeFrontTexture(1024);
-  front.repeat.set(1 / ART.W, 1 / ART.H);
-  front.offset.set(-ART.uMin / ART.W, -ART.vMin / ART.H);
-  const back = makeBackTexture(512);
-  back.repeat.copy(front.repeat);
-  back.offset.copy(front.offset);
-  const shape = makeOutlineShape(560);
-  const geo = new THREE.ExtrudeGeometry(shape, { depth: BOARD_TOP, bevelEnabled: false, curveSegments: 4 });
-  geo.rotateX(-Math.PI / 2); // (u, v, d) → (u, d, -v)
-  const faceMat = new THREE.MeshStandardMaterial({ map: front, roughness: 0.55, metalness: 0.05 });
+  // --- the PCB itself: the real print on a thin extruded silhouette ------------
+  const geo = new THREE.ExtrudeGeometry(art.shape, { depth: BOARD_TOP, bevelEnabled: false, curveSegments: 4 });
+  geo.rotateX(-Math.PI / 2);
+  const faceMat = new THREE.MeshStandardMaterial({ map: art.frontTex, roughness: 0.6, metalness: 0.02 });
   const edgeMat = new THREE.MeshStandardMaterial({ color: '#2e7a2a', roughness: 0.7 });
   const pcb = new THREE.Mesh(geo, [faceMat, edgeMat]);
   pcb.castShadow = true;
   pcb.receiveShadow = true;
   group.add(pcb);
-  const backGeo = new THREE.ShapeGeometry(shape, 4);
-  backGeo.rotateX(Math.PI / 2); // faces down
-  const backMesh = new THREE.Mesh(backGeo, new THREE.MeshStandardMaterial({ map: back, roughness: 0.7 }));
+  const backGeo = new THREE.ShapeGeometry(art.shape, 4);
+  backGeo.rotateX(Math.PI / 2);
+  const backMesh = new THREE.Mesh(backGeo, new THREE.MeshStandardMaterial({ map: art.backTex, roughness: 0.7 }));
   backMesh.position.y = -0.001;
   group.add(backMesh);
 
   const goldMat = new THREE.MeshStandardMaterial({ color: PALETTE.gold, roughness: 0.3, metalness: 0.9 });
   const darkMat = new THREE.MeshStandardMaterial({ color: '#1b1b1b', roughness: 0.6 });
-  const whiteMat = new THREE.MeshStandardMaterial({ color: '#fbfaf6', roughness: 0.45 });
   const metalMat = new THREE.MeshStandardMaterial({ color: PALETTE.metal, roughness: 0.3, metalness: 0.9 });
-  const labelMat = (tex) => new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false });
+  /** Invisible pick target that lights up while pressed. */
+  const overlayMat = () => new THREE.MeshBasicMaterial({ color: '#9fe0c0', transparent: true, opacity: 0, depthWrite: false });
   const flat = (mesh, y) => {
     mesh.rotation.x = -Math.PI / 2;
     mesh.position.y = y;
     return mesh;
   };
 
-  // --- gold pads on the arms (real, slightly raised, with the clip hole) -----
+  // --- gold pads on the arms (copper rings with the clip hole) -----------------
   const pads = {};
   const padMeshes = [];
-  const makePads = (side, keys) => {
-    armPads(side).forEach((p, i) => {
-      const key = keys[i];
-      const g = new THREE.Group();
-      g.position.copy(toWorld(p.u, p.v));
-      const core = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.16, 0.012, 40), goldMat.clone());
-      core.position.y = 0.006;
-      core.castShadow = true;
-      const hole = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.045, 0.02, 20), darkMat);
-      hole.position.y = 0.006;
-      const glow = flat(new THREE.Mesh(new THREE.RingGeometry(0.17, 0.27, 40), new THREE.MeshBasicMaterial({ color: PALETTE.led, transparent: true, opacity: 0, depthWrite: false })), 0.014);
-      g.add(core, hole, glow);
-      core.userData.pick = { type: 'pad', key };
-      pickables.push(core);
-      group.add(g);
-      padMeshes.push(core);
-      pads[key] = { group: g, core, glow, heat: 0, top: () => toWorld(p.u, p.v, BOARD_TOP + 0.015) };
-    });
-  };
-  makePads(-1, PADS_LEFT);
-  makePads(1, PADS_RIGHT);
+  [...PADS_LEFT, ...PADS_RIGHT].forEach((key) => {
+    const [fx, fy] = PAD_POS[key];
+    const g = new THREE.Group();
+    g.position.copy(W(fx, fy));
+    const core = new THREE.Mesh(new THREE.CylinderGeometry(0.17, 0.17, 0.012, 40), goldMat.clone());
+    core.position.y = 0.006;
+    core.castShadow = true;
+    const hole = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.02, 20), darkMat);
+    hole.position.y = 0.006;
+    const glow = flat(new THREE.Mesh(new THREE.RingGeometry(0.18, 0.28, 40), new THREE.MeshBasicMaterial({ color: PALETTE.led, transparent: true, opacity: 0, depthWrite: false })), 0.014);
+    g.add(core, hole, glow);
+    core.userData.pick = { type: 'pad', key };
+    pickables.push(core);
+    group.add(g);
+    padMeshes.push(core);
+    pads[key] = { group: g, core, glow, heat: 0, top: () => W(fx, fy, BOARD_TOP + 0.015) };
+  });
   parts.arms = new THREE.Group();
   parts.arms.userData.meshes = padMeshes;
   parts.arms.userData.pads = pads;
 
-  // --- LED matrix ---------------------------------------------------------
+  // --- LED matrix ---------------------------------------------------------------
   const matrixG = new THREE.Group();
   const leds = [];
-  const ledGeo = new THREE.BoxGeometry(0.075, 0.03, 0.075);
+  const ledGeo = new THREE.BoxGeometry(MATRIX.size, 0.03, MATRIX.size);
+  const mc = P(MATRIX.fx, MATRIX.fy);
   for (let r = 0; r < 5; r++) {
     leds[r] = [];
     for (let c = 0; c < 5; c++) {
       const m = new THREE.Mesh(ledGeo, new THREE.MeshStandardMaterial({ color: PALETTE.ledOff, roughness: 0.4, emissive: PALETTE.led, emissiveIntensity: 0 }));
-      m.position.copy(toWorld(-0.28 + c * 0.14, 0.62 - r * 0.14, BOARD_TOP + 0.015));
+      m.position.copy(toWorld(mc.u + (c - 2) * MATRIX.step, mc.v - (r - 2) * MATRIX.step, BOARD_TOP + 0.015));
       m.userData.on = false;
       matrixG.add(m);
       leds[r][c] = m;
@@ -99,96 +101,87 @@ export function createBoard() {
   parts.matrix = matrixG;
   parts.matrix.userData.meshes = [];
 
-  // --- d-pad and X / Y: thin white discs over the print -------------------
+  // --- d-pad and X / Y: invisible discs over the printed buttons ---------------
   const funcG = new THREE.Group();
   const dpad = {};
-  const disc = (u, v, r, glyph, pick) => {
-    const m = new THREE.Mesh(new THREE.CylinderGeometry(r, r, 0.014, 32), whiteMat.clone());
-    m.position.copy(toWorld(u, v, BOARD_TOP + 0.007));
-    m.castShadow = true;
-    m.add(flat(new THREE.Mesh(new THREE.PlaneGeometry(r * 1.5, r * 1.5), labelMat(makePadLabel(glyph, { fg: '#111111' }))), 0.008));
+  const disc = (fx, fy, r, pick) => {
+    const m = flat(new THREE.Mesh(new THREE.CircleGeometry(r, 32), overlayMat()), 0);
+    m.position.copy(W(fx, fy, BOARD_TOP + 0.003));
     m.userData.pick = pick;
     pickables.push(m);
     funcG.add(m);
     return m;
   };
-  dpad.up = disc(-0.74, 0.55, 0.1, '▲', { type: 'dpad', key: 'up' });
-  dpad.down = disc(-0.74, 0.11, 0.1, '▼', { type: 'dpad', key: 'down' });
-  dpad.left = disc(-0.96, 0.33, 0.1, '◀', { type: 'dpad', key: 'left' });
-  dpad.right = disc(-0.52, 0.33, 0.1, '▶', { type: 'dpad', key: 'right' });
-  const btnX = disc(0.74, 0.55, 0.12, 'X', { type: 'fn', key: 'X' });
-  const btnY = disc(0.98, 0.14, 0.12, 'Y', { type: 'fn', key: 'Y' });
+  for (const k in DPAD_POS) dpad[k] = disc(DPAD_POS[k][0], DPAD_POS[k][1], 0.13, { type: 'dpad', key: k });
+  const btnX = disc(XY_POS.X[0], XY_POS.X[1], 0.14, { type: 'fn', key: 'X' });
+  const btnY = disc(XY_POS.Y[0], XY_POS.Y[1], 0.14, { type: 'fn', key: 'Y' });
   group.add(funcG);
   parts.func = funcG;
-  parts.func.userData.meshes = [...Object.values(dpad), btnX, btnY];
+  parts.func.userData.meshes = [];
+  parts.func.userData.overlays = [...Object.values(dpad), btnX, btnY];
 
-  // --- piano: thin keys that follow the shell curve -------------------------
+  // --- piano: invisible keys over the printed ones -------------------------------
   const pianoG = new THREE.Group();
   const pianoKeys = [];
   const NOTE_NAMES = ['C', 'D', 'E', 'F', 'G', 'A', 'B', 'C'];
   const NOTE_TR = ['Do', 'Re', 'Mi', 'Fa', 'Sol', 'La', 'Si', 'Do'];
   const NOTE_FREQ = [261.63, 293.66, 329.63, 349.23, 392.0, 440.0, 493.88, 523.25];
-  const KW = 0.33, u0 = -1.32, vTop = -0.36;
-  const shellBottom = (u) => SHELL.v - (SHELL.ry - 0.15) * Math.sqrt(Math.max(0, 1 - (u / (SHELL.rx - 0.15)) ** 2));
+  const p0 = P(PIANO.fx0, PIANO.fyTop), p1 = P(PIANO.fx1, PIANO.fyBottom);
+  const KW = (p1.u - p0.u) / 8;
+  const shellBottom = (u) => -0.15 - 1.72 * Math.sqrt(Math.max(0, 1 - (u / 1.68) ** 2));
   for (let i = 0; i < 8; i++) {
-    const uc = u0 + (i + 0.5) * KW;
-    const vBottom = Math.max(shellBottom(uc) + 0.08, -1.78);
-    const len = vTop - vBottom;
-    const k = new THREE.Mesh(new THREE.BoxGeometry(KW - 0.03, 0.014, len), whiteMat.clone());
-    k.position.copy(toWorld(uc, (vTop + vBottom) / 2, BOARD_TOP + 0.007));
-    k.castShadow = true;
-    const l = flat(new THREE.Mesh(new THREE.PlaneGeometry(0.18, 0.18), labelMat(makePadLabel(NOTE_NAMES[i], { fg: '#111111' }))), 0.008);
-    l.position.z = len / 2 - 0.16;
-    k.add(l);
+    const uc = p0.u + (i + 0.5) * KW;
+    const vBottom = Math.max(shellBottom(uc) + 0.12, p1.v);
+    const len = p0.v - vBottom;
+    const k = new THREE.Mesh(new THREE.PlaneGeometry(KW - 0.02, len), overlayMat());
+    k.rotation.x = -Math.PI / 2;
+    k.position.copy(toWorld(uc, (p0.v + vBottom) / 2, BOARD_TOP + 0.003));
     k.userData.pick = { type: 'piano', index: i, note: `${NOTE_NAMES[i]} · ${NOTE_TR[i]}`, freq: NOTE_FREQ[i] };
     pickables.push(k);
     pianoG.add(k);
     pianoKeys.push(k);
   }
-  [1, 2, 4, 5, 6].forEach((i) => {
-    const b = new THREE.Mesh(new THREE.BoxGeometry(0.17, 0.022, 0.64), darkMat);
-    b.position.copy(toWorld(u0 + i * KW, vTop - 0.32, BOARD_TOP + 0.011));
-    b.castShadow = true;
-    pianoG.add(b);
-  });
   group.add(pianoG);
   parts.piano = pianoG;
-  parts.piano.userData.meshes = pianoKeys;
+  parts.piano.userData.meshes = [];
+  parts.piano.userData.overlays = pianoKeys;
 
-  // --- feet: through-hole pins -------------------------------------------------
+  // --- feet: through-hole pin headers ----------------------------------------------
   const pinsG = new THREE.Group();
   const pinLabels = [];
   const headers = [];
-  FEET.forEach((f) => {
-    const hp = footPoint(f, -f.side * 0.26, 0);
-    const header = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.05, 0.46), darkMat.clone());
-    header.position.copy(toWorld(hp.u, hp.v, BOARD_TOP + 0.025));
-    header.rotation.y = f.rot;
+  for (const kind in FEET_PINS) {
+    const pts = FEET_PINS[kind].map(([fx, fy]) => W(fx, fy, BOARD_TOP + 0.025));
+    const mid = pts[0].clone().add(pts[3]).multiplyScalar(0.5);
+    const dir = pts[3].clone().sub(pts[0]);
+    const header = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.05, dir.length() + 0.14), darkMat.clone());
+    header.position.copy(mid);
+    header.rotation.y = -Math.atan2(dir.x, dir.z);
     header.castShadow = true;
     pinsG.add(header);
     headers.push(header);
-    for (let i = 0; i < 4; i++) {
-      const pp = footPoint(f, -f.side * 0.26, -0.2 + i * 0.13);
-      const pin = new THREE.Mesh(new THREE.BoxGeometry(0.024, 0.09, 0.024), goldMat);
-      pin.position.copy(toWorld(pp.u, pp.v, BOARD_TOP + 0.06));
+    pts.forEach((p) => {
+      const pin = new THREE.Mesh(new THREE.BoxGeometry(0.025, 0.09, 0.025), goldMat);
+      pin.position.copy(p).setY(BOARD_TOP + 0.06);
       pinsG.add(pin);
-    }
-    header.userData.pick = { type: 'foot', key: f.side < 0 ? 'mouse' : 'keyboard' };
+    });
+    header.userData.pick = { type: 'foot', key: kind };
     pickables.push(header);
-    pinLabels.push({ label: f.side < 0 ? 'Fare pinleri' : 'W A S D pinleri', pos: toWorld(f.u, f.v, BOARD_TOP + 0.12) });
-  });
+    pinLabels.push({ label: kind === 'mouse' ? 'Fare pinleri' : 'W A S D pinleri', pos: mid.clone().setY(BOARD_TOP + 0.14) });
+  }
   group.add(pinsG);
   parts.pins = pinsG;
   parts.pins.userData.meshes = headers;
   parts.pins.userData.labels = pinLabels;
 
-  // --- USB-C at the top of the hat --------------------------------------------
+  // --- USB-C at the top of the hat --------------------------------------------------
   const usbG = new THREE.Group();
+  const up = P(USB_POS[0], USB_POS[1]);
   const socket = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.11, 0.3), metalMat);
-  socket.position.copy(toWorld(USB.u, USB.v, BOARD_TOP + 0.02));
+  socket.position.copy(toWorld(up.u, up.v - 0.02, BOARD_TOP + 0.02));
   socket.castShadow = true;
   const slot = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.06, 0.05), new THREE.MeshStandardMaterial({ color: '#2a2f3a' }));
-  slot.position.copy(toWorld(USB.u, USB.v + 0.14, BOARD_TOP + 0.02));
+  slot.position.copy(toWorld(up.u, up.v + 0.12, BOARD_TOP + 0.02));
   usbG.add(socket, slot);
   const plug = new THREE.Group();
   const plugHead = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.07, 0.3), metalMat);
@@ -197,8 +190,8 @@ export function createBoard() {
   plugBody.position.z = -0.34;
   plugBody.castShadow = true;
   plug.add(plugHead, plugBody);
-  const PLUG_IN = -(USB.v + 0.28), PLUG_OUT = -(USB.v + 1.05);
-  plug.position.set(USB.u, BOARD_TOP + 0.02, PLUG_IN);
+  const PLUG_IN = -(up.v + 0.26), PLUG_OUT = -(up.v + 1.05);
+  plug.position.set(up.u, BOARD_TOP + 0.02, PLUG_IN);
   usbG.add(plug);
   const cableCurve = new THREE.CatmullRomCurve3([new THREE.Vector3(0, 0, -0.55), new THREE.Vector3(-0.05, -0.05, -1.2), new THREE.Vector3(-0.4, -0.06, -2.4), new THREE.Vector3(-0.9, -0.06, -4.2)]);
   const cable = new THREE.Mesh(new THREE.TubeGeometry(cableCurve, 40, 0.028, 10, false), new THREE.MeshStandardMaterial({ color: '#2b211b', roughness: 0.6 }));
@@ -208,16 +201,17 @@ export function createBoard() {
   parts.usb = usbG;
   parts.usb.userData.meshes = [socket];
 
-  // --- API ---------------------------------------------------------------
+  const head = P(0.5, 0.25);
   const api = {
     group, parts, pads, leds, pianoKeys, dpad, btnX, btnY, pickables, plug, PLUG_IN, PLUG_OUT,
     positions: {
-      dpad: toWorld(-0.74, 0.33, BOARD_TOP + 0.1),
-      xy: toWorld(0.86, 0.35, BOARD_TOP + 0.1),
-      matrix: toWorld(0, 0.34, BOARD_TOP + 0.1),
-      piano: toWorld(0, -1.0, BOARD_TOP + 0.1),
-      head: toWorld(HEAD.u, HEAD.v, 0.4),
+      dpad: W(DPAD_POS.up[0], DPAD_POS.up[1], BOARD_TOP + 0.1),
+      xy: W(XY_POS.X[0], XY_POS.X[1], BOARD_TOP + 0.1),
+      matrix: toWorld(mc.u, mc.v, BOARD_TOP + 0.1),
+      piano: W(0.5, 0.85, BOARD_TOP + 0.1),
+      head: toWorld(head.u, head.v, 0.4),
     },
+    width: BOARD_W,
     ledMode: 'off',
     setLed(name, warm = false) {
       const p = typeof name === 'string' ? LED[name] || LED.off : name;
@@ -249,27 +243,22 @@ export function createBoard() {
         p.core.material.emissive.set(PALETTE.led);
         p.core.material.emissiveIntensity = p.heat * 0.5;
       }
-      pianoKeys.forEach((k) => {
-        const base = k.userData.baseY ?? (k.userData.baseY = k.position.y);
-        const target = k.userData.pressed ? base - 0.006 : base;
-        k.position.y += (target - k.position.y) * Math.min(1, dt * 18);
-        k.material.color.lerp(new THREE.Color(k.userData.pressed ? '#9fe0c0' : '#fbfaf6'), Math.min(1, dt * 10));
-      });
-      [...Object.values(dpad), btnX, btnY].forEach((b) => {
-        const base = b.userData.baseY ?? (b.userData.baseY = b.position.y);
-        const target = b.userData.pressed ? base - 0.006 : base;
-        b.position.y += (target - b.position.y) * Math.min(1, dt * 18);
-        b.material.color.lerp(new THREE.Color(b.userData.pressed ? '#ffd8c2' : '#fbfaf6'), Math.min(1, dt * 10));
+      [...pianoKeys, ...Object.values(dpad), btnX, btnY].forEach((k) => {
+        const target = k.userData.pressed ? 0.75 : 0;
+        k.material.opacity += (target - k.material.opacity) * Math.min(1, dt * 16);
       });
       for (const part in parts) {
         const g = parts[part];
         const want = g.userData.hl ? 1 : 0;
         g.userData.hlv = (g.userData.hlv ?? 0) + (want - (g.userData.hlv ?? 0)) * Math.min(1, dt * 6);
         (g.userData.meshes || []).forEach((m) => {
-          if (part === 'arms') return; // pads use their own glow
           m.material.emissive = m.material.emissive || new THREE.Color();
           m.material.emissive.set(PALETTE.terracotta);
           m.material.emissiveIntensity = g.userData.hlv * 0.3;
+        });
+        // printed controls: a soft tint while their chapter is active
+        (g.userData.overlays || []).forEach((m) => {
+          if (!m.userData.pressed) m.material.opacity = Math.max(m.material.opacity, g.userData.hlv * 0.28);
         });
         if (part === 'arms') for (const key in pads) pads[key].heat = Math.max(pads[key].heat, g.userData.hlv * 0.22);
       }

@@ -74,7 +74,7 @@ export const STEPS = [
     title: 'İki kol, on ped',
     body: `
       <p>Sol kolda yön pedleri <span class="key">↑</span> <span class="key">←</span> <span class="key">→</span> <span class="key">↓</span>; sağ kolda <span class="key">Space</span>, fare için <span class="key">L.Click</span> ve <span class="key">R.Click</span>, bir de <span class="key">Enter</span>.</p>
-      <p>Her kolun kabuğa yakın ucunda bir <span class="warm">GND</span> pedi var. Kıskaçlar büyük, beyaz pedlere kolayca tutunur; küçük eller için tasarlandı.</p>`,
+      <p>Her kolun kabuğa yakın ucunda bir <span class="warm">GND</span> pedi var. Kıskaçlar delikli altın pedlere kolayca tutunur; küçük eller için tasarlandı.</p>`,
     focus: 'arms',
     action: 'Pedleri yak',
     enter(c) {

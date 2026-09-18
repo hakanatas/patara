@@ -4,6 +4,7 @@ import { PALETTE, KEYS, OBJECT_SETS, WIRE_COLORS, VIEWS, STORAGE_KEY, PADS_LEFT,
 import { Tweens, Ease, rand } from './tween.js';
 import { SoundKit } from './audio.js';
 import { createBoard } from './board.js';
+import { loadArtwork } from './artwork.js';
 import { createObject, createWire, createWristband, createBook } from './objects.js';
 import { createMonitor } from './monitor.js';
 import { STEPS } from './steps.js';
@@ -99,16 +100,16 @@ setLoading(0.2, 'Kart lehimleniyor…');
 let board = null; // created in boot() once the fonts are ready (the artwork is drawn on canvas)
 
 const monitor = createMonitor();
-monitor.group.position.set(2.3, 0, -3.5);
-monitor.group.rotation.y = 0.3;
+monitor.group.position.set(2.6, 0, -4.1);
+monitor.group.rotation.y = 0.35;
 scene.add(monitor.group);
 
 const book = createBook();
-book.position.set(3.7, 0, -1.4);
+book.position.set(3.8, 0, -1.6);
 scene.add(book);
 
 const wristband = createWristband();
-wristband.position.set(2.35, 0, 2.2);
+wristband.position.set(2.45, 0, 2.15);
 wristband.rotation.y = 0.4;
 scene.add(wristband);
 
@@ -190,7 +191,7 @@ function attachWires(animated) {
 
 function updateGndWire(snap) {
   const from = padTop('gnd2');
-  const to = state.gnd ? objectTop(wristband) : new THREE.Vector3(2.4, 0.03, 1.1);
+  const to = state.gnd ? objectTop(wristband) : new THREE.Vector3(2.5, 0.03, 1.0);
   gndWire.setEnds(from, to, { sag: state.gnd ? 0.45 : 0.25 });
   if (snap) sound.play('clip', { volume: 0.7 });
 }
@@ -805,9 +806,9 @@ function frame() {
 
 async function boot() {
   const fontsReady = document.fonts?.ready ? Promise.race([document.fonts.ready, new Promise((r) => setTimeout(r, 2500))]) : Promise.resolve();
+  const art = await loadArtwork(setLoading);
   await fontsReady;
-  setLoading(0.45, 'Kaplumbağa çiziliyor…');
-  board = createBoard();
+  board = createBoard(art);
   scene.add(board.group);
   setLoading(0.65, 'Kıskaçlar takılıyor…');
   buildObjects(state.set);
