@@ -70,6 +70,8 @@ button:focus-visible, a:focus-visible, canvas:focus-visible { outline: 2px solid
 .tag--key { font-family: var(--serif); font-size: 14px; color: var(--terracotta-deep); }
 .tag--band { pointer-events: none; font-size: 12.5px; color: var(--moss); border-color: rgba(29, 92, 75, 0.35); }
 .tag--band b { font-family: var(--serif); font-size: 14px; }
+.tag--gnd { pointer-events: none; font-size: 12px; color: var(--ink); background: rgba(43, 33, 27, 0.06); border-color: rgba(43, 33, 27, 0.3); }
+.tag--gnd b { color: var(--moss); }
 .tag--band.is-off { color: var(--terracotta-deep); border-color: rgba(196, 98, 61, 0.45); }
 
 /* loading */

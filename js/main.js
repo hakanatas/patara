@@ -142,12 +142,34 @@ function refreshBandTag() {
   document.body.classList.toggle('gnd-on', state.gnd);
   person.userData.clip.visible = state.gnd;
 }
+// label on the GND lead while you hold it
+const gndTag = document.createElement('span');
+gndTag.className = 'tag tag--gnd';
+gndTag.innerHTML = 'GND kablosu · <b>seni karta bağlar</b>';
+gndTag.style.position = 'fixed';
+gndTag.style.zIndex = '9';
+document.body.appendChild(gndTag);
+const YOU_YAW = -0.75;
+/** Glide "you" to a spot and turn to face a point; the GND lead follows your hand. */
+function movePerson(ctx, to, faceAt, dur) {
+  const from = person.position.clone();
+  const yaw0 = person.rotation.y;
+  const yaw1 = faceAt ? Math.atan2(-(faceAt.x - to.x), -(faceAt.z - to.z)) : YOU_YAW;
+  let dy = yaw1 - yaw0;
+  dy = Math.atan2(Math.sin(dy), Math.cos(dy));
+  return tweens.run(ctx, dur, (k) => {
+    person.position.lerpVectors(from, to, k);
+    person.position.y = Math.abs(Math.sin(k * Math.PI * 4)) * 0.05; // little steps
+    person.rotation.y = yaw0 + dy * k;
+    updateGndWire(false);
+  }, Ease.inOutCubic);
+}
 function handWorld(which) {
   person.updateMatrixWorld(true);
   return person.localToWorld(person.userData[which].clone());
 }
 
-const gndWire = createWire(WIRE_COLORS.gnd);
+const gndWire = createWire(WIRE_COLORS.gnd, 0.024);
 scene.add(gndWire.group);
 
 const touchRing = new THREE.Mesh(new THREE.TorusGeometry(0.3, 0.025, 8, 48), new THREE.MeshBasicMaterial({ color: PALETTE.terracotta, transparent: true, opacity: 0, depthWrite: false }));
@@ -227,7 +249,7 @@ function attachWires(animated) {
 function updateGndWire(snap, blend = state.gnd ? 1 : 0) {
   const from = padTop('gnd2');
   const to = GND_LOOSE.clone().lerp(handWorld('handL'), blend);
-  gndWire.setEnds(from, to, { sag: 0.25 + 0.2 * blend });
+  gndWire.setEnds(from, to, { sag: 0.25 + 0.55 * blend });
   if (snap) sound.play('clip', { volume: 0.7 });
 }
 /** The path of the current through you: right hand → body → left hand (the GND clip). */
@@ -241,7 +263,7 @@ function bodyCurve() {
 function showBodyPath(from) {
   const to = handWorld('handR');
   const mid = from.clone().lerp(to, 0.5);
-  mid.y = Math.max(from.y, to.y) + 0.9;
+  mid.y = Math.max(from.y, to.y) + 0.18;
   const curve = new THREE.CatmullRomCurve3([from, mid, to]);
   bodyPath.geometry.dispose();
   bodyPath.geometry = new THREE.TubeGeometry(curve, 40, 0.022, 8, false);
@@ -299,10 +321,16 @@ async function touch(id, via = 'pointer') {
   touchCtx = new Context();
   const c = touchCtx;
   pulse.hide();
+  hideBodyPath();
   const key = obj.userData.def.key;
   const top = objectTop(obj);
   void via;
   try {
+    const speed = state.reducedMotion ? 0.5 : 1;
+    // 1. walk over and stand beside the object, facing it
+    const stand = new THREE.Vector3(obj.position.x + 0.5, 0, obj.position.z + 0.95);
+    await movePerson(c, stand, top, 0.8 * speed);
+    // 2. touch it: a short reach from the right hand to the object
     obj.userData.squash = 0.55;
     showTouchRing(top);
     sound.play('click');
@@ -310,23 +338,25 @@ async function touch(id, via = 'pointer') {
     board.pressPad(key);
     sound.play('pulse', { volume: 0.6 });
     const reach = showBodyPath(top);
-    const speed = state.reducedMotion ? 0.5 : 1;
-    await pulse.run(tweens, c, [{ curve: w.state.curve, dur: 0.4 * speed }, { curve: reach, dur: 0.45 * speed }, { curve: bodyCurve(), dur: 0.3 * speed }], Ease.linear);
+    // 3. the current: pad → lead → object → right hand → body → left hand
+    await pulse.run(tweens, c, [{ curve: w.state.curve, dur: 0.4 * speed }, { curve: reach, dur: 0.2 * speed }, { curve: bodyCurve(), dur: 0.3 * speed }], Ease.linear);
     if (!state.gnd) {
-      // the current crossed you to the left hand, but there is no GND clip in it: no way back
+      // no GND clip in the left hand: the loop is broken here
       showSpark(handWorld('handL'));
       sound.play('buzz');
       board.setLed('x', true);
       monitor.say('Devre açık: tuş gelmedi');
-      toast('Devre açık! Akım senin üzerinden geçti ama elinde GND kıskacı yok: karta dönemiyor.', { warn: true, ms: 3600 });
+      toast('Devre açık! Akım senin üzerinden geçti ama elinde GND kablosu yok: karta dönemiyor.', { warn: true, ms: 3600 });
       obj.userData.shake = 0.5;
     } else {
-      await pulse.run(tweens, c, [{ curve: gndWire.state.curve, dur: 0.4 * speed, reverse: true }], Ease.linear);
+      // 4. … → GND lead → GND pad: the loop closes, the key is sent
+      await pulse.run(tweens, c, [{ curve: gndWire.state.curve, dur: 0.45 * speed, reverse: true }], Ease.linear);
       board.pressPad('gnd2');
       emit(key);
     }
-    await tweens.wait(c, 0.4);
+    await tweens.wait(c, 0.5);
     hideBodyPath();
+    await movePerson(c, YOU_POS, null, 0.8 * speed);
   } catch (e) {
     swallowCancel(e);
   }
@@ -334,7 +364,7 @@ async function touch(id, via = 'pointer') {
 
 function touchAll() {
   const list = objects.slice();
-  list.forEach((o, i) => tweens.wait(null, i * 1.5).then(() => touch(o.userData.def.id, 'auto')));
+  list.forEach((o, i) => tweens.wait(null, i * 3.6).then(() => touch(o.userData.def.id, 'auto')));
 }
 
 function showTouchRing(pos) {
@@ -904,8 +934,14 @@ function frame() {
       bodyPath.userData.fading = false;
     }
   }
+  if (gndWire.state.curve) {
+    const r = canvas.getBoundingClientRect();
+    tmpV.copy(gndWire.state.curve.getPointAt(0.5)).project(camera);
+    gndTag.style.transform = `translate(${r.left + ((tmpV.x + 1) / 2) * r.width}px, ${r.top + ((1 - tmpV.y) / 2) * r.height - 14}px) translate(-50%, -100%)`;
+    gndTag.classList.toggle('is-on', state.gnd && !state.uiHidden);
+  }
   {
-    tmpV.copy(YOU_POS).add(new THREE.Vector3(0, 1.55, 0)).project(camera);
+    tmpV.copy(person.position).add(new THREE.Vector3(0, 1.3, 0)).project(camera);
     const r = canvas.getBoundingClientRect();
     bandTag.style.transform = `translate(${r.left + ((tmpV.x + 1) / 2) * r.width}px, ${r.top + ((1 - tmpV.y) / 2) * r.height}px) translate(-50%, -100%)`;
     bandTag.style.visibility = state.uiHidden ? 'hidden' : 'visible';

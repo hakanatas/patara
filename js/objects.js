@@ -152,7 +152,7 @@ export function createObject(def) {
 }
 
 /** Alligator-clip lead: a sagging tube between two points with clips on both ends. */
-export function createWire(color) {
+export function createWire(color, radius = 0.017) {
   const g = new THREE.Group();
   const mat = new THREE.MeshStandardMaterial({ color, roughness: 0.6 });
   const clipMat = new THREE.MeshStandardMaterial({ color: '#8f97a3', roughness: 0.35, metalness: 0.9 });
@@ -180,7 +180,7 @@ export function createWire(color) {
       tube.geometry.dispose();
       g.remove(tube);
     }
-    tube = new THREE.Mesh(new THREE.TubeGeometry(state.curve, 48, 0.017, 8, false), mat);
+    tube = new THREE.Mesh(new THREE.TubeGeometry(state.curve, 48, radius, 8, false), mat);
     tube.castShadow = true;
     g.add(tube);
     const dirA = state.curve.getTangentAt(0).negate();
