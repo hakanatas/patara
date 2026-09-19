@@ -37,7 +37,7 @@ ES modülleri `http://` gerektirir; `index.html` dosyasını diskten doğrudan a
 
 ### Kontroller
 
-- **Mutfak / Kırtasiye** nesne setini değiştirir · **GND**: sahnedeki "sen" figürü GND kıskacını eline alır/bırakır (elinde değilken devre açık kalır: akım nesneden sana geçer, karta dönemez); Kıskaçla bölümünde canlı devre şeması vardır
+- **Mutfak / Kırtasiye** nesne setini değiştirir · **GND**: siyah GND kablosunun kıskacını sürükleyip "sen" figürünün eline bırakırsın (elinden çekince kopar; alttaki GND anahtarı ve G tuşu kısayoldur). Kıskaç elinde değilken devre açık kalır: akım nesneden sana geçer, karta dönemez. Kıskaçla bölümünde canlı devre şeması vardır
 - **Ses**, **Otomatik** (bölümleri kendi kendine gezer) · **Arayüzü gizle** (veya `H`)
 - Klavye: `←` `→` bölüm · `W` `A` `S` `D` yön nesnelerine dokun · boşluk = Space nesnesi · `Enter` bölüm eylemi · `G` GND · `M` ses · `O` otomatik · `R` oyunu sıfırla
 - Fare: nesnelere, pedlere, piyano tuşlarına, yön ve X/Y tuşlarına, bilekliğe ve kitaba tıklanabilir; sürükleyerek döndür, tekerlekle yaklaş

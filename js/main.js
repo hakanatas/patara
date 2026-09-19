@@ -111,7 +111,7 @@ scene.add(book);
 /** "You" stand in front of the board: left hand for the GND clip, right hand to touch things. */
 const YOU_POS = new THREE.Vector3(1.45, 0, 2.85);
 /** Where the GND clip lies on the table when you are not holding it. */
-const GND_LOOSE = new THREE.Vector3(1.4, 0.03, 1.75);
+const GND_LOOSE = new THREE.Vector3(0.35, 0.03, 2.45);
 const person = createPerson();
 person.position.copy(YOU_POS);
 person.rotation.y = -0.75;
@@ -137,7 +137,7 @@ bandTag.style.position = 'fixed';
 bandTag.style.zIndex = '9';
 document.body.appendChild(bandTag);
 function refreshBandTag() {
-  bandTag.innerHTML = state.gnd ? '<b>sen</b> · GND kıskacı elinde ✓' : '<b>sen</b> · GND kıskacı elinde değil · tıkla';
+  bandTag.innerHTML = state.gnd ? '<b>sen</b> · GND kıskacı elinde ✓' : '<b>sen</b> · GND’ye bağlı değil · kıskacı eline sürükle';
   bandTag.classList.toggle('is-off', !state.gnd);
   document.body.classList.toggle('gnd-on', state.gnd);
   person.userData.clip.visible = state.gnd;
@@ -171,6 +171,11 @@ function handWorld(which) {
 
 const gndWire = createWire(WIRE_COLORS.gnd, 0.024);
 scene.add(gndWire.group);
+gndWire.handle.userData.pick = { type: 'gndclip' };
+gndWire.clipB.userData.pick = { type: 'gndclip' };
+gndWire.clipB.scale.setScalar(1.6);
+/** Drag state for the GND clip: world position under the pointer while dragging, else null. */
+const drag = { active: false, pos: null, plane: new THREE.Plane(new THREE.Vector3(0, 1, 0), -0.12) };
 
 const touchRing = new THREE.Mesh(new THREE.TorusGeometry(0.3, 0.025, 8, 48), new THREE.MeshBasicMaterial({ color: PALETTE.terracotta, transparent: true, opacity: 0, depthWrite: false }));
 touchRing.rotation.x = -Math.PI / 2;
@@ -248,8 +253,8 @@ function attachWires(animated) {
 /** Redraw the GND lead: in your left hand, or lying loose on the table. */
 function updateGndWire(snap, blend = state.gnd ? 1 : 0) {
   const from = padTop('gnd2');
-  const to = GND_LOOSE.clone().lerp(handWorld('handL'), blend);
-  gndWire.setEnds(from, to, { sag: 0.25 + 0.55 * blend });
+  const to = drag.pos ? drag.pos.clone() : GND_LOOSE.clone().lerp(handWorld('handL'), blend);
+  gndWire.setEnds(from, to, { sag: drag.pos ? 0.35 : 0.25 + 0.55 * blend });
   if (snap) sound.play('clip', { volume: 0.7 });
 }
 /** The path of the current through you: right hand → body → left hand (the GND clip). */
@@ -346,7 +351,7 @@ async function touch(id, via = 'pointer') {
       sound.play('buzz');
       board.setLed('x', true);
       monitor.say('Devre açık: tuş gelmedi');
-      toast('Devre açık! Akım senin üzerinden geçti ama elinde GND kablosu yok: karta dönemiyor.', { warn: true, ms: 3600 });
+      toast('Devre açık! Akım senin üzerinden geçti ama elinde GND kablosu yok: karta dönemiyor. Kıskacı sürükleyip eline bırak.', { warn: true, ms: 3800 });
       obj.userData.shake = 0.5;
     } else {
       // 4. … → GND lead → GND pad: the loop closes, the key is sent
@@ -383,7 +388,7 @@ function showSpark(pos) {
 
 let gndCtx = null;
 /** Take the GND clip in your left hand (or put it down). */
-async function setGnd(on, { silent = false } = {}) {
+async function setGnd(on, { silent = false, keepPos = false } = {}) {
   state.gnd = on;
   document.querySelector('[data-toggle="gnd"]').setAttribute('aria-pressed', String(on));
   if (gndCtx) gndCtx.cancel();
@@ -391,7 +396,7 @@ async function setGnd(on, { silent = false } = {}) {
   const c = gndCtx;
   refreshBandTag();
   if (silent) {
-    updateGndWire(false);
+    if (!keepPos) updateGndWire(false);
     board.setLed(on ? 'check' : 'smile');
     return;
   }
@@ -619,7 +624,7 @@ let hovered = null;
 let hoverPoint = new THREE.Vector3();
 
 function pickables() {
-  const list = [...board.pickables, ...person.userData.picks, ...book.userData.picks, ...monitor.group.userData.picks];
+  const list = [...board.pickables, gndWire.handle, gndWire.clipB, ...person.userData.picks, ...book.userData.picks, ...monitor.group.userData.picks];
   objects.forEach((o) => list.push(...o.userData.picks));
   return list;
 }
@@ -630,8 +635,24 @@ function updatePointer(e) {
   pointer.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
   pointerInfo.over = true;
 }
+const dragPoint = new THREE.Vector3();
+function pointerOnTable() {
+  raycaster.setFromCamera(pointer, camera);
+  return raycaster.ray.intersectPlane(drag.plane, dragPoint) ? dragPoint.clone() : null;
+}
 canvas.addEventListener('pointermove', (e) => {
   updatePointer(e);
+  if (drag.active) {
+    const p = pointerOnTable();
+    if (p) {
+      drag.pos = p;
+      updateGndWire(false);
+      const near = p.distanceTo(handWorld('handL')) < 0.9;
+      gndWire.halo.material.opacity = near ? 0.9 : 0.35;
+      if (near) person.userData.pop = Math.max(person.userData.pop || 0, 0.35);
+    }
+    return;
+  }
   if (pointerInfo.down && Math.hypot(e.clientX - pointerInfo.down.x, e.clientY - pointerInfo.down.y) > 7) {
     pointerInfo.moved = true;
     canvas.classList.add('is-dragging');
@@ -645,9 +666,38 @@ canvas.addEventListener('pointerdown', (e) => {
   updatePointer(e);
   pointerInfo.down = { x: e.clientX, y: e.clientY, t: performance.now() };
   pointerInfo.moved = false;
+  const hit = pick();
+  if (hit && hit.pick.type === 'gndclip') {
+    // pick the GND clip up: from the table, or out of your hand
+    sound.unlock();
+    drag.active = true;
+    controls.enabled = false;
+    try { canvas.setPointerCapture(e.pointerId); } catch { /* ignore */ }
+    if (state.gnd) setGnd(false, { silent: true, keepPos: true });
+    drag.pos = pointerOnTable() || GND_LOOSE.clone();
+    updateGndWire(false);
+    sound.play('click');
+    dom.hint.style.opacity = '0';
+  }
 });
 window.addEventListener('pointerup', (e) => {
   canvas.classList.remove('is-dragging');
+  if (drag.active) {
+    drag.active = false;
+    controls.enabled = true;
+    const p = drag.pos || GND_LOOSE.clone();
+    drag.pos = null;
+    gndWire.halo.material.opacity = 0;
+    if (p.distanceTo(handWorld('handL')) < 0.9) {
+      setGnd(true);
+    } else {
+      GND_LOOSE.set(THREE.MathUtils.clamp(p.x, -4, 4), 0.03, THREE.MathUtils.clamp(p.z, -3.5, 4));
+      setGnd(false, { silent: true });
+      toast('Kıskaç masada kaldı. Onu figürün eline bırakırsan devre kapanır.', { warn: true });
+    }
+    pointerInfo.down = null;
+    return;
+  }
   const down = pointerInfo.down;
   pointerInfo.down = null;
   if (!down || pointerInfo.moved || performance.now() - down.t > 600) return;
@@ -660,8 +710,10 @@ window.addEventListener('pointerup', (e) => {
 
 function pick() {
   raycaster.setFromCamera(pointer, camera);
-  const hit = raycaster.intersectObjects(pickables(), false)[0];
-  if (!hit) return null;
+  const hits = raycaster.intersectObjects(pickables(), false);
+  if (!hits.length) return null;
+  // the GND clip is small and often sits in front of bigger things: let it win when it is hit at all
+  const hit = hits.find((h) => h.object.userData.pick?.type === 'gndclip') || hits[0];
   hoverPoint.copy(hit.point);
   return { pick: hit.object.userData.pick, point: hit.point };
 }
@@ -681,7 +733,9 @@ function labelFor(p) {
     case 'fn':
       return `${p.key} fonksiyon tuşu`;
     case 'gnd':
-      return `Sen <em>· ${state.gnd ? 'GND kıskacı elinde, tıkla: bırak' : 'GND kıskacı elinde değil, tıkla: eline al'}</em>`;
+      return `Sen <em>· ${state.gnd ? 'GND kıskacı elinde, tıkla: bırak' : 'GND kıskacı elinde değil: siyah kablonun ucunu sürükleyip eline bırak'}</em>`;
+    case 'gndclip':
+      return `GND kıskacı <em>· sürükle: ${state.gnd ? 'elinden al' : 'figürün eline bırak'}</em>`;
     case 'book':
       return 'Etkinlik kitabı <em>· 12 macera</em>';
     case 'monitor':
@@ -726,8 +780,14 @@ function activate(p) {
       toast(`${p.key} fonksiyon tuşu: kartın kendi tuşu, kıskaç gerekmez.`);
       break;
     case 'gnd':
-      setGnd(!state.gnd);
+      if (state.gnd) setGnd(false);
+      else {
+        toast('GND kıskacını (siyah kablonun ucu) sürükleyip figürün eline bırak.', { ms: 3200 });
+        gndWire.halo.userData.blink = 3;
+      }
       break;
+    case 'gndclip':
+      break; // handled by drag
     case 'book':
       goStep(6);
       break;
@@ -934,6 +994,10 @@ function frame() {
       bodyPath.userData.fading = false;
     }
   }
+  if (!drag.active) {
+    const blink = (gndWire.halo.userData.blink = Math.max(0, (gndWire.halo.userData.blink || 0) - dt));
+    gndWire.halo.material.opacity = state.gnd ? 0 : 0.25 + Math.max(0, Math.sin(time * 3)) * (blink > 0 ? 0.7 : 0.35);
+  }
   if (gndWire.state.curve) {
     const r = canvas.getBoundingClientRect();
     tmpV.copy(gndWire.state.curve.getPointAt(0.5)).project(camera);
@@ -1010,7 +1074,7 @@ async function boot() {
   setLoading(1, 'Hazır.');
   frame();
   goStep(0);
-  window.__patara = { state, board, monitor, objects: () => objects, touch, goStep, setGnd, camera, controls, get time() { return time; } };
+  window.__patara = { state, board, monitor, objects: () => objects, touch, goStep, setGnd, camera, controls, gndWire, person, handWorld, get time() { return time; } };
   requestAnimationFrame(() => {
     dom.loading.classList.add('is-done');
     if (state.reducedMotion) toast('Azaltılmış hareket açık: daha sakin animasyonlar.', { ms: 3200 });

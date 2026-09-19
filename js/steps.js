@@ -33,7 +33,7 @@ export const STEPS = [
     title: 'Kıskaçla, devreyi kapat',
     body: `
       <p>Kıskaçlı kablonun bir ucunu koldaki bir pede, öbür ucunu iletken bir nesneye tak: muz, kaşık, oyun hamuru, kalemle çizilmiş koyu bir çizgi…</p>
-      <p>İkinci bir kablo <span class="warm">GND</span> pedinden <b>sana</b> gelir: kıskacını elinde tutarsın (sahnede önündeki figür sensin). Nesneye dokununca akım pedden nesneye, oradan <b>senin üzerinden</b> elindeki GND kıskacına ve karta geri döner. Halka böyle kapanır; Patara bu minicik akımı algılar.</p>
+      <p>İkinci bir kablo <span class="warm">GND</span> pedinden <b>sana</b> gelir: kıskacını elinde tutarsın. Sahnede önündeki figür sensin; siyah kablonun ucunu <b>sürükleyip figürün eline bırak</b>. Nesneye dokununca akım pedden nesneye, oradan <b>senin üzerinden</b> elindeki GND kıskacına ve karta geri döner. Halka böyle kapanır; Patara bu minicik akımı algılar.</p>
       <svg class="circuit" viewBox="0 0 360 150" role="img" aria-label="Devre halkası: UP pedi, muz, sen, GND pedi">
         <rect x="8" y="22" width="86" height="106" rx="14" class="c-board"/>
         <text x="51" y="44" class="c-lbl">Patara</text>
@@ -54,19 +54,15 @@ export const STEPS = [
         <path class="c-flow" d="M70 96 L70 76"/>
         <g class="c-gap"><line x1="238" y1="80" x2="256" y2="98"/><line x1="256" y1="80" x2="238" y2="98"/><text x="247" y="118" class="c-lbl">GND yok</text></g>
       </svg>
-      <p class="note">GND kıskacı elinde değilse halka orada kopar: bir nesneye tıkla, akımın sende takılıp kaldığını gör. Sonra "GND kıskacını eline al" ve tekrar dene.</p>`,
+      <p class="note">GND kıskacı elinde değilse halka orada kopar: bir nesneye tıkla, akımın sende takılıp kaldığını gör. Sonra kıskacı sürükleyip eline bırak ve tekrar dene.</p>`,
     focus: 'objects',
-    action: 'GND kıskacını eline al',
-    action2: 'Kabloları yeniden tak',
+    action: 'Kabloları yeniden tak',
     enter(c) {
       c.board.highlight(null);
       c.board.setLed('smile');
       c.attachWires(true);
     },
     act(c) {
-      c.setGnd(!c.state.gnd);
-    },
-    act2(c) {
       c.attachWires(true);
     },
   },

@@ -162,7 +162,11 @@ export function createWire(color, radius = 0.017) {
   clipA.castShadow = clipB.castShadow = true;
   const pulse = new THREE.Mesh(new THREE.SphereGeometry(0.045, 12, 12), new THREE.MeshBasicMaterial({ color: PALETTE.led }));
   pulse.visible = false;
-  g.add(clipA, clipB, pulse);
+  // generous invisible grab handle around the far clip (so it can be dragged)
+  const handle = new THREE.Mesh(new THREE.SphereGeometry(0.28, 12, 10), new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false }));
+  const halo = new THREE.Mesh(new THREE.RingGeometry(0.16, 0.24, 32), new THREE.MeshBasicMaterial({ color: PALETTE.led, transparent: true, opacity: 0, depthWrite: false, side: THREE.DoubleSide }));
+  halo.rotation.x = -Math.PI / 2;
+  g.add(clipA, clipB, pulse, handle, halo);
   const state = { curve: null, from: new THREE.Vector3(), to: new THREE.Vector3(), t: 0, active: false };
 
   function setEnds(from, to, { sag = 0.5 } = {}) {
@@ -189,6 +193,8 @@ export function createWire(color, radius = 0.017) {
     const dirB = state.curve.getTangentAt(1);
     clipB.position.copy(to).add(dirB.clone().multiplyScalar(-0.05));
     clipB.lookAt(clipB.position.clone().add(dirB));
+    handle.position.copy(to);
+    halo.position.copy(to).setY(Math.max(0.012, to.y - 0.02));
   }
   function firePulse() {
     if (!state.curve) return;
@@ -207,7 +213,7 @@ export function createWire(color, radius = 0.017) {
     // travels from the object (end) to the pad (start)
     pulse.position.copy(state.curve.getPointAt(1 - state.t));
   }
-  return { group: g, setEnds, firePulse, update, state, setColor: (c) => mat.color.set(c) };
+  return { group: g, setEnds, firePulse, update, state, clipB, handle, halo, setColor: (c) => mat.color.set(c) };
 }
 
 /** GND wristband: a soft fabric ring. */
