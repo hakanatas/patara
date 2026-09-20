@@ -109,9 +109,9 @@ book.position.set(3.8, 0, -1.6);
 scene.add(book);
 
 /** "You" stand in front of the board: left hand for the GND clip, right hand to touch things. */
-const YOU_POS = new THREE.Vector3(1.45, 0, 2.85);
+const YOU_POS = new THREE.Vector3(1.75, 0, 2.95);
 /** Where the GND clip lies on the table when you are not holding it. */
-const GND_LOOSE = new THREE.Vector3(0.35, 0.03, 2.45);
+const GND_LOOSE = new THREE.Vector3(0.4, 0.03, 2.6);
 const person = createPerson();
 person.position.copy(YOU_POS);
 person.rotation.y = -0.75;
@@ -253,7 +253,8 @@ function attachWires(animated) {
 /** Redraw the GND lead: in your left hand, or lying loose on the table. */
 function updateGndWire(snap, blend = state.gnd ? 1 : 0) {
   const from = padTop('gnd2');
-  const to = drag.pos ? drag.pos.clone() : GND_LOOSE.clone().lerp(handWorld('handL'), blend);
+  const held = handWorld('handL');
+  const to = drag.pos ? drag.pos.clone() : GND_LOOSE.clone().lerp(held, blend);
   gndWire.setEnds(from, to, { sag: drag.pos ? 0.35 : 0.25 + 0.55 * blend });
   if (snap) sound.play('clip', { volume: 0.7 });
 }

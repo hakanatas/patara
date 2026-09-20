@@ -302,16 +302,19 @@ export function createPerson() {
   torso.position.set(0, 0.74, 0);
   const legL = limb(new THREE.Vector3(-0.1, 0.5, 0), new THREE.Vector3(-0.12, 0.05, 0), 0.075);
   const legR = limb(new THREE.Vector3(0.1, 0.5, 0), new THREE.Vector3(0.12, 0.05, 0), 0.075);
-  const handL = new THREE.Vector3(-0.44, 0.52, 0.12); // holds the GND clip
+  const handL = new THREE.Vector3(-0.58, 0.8, 0.34); // holds the GND clip, out to the side where it is easy to see
   const handR = new THREE.Vector3(0.5, 1.02, -0.32); // reaches out to touch
   const armL = limb(new THREE.Vector3(-0.22, 0.95, 0), handL, 0.06);
   const armR = limb(new THREE.Vector3(0.22, 0.95, 0), handR, 0.06);
+  const fistL = shadow(new THREE.Mesh(new THREE.SphereGeometry(0.095, 16, 12), mat));
+  fistL.position.copy(handL);
+  const fistR = shadow(new THREE.Mesh(new THREE.SphereGeometry(0.09, 16, 12), mat));
+  fistR.position.copy(handR);
   const clip = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.07, 0.18), new THREE.MeshStandardMaterial({ color: '#8f97a3', roughness: 0.35, metalness: 0.9 }));
-  clip.position.copy(handL).add(new THREE.Vector3(-0.02, -0.05, 0.02));
-  clip.rotation.y = 0.3;
+  clip.position.copy(handL).add(new THREE.Vector3(-0.02, 0.02, 0.1));
   clip.visible = false;
-  g.add(head, torso, legL, legR, armL, armR, clip);
-  const picks = [head, torso, armL, armR];
+  g.add(head, torso, legL, legR, armL, armR, fistL, fistR, clip);
+  const picks = [head, torso, armL, armR, fistL, fistR];
   picks.forEach((m) => (m.userData.pick = { type: 'gnd' }));
   g.userData = { picks, handL, handR, clip, top: new THREE.Vector3(0, 1.5, 0) };
   return g;

@@ -68,15 +68,15 @@ export const OBJECT_SETS = {
 
 /** Camera presets used by the chapters. */
 export const VIEWS = {
-  overview: { target: [-0.3, 0.3, -0.35], pos: [1.2, 6.9, 9.2] },
+  overview: { target: [-0.2, 0.3, 0.35], pos: [1.3, 7.2, 9.9] },
   usb: { target: [0, 0.2, -3.3], pos: [-1.3, 4.3, 1.2] },
-  objects: { target: [-1.9, 0.25, -0.4], pos: [-3.4, 5.6, 7.2] },
+  objects: { target: [-1.4, 0.25, 0.2], pos: [-2.6, 6.0, 7.8] },
   arms: { target: [-1.5, 0.1, -1.2], pos: [-2.5, 4.6, 4.1] },
   body: { target: [0, 0.1, -0.1], pos: [0.2, 4.9, 4.5] },
   bottom: { target: [0, 0.1, 1.0], pos: [0.3, 4.5, 6.1] },
   monitor: { target: [2.5, 0.55, -3.8], pos: [1.2, 4.3, 1.8] },
   book: { target: [3.8, 0.1, -1.6], pos: [2.7, 3.9, 3.5] },
-  wide: { target: [-0.2, 0.3, -0.5], pos: [1.5, 7.8, 10.6] },
+  wide: { target: [-0.1, 0.3, 0.2], pos: [1.6, 8.0, 11.0] },
 };
 
 export const LED = {
