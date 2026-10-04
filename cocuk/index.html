@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Patara ve Devre Kasabası</title>
+<meta name="description" content="Patara Board'u keşfet: Devre Kasabası'nda yedi istasyon, yürüyen LED'ler ve çip böcekleri. Kıskaç tak, halkayı kapat, iletkenleri ayır, muzdan oyun kumandası yap. İlkokul ve ortaokul için.">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat+Brush&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="kamp.css">
+</head>
+<body>
+<canvas id="world" aria-label="Devre Kasabası: sürükleyerek gez, istasyonlara, kasabalılara ve nesnelere dokun"></canvas>
+
+<header class="ui top">
+  <div class="brand"><a href="../" aria-label="Patara Board ürün sayfasına dön">←</a><h1>Devre Kasabası</h1></div>
+  <nav class="stations" id="stations" aria-label="İstasyonlar"></nav>
+  <div class="tools">
+    <button type="button" class="chip-btn" id="metBtn">kasabalılar 0/7</button>
+    <button type="button" class="chip-btn" id="avBtn">iletken avı 0/6</button>
+    <span class="seg" id="hava" role="group" aria-label="Günün saati"><button type="button" class="chip-btn" data-hava="sabah" aria-pressed="true">sabah</button><button type="button" class="chip-btn" data-hava="aksam" aria-pressed="false">akşam</button></span>
+    <button type="button" class="chip-btn" id="ogrBtn">öğretmen</button>
+    <button type="button" class="chip-btn" id="sesBtn" aria-pressed="true">ses açık</button>
+    <button type="button" class="chip-btn" id="yardimBtn" aria-label="Tanıtımı aç">?</button>
+  </div>
+</header>
+
+<section class="ui card" id="card" aria-live="polite"></section>
+<div class="ui toast" id="toast" role="status"></div>
+
+<div class="zoom" id="zoom" role="dialog" aria-modal="true" aria-labelledby="zTitle" hidden>
+  <div class="zbox">
+    <div class="zboard"><canvas id="zcv" aria-label="Yakın plan tahtası"></canvas></div>
+    <aside class="zside">
+      <div class="z-head"><h2 id="zTitle">İstasyon</h2><button type="button" class="z-close" id="zClose" aria-label="Yakın planı kapat">✕</button></div>
+      <div class="z-task" id="ztask"></div>
+      <div class="z-say"><canvas id="zpat" aria-hidden="true"></canvas><p id="zsay"></p></div>
+      <div class="z-ctl" id="zctl"></div>
+      <ol class="z-tasks" id="ztasks"></ol>
+    </aside>
+  </div>
+</div>
+
+<div class="sheet" id="intro" role="dialog" aria-modal="true" aria-labelledby="introTitle" hidden>
+  <div class="sbox intro">
+    <canvas id="introPat" aria-hidden="true"></canvas>
+    <div>
+      <h2 id="introTitle">Devre Kasabası</h2>
+      <div id="introText"></div>
+      <div class="s-foot"><button type="button" class="go pulse" id="introGo">Keşfe başla</button><span class="s-note">Sürükleyerek gez · istasyona ve kasabalılara dokun · 1–7 tuşlarıyla atla</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="sheet" id="ogretmen" role="dialog" aria-modal="true" aria-labelledby="ogrTitle" hidden>
+  <div class="sbox">
+    <div class="z-head"><h2 id="ogrTitle">Öğretmen notları</h2><button type="button" class="z-close" data-close aria-label="Kapat">✕</button></div>
+    <div id="ogrBody" class="ogr"></div>
+    <div class="s-foot"><button type="button" class="chip-btn" id="resetBtn">İlerlemeyi sıfırla</button><a class="chip-btn" href="../tasarim/karakterler.html">Karakter tasarımları</a></div>
+  </div>
+</div>
+
+<script src="js/patara-cizim.js"></script>
+<script src="js/kasabalilar.js"></script>
+<script src="js/metinler.js"></script>
+<script src="js/ses.js"></script>
+<script src="js/kamp.js"></script>
+<script src="js/istasyonlar.js"></script>
+</body>
+</html>

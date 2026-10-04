@@ -1,0 +1,563 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Patara'nın Ekibi</title>
+<meta name="description" content="Patara Board çocuk sitesi için kahraman tasarımları: Patara, Kıvılcım, Timsah Kıskaç, İletken Dostlar, Silgi, Deniz ve Bilgi.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat+Brush&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+/* Düzen: kâğıt üstüne mürekkep eskiz defteri. Üstte boy sırası, sonra karakter kartları (her biri dört ifadeyle), Patara'nın yüzleri, ekibin birlikte oynadığı devre sahnesi. */
+:root {
+  --paper: #f1eadc;
+  --sheet: #fffaf0;
+  --ink: #171411;
+  --ink-soft: rgba(23, 20, 17, .68);
+  --ink-faint: rgba(23, 20, 17, .16);
+  --amber: #e8a33d;
+  --amber-deep: #b8741a;
+  --amber-wash: rgba(232, 163, 61, .18);
+  --seal: #c4432b;
+  --shell: #5e9b3f;
+  --shell-deep: #3f7429;
+  --slate: #5b7c99;
+  --brush: "Caveat Brush", "Comic Sans MS", cursive;
+  --serif: "Fraunces", Georgia, serif;
+  --mono: "JetBrains Mono", ui-monospace, monospace;
+  --gutter: clamp(16px, 3vw, 36px);
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; color: var(--ink); font-family: var(--serif); font-size: 17px; line-height: 1.5;
+  background-color: var(--paper);
+  background-image:
+    radial-gradient(ellipse at 18% 8%, rgba(255, 252, 244, .75), transparent 55%),
+    radial-gradient(ellipse at 90% 60%, rgba(214, 196, 164, .35), transparent 60%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .1  0 0 0 0 .08  0 0 0 0 .05  0 0 0 .09 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  overflow-x: hidden;
+}
+.wrap { max-width: 1180px; margin: 0 auto; padding-inline: var(--gutter); padding-block: 28px 64px; }
+canvas.cv { display: block; width: 100%; height: auto; max-width: 100%; }
+
+header.top { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 12px 32px; }
+.eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-soft); }
+h1 { font-family: var(--brush); font-weight: 400; font-size: clamp(48px, 8vw, 88px); line-height: .95; margin: 6px 0 0; text-wrap: balance; }
+h1 .dot { color: var(--amber); }
+.lede { max-width: 54ch; margin: 0; color: var(--ink-soft); }
+.lineup { margin-top: 10px; border-bottom: 2px solid var(--ink); }
+
+h2 { font-family: var(--brush); font-weight: 400; font-size: clamp(32px, 4.5vw, 44px); line-height: 1; margin: 0; text-wrap: balance; }
+section { margin-top: 48px; }
+.sec-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 18px; margin-bottom: 18px; }
+.sec-head p { margin: 0; color: var(--ink-soft); max-width: 62ch; }
+
+/* Karakter kartları */
+.cast { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 22px; }
+.card { background: var(--sheet); border: 2px solid var(--ink); border-radius: 6px 10px 7px 12px; box-shadow: 4px 5px 0 var(--ink-faint); display: flex; flex-direction: column; min-width: 0; }
+.card.wide { grid-column: span 2; flex-direction: row; }
+.card.wide .art { flex: 1.25; border-bottom: 0; border-right: 2px dashed var(--ink-faint); }
+.card.wide .txt { flex: 1; }
+.art { position: relative; display: flex; flex-direction: column; justify-content: center; gap: 8px; padding: 14px 12px 12px; border-bottom: 2px dashed var(--ink-faint); min-width: 0; }
+.art canvas { cursor: pointer; border-radius: 4px; }
+.art canvas:focus-visible { outline: 3px solid var(--amber); outline-offset: 2px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
+.chip { font-family: var(--mono); font-size: 11.5px; padding: 4px 10px; border: 1.5px solid var(--ink); border-radius: 99px; background: var(--sheet); color: var(--ink); cursor: pointer; }
+.chip[aria-pressed="true"] { background: var(--ink); color: var(--sheet); }
+.chip:hover { background: var(--amber-wash); }
+.chip[aria-pressed="true"]:hover { background: var(--ink); }
+.chip:focus-visible { outline: 3px solid var(--amber); outline-offset: 2px; }
+.txt { padding: 16px 20px 20px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.name-row { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
+.name { font-family: var(--brush); font-size: 38px; line-height: 1; }
+.role { font-family: var(--mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; padding: 3px 8px; border: 1.5px solid var(--ink); border-radius: 99px; }
+.r-amber { background: var(--amber); }
+.r-green { background: #b9d89a; }
+.r-red { background: #f0b3a3; }
+.r-slate { background: #bccbd8; }
+.r-paper { background: var(--paper); }
+.txt p { margin: 0; font-size: 15.5px; }
+.quote { font-family: var(--brush); font-size: 22px; line-height: 1.15; color: var(--amber-deep); }
+.teach { font-size: 14px !important; color: var(--ink-soft); border-top: 1.5px dotted var(--ink-faint); padding-top: 8px; }
+.teach b { color: var(--ink); font-weight: 600; }
+.mini-names { display: flex; flex-wrap: wrap; gap: 6px 14px; font-family: var(--mono); font-size: 12px; }
+.mini-names span::before { content: "✓ "; color: var(--shell-deep); }
+
+/* Patara'nın yüzleri */
+.faces { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 14px; }
+.face { background: var(--sheet); border: 2px solid var(--ink); border-radius: 8px; padding: 10px 10px 12px; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.face b { font-family: var(--brush); font-weight: 400; font-size: 26px; line-height: 1; }
+.face span { font-size: 13.5px; color: var(--ink-soft); line-height: 1.35; }
+
+/* Devre sahnesi */
+.strip { background: var(--sheet); border: 2px solid var(--ink); border-radius: 8px; box-shadow: 4px 5px 0 var(--ink-faint); overflow: hidden; }
+.strip-scroll { overflow-x: auto; }
+.strip-scroll canvas { min-width: 640px; }
+.strip-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; padding: 12px 16px; border-top: 2px dashed var(--ink-faint); }
+.strip-bar p { margin: 0; flex: 1 1 260px; font-size: 15px; min-width: 0; }
+.btn { font-family: var(--brush); font-size: 22px; line-height: 1; padding: 8px 18px 9px; background: var(--amber); color: var(--ink); border: 2px solid var(--ink); border-radius: 99px; box-shadow: 2px 3px 0 var(--ink); cursor: pointer; }
+.btn:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--ink); }
+.btn:focus-visible { outline: 3px solid var(--slate); outline-offset: 2px; }
+.seg { display: inline-flex; gap: 4px; align-items: center; font-family: var(--mono); font-size: 11.5px; color: var(--ink-soft); }
+
+/* Stil rehberi */
+.guide { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 22px; }
+.g-box { background: var(--sheet); border: 2px solid var(--ink); border-radius: 6px; padding: 16px 18px; min-width: 0; }
+.g-box h3 { font-family: var(--mono); font-size: 12px; letter-spacing: .1em; text-transform: uppercase; font-weight: 500; margin: 0 0 12px; color: var(--ink-soft); }
+.sw { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.sw div { display: flex; flex-direction: column; gap: 4px; font-size: 12px; line-height: 1.2; }
+.sw i { display: block; aspect-ratio: 1; max-width: 100%; border: 2px solid var(--ink); border-radius: 50% 46% 52% 48%; }
+.sw code { font-family: var(--mono); font-size: 10px; color: var(--ink-soft); }
+.type-sample .b { font-family: var(--brush); font-size: 34px; line-height: 1; }
+.type-sample .s { font-family: var(--serif); font-size: 16px; }
+.type-sample .m { font-family: var(--mono); font-size: 13px; }
+.type-sample > div { padding: 6px 0; border-bottom: 1.5px dotted var(--ink-faint); }
+.type-sample small { display: block; font-family: var(--mono); font-size: 10.5px; color: var(--ink-soft); }
+.g-box ul { margin: 0; padding-left: 18px; font-size: 15px; display: grid; gap: 6px; }
+
+/* Sonraki adım */
+.next { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 22px; }
+.chapters { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; counter-reset: ch; }
+.chapters li { counter-increment: ch; display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: 10px; align-items: baseline; background: var(--sheet); border: 2px solid var(--ink); border-radius: 6px; padding: 10px 14px; }
+.chapters li::before { content: counter(ch); font-family: var(--brush); font-size: 30px; line-height: 1; color: var(--amber-deep); }
+.chapters b { font-family: var(--brush); font-weight: 400; font-size: 24px; line-height: 1; }
+.chapters span { display: block; font-size: 14.5px; color: var(--ink-soft); }
+.ask { background: var(--ink); color: var(--sheet); border-radius: 8px; padding: 18px 20px; }
+.ask h3 { font-family: var(--brush); font-weight: 400; font-size: 30px; margin: 0 0 10px; color: var(--amber); }
+.ask ol { margin: 0; padding-left: 20px; display: grid; gap: 8px; font-size: 15px; }
+
+footer { margin-top: 48px; padding-top: 14px; border-top: 2px solid var(--ink); font-family: var(--mono); font-size: 12px; color: var(--ink-soft); display: flex; flex-wrap: wrap; gap: 8px 24px; justify-content: space-between; }
+
+@media (max-width: 900px) {
+  .cast, .guide { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .card.wide { grid-column: 1 / -1; }
+  .next { grid-template-columns: minmax(0, 1fr); }
+  .faces { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 520px) {
+  .faces { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 620px) {
+  .cast, .guide { grid-template-columns: minmax(0, 1fr); }
+  .card.wide { flex-direction: column; }
+  .card.wide .art { border-right: 0; border-bottom: 2px dashed var(--ink-faint); }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <div class="eyebrow">Patara Board · çocuk sitesi · kahraman tasarımları, 3. taslak · 7–14 yaş</div>
+      <h1>Patara'nın Ekibi<span class="dot">.</span></h1>
+    </div>
+    <p class="lede">İlkokul ve ortaokul öğrencileri kartı bu karakterlerle tanıyacak. Bebeksi değil, macera çizgi romanı tadında: göz kapakları ve kalın kaşlarla oynayan yüzler, kendinden emin duruşlar. Çizim tekniği Nokta'nın Kasabası ile aynı: ışık soldan, gölge tarafı taralı, çift kalem izi.</p>
+  </header>
+  <div class="lineup"><canvas class="cv" id="lineup" role="img" aria-label="Ekip boy sırasında: Bilgi, Deniz, Patara, Kıvılcım, Timsah Kıskaç, Silgi, Muz ve Elma yan yana duruyor"></canvas></div>
+
+  <!-- ===================== KARAKTERLER ===================== -->
+  <section aria-labelledby="h-cast">
+    <div class="sec-head">
+      <h2 id="h-cast">Kahramanlar</h2>
+      <p>Yedi karakter, her biri beş ifadeyle. Düğmelerle ifadeyi değiştir; çizime dokununca sevinir.</p>
+    </div>
+
+    <div class="cast">
+      <article class="card wide">
+        <div class="art">
+          <canvas class="cv" data-char="patara" tabindex="0" role="img" aria-label="Patara: safari şapkalı yeşil kaplumbağa; kollarında altın pedler, kabuğunda 5×5 LED ve piyano"></canvas>
+          <div class="chips" data-for="patara"></div>
+        </div>
+        <div class="txt">
+          <div class="name-row"><span class="name">Patara</span><span class="role r-green">rehber · kartın kendisi</span></div>
+          <p>Safari şapkalı, kırmızı fularlı kâşif kaplumbağa. Meraklı, sabırlı, biraz da gösterişçi; her şeyi önce kendisi denemek ister. Kollarındaki altın pedlere bir şey bağlanınca o şey <b>tuşa dönüşür</b>. Kabuğundaki 25 ışıkla duygusunu gösterir, karnındaki piyanoyla şarkı söyler.</p>
+          <p class="quote">"Hadi keşfe çıkalım! Bana bir muz bağla, bak ne olacak."</p>
+          <p class="teach"><b>Öğrettiği:</b> sol kolda ↑ ← → ↓, sağ kolda Space, sol/sağ tık, Enter; iki kolun dibinde GND. 5×5 LED, dokunmatik piyano, yön ve X/Y tuşları.</p>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="art">
+          <canvas class="cv" data-char="spark" tabindex="0" role="img" aria-label="Kıvılcım: alev biçimli, parlayan küçük elektrik karakteri"></canvas>
+          <div class="chips" data-for="spark"></div>
+        </div>
+        <div class="txt">
+          <div class="name-row"><span class="name">Kıvılcım</span><span class="role r-amber">akım</span></div>
+          <p>Minicik, hızlı ve hep yolda. Patara'nın pedinden çıkar, kablodan kayar, muzdan geçer, sana uğrar ve GND'den eve döner. Yol bulamazsa sönükleşip bekler.</p>
+          <p class="quote">"Bana bir yol ver, gerisini ben hallederim!"</p>
+          <p class="teach"><b>Öğrettiği:</b> akım bir <b>halka</b> ister. Halka kapanınca Patara tuşa basar.</p>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="art">
+          <canvas class="cv" data-char="clip" tabindex="0" role="img" aria-label="Timsah Kıskaç: kırmızı lastik gövdeli, gümüş çeneli, gözlü timsah klips"></canvas>
+          <div class="chips" data-for="clip"></div>
+        </div>
+        <div class="txt">
+          <div class="name-row"><span class="name">Timsah Kıskaç</span><span class="role r-red">bağlayıcı</span></div>
+          <p>Sırtı dikenli, bakışı havalı. Isırır ama acıtmaz, sadece sıkı tutar. Bir ağzıyla Patara'nın pedine, öbür ucuyla muza tutunur. Siyah ikizi <b>GND Kıskaç</b> her zaman çocuğun elinde durur.</p>
+          <p class="quote">"Hap! Tuttum, bırakmam."</p>
+          <p class="teach"><b>Öğrettiği:</b> kablonun bir ucu pede, öbür ucu nesneye. Siyah kablo GND'ye ve sana.</p>
+        </div>
+      </article>
+
+      <article class="card wide">
+        <div class="art">
+          <canvas class="cv" data-char="friends" tabindex="0" role="img" aria-label="İletken Dostlar: muz, elma, oyun hamuru ve kaşık; hepsinin yüzü, kolları var"></canvas>
+          <div class="chips" data-for="friends"></div>
+        </div>
+        <div class="txt">
+          <div class="name-row"><span class="name">İletken Dostlar</span><span class="role r-paper">nesneler</span></div>
+          <div class="mini-names"><span>Muz</span><span>Elma</span><span>Oyun hamuru</span><span>Kaşık</span></div>
+          <p>Kıvılcım'ın içinden rahatça geçebildiği nesneler. Her biri kıskaçla bir pede bağlanınca bir tuş olur: muz ↑, elma ←, hamur →, kaşık ↓. Kırtasiye takımı da yolda: folyo, madeni para, anahtar, kalem çizgisi.</p>
+          <p class="quote">"Bana dokun, yukarı ok olayım!"</p>
+          <p class="teach"><b>Öğrettiği:</b> su ve metal içeren şeyler iletkendir; mutfak bir oyun kumandasına dönüşebilir.</p>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="art">
+          <canvas class="cv" data-char="silgi" tabindex="0" role="img" aria-label="Silgi: kollarını kavuşturmuş kırmızı-mavi silgi; küçük bir kıvılcım ona çarpıp geri sekiyor"></canvas>
+          <div class="chips" data-for="silgi"></div>
+        </div>
+        <div class="txt">
+          <div class="name-row"><span class="name">Silgi</span><span class="role r-slate">yalıtkan</span></div>
+          <p>Boynunda hakem düdüğü, huysuz değil sadece kuralcı. Kıvılcım'ı içinden geçirmez; plastik, lastik, tahta ve kâğıt onun takımı. Silgiye bağlanan ped hiçbir tuşa basmaz.</p>
+          <p class="quote">"Dur bakalım! Buradan geçiş yok."</p>
+          <p class="teach"><b>Öğrettiği:</b> iletken mi, yalıtkan mı? Etkinlik kitabındaki ayıklama oyununun hakemi.</p>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="art">
+          <canvas class="cv" data-char="deniz" tabindex="0" role="img" aria-label="Deniz: bir elinde siyah GND kıskacı tutan, öbür eliyle dokunmak için uzanan çocuk"></canvas>
+          <div class="chips" data-for="deniz"></div>
+        </div>
+        <div class="txt">
+          <div class="name-row"><span class="name">Deniz</span><span class="role r-slate">sen</span></div>
+          <p>Ekranın önündeki çocuk, yani oyuncunun kendisi: 11–12 yaşında, kapüşonlu, boynunda kulaklık, sırtında çanta. Bir elinde siyah GND kıskacı, öbür eliyle muza uzanıyor.</p>
+          <p class="quote">"Halkayı ben tamamlarım!"</p>
+          <p class="teach"><b>Öğrettiği:</b> GND kıskacını tutmazsan devre açık kalır. Vücudun da halkanın bir parçası.</p>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="art">
+          <canvas class="cv" data-char="pc" tabindex="0" role="img" aria-label="Bilgi: kollu, piksel yüzlü, çıkartmalı eski tip bilgisayar; ekranında gelen tuş görünüyor"></canvas>
+          <div class="chips" data-for="pc"></div>
+        </div>
+        <div class="txt">
+          <div class="name-row"><span class="name">Bilgi</span><span class="role r-paper">bilgisayar</span></div>
+          <p>Patara'yı sıradan bir klavye ve fare sanır, sürücü ya da kurulum istemez. Muzu, kaşığı görmez; sadece gelen tuşu görür ve ekranında gösterir.</p>
+          <p class="quote">"Yukarı ok geldi! Kim bastı acaba?"</p>
+          <p class="teach"><b>Öğrettiği:</b> USB ile tak ve oyna. Scratch, sunum, müzik, klavyeyle çalışan her şey.</p>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <!-- ===================== PATARA'NIN YÜZLERİ ===================== -->
+  <section aria-labelledby="h-faces">
+    <div class="sec-head">
+      <h2 id="h-faces">Patara'nın yüzleri</h2>
+      <p>Rehber beş duyguyla konuşur. Kabuktaki LED de yüzüyle birlikte değişir; çocuk ekrana bakmadan karttan anlayabilir.</p>
+    </div>
+    <div class="faces">
+      <div class="face"><canvas class="cv" data-face="idle" role="img" aria-label="Patara bekliyor, gülümsüyor"></canvas><b>Bekler</b><span>Yönerge verirken, çocuk düşünürken.</span></div>
+      <div class="face"><canvas class="cv" data-face="happy" role="img" aria-label="Patara seviniyor, gözleri kapalı gülüyor"></canvas><b>Sevinir</b><span>Halka kapandı, doğru tuşa basıldı. LED'de kalp.</span></div>
+      <div class="face"><canvas class="cv" data-face="think" role="img" aria-label="Patara düşünüyor, bir kaşı kalkık"></canvas><b>Düşünür</b><span>"Sence?" sorusu: çocuğa tahmin için zaman tanır.</span></div>
+      <div class="face"><canvas class="cv" data-face="surprised" role="img" aria-label="Patara şaşırmış, gözleri kocaman"></canvas><b>Şaşırır</b><span>Beklenmedik bir sonuç, yeni bir keşif.</span></div>
+      <div class="face"><canvas class="cv" data-face="sad" role="img" aria-label="Patara üzgün, kaşları düşük"></canvas><b>Üzülür</b><span>Devre açık kaldı ya da yalıtkan seçildi. Hiç azarlamaz.</span></div>
+    </div>
+  </section>
+
+  <!-- ===================== KASABALILAR ===================== -->
+  <section aria-labelledby="h-town">
+    <div class="sec-head">
+      <h2 id="h-town">Devre Kasabası'nın sakinleri</h2>
+      <p>Kasabada herkes bir elektronik parça. Dokununca kendilerini bir cümleyle anlatırlar; çocuk böylece breadboard dünyasına ilk adımı atar.</p>
+    </div>
+    <div class="strip"><div class="strip-scroll"><canvas class="cv" id="town" role="img" aria-label="Kasabalılar: yürüyen LED, direnç, çip böceği, jumper kablo, buton, bazır kuşu ve USB treni"></canvas></div></div>
+  </section>
+
+  <!-- ===================== DEVRE SAHNESİ ===================== -->
+  <section aria-labelledby="h-strip">
+    <div class="sec-head">
+      <h2 id="h-strip">Ekip birlikte: halka nasıl kapanır?</h2>
+      <p>Karakterlerin asıl sitede nasıl rol alacağına küçük bir bakış. GND kıskacını bırakmayı ya da muz yerine Silgi'yi bağlamayı dene.</p>
+    </div>
+    <div class="strip">
+      <div class="strip-scroll"><canvas class="cv" id="strip" role="img" aria-label="Deniz bir elinde GND kıskacını tutup muza dokunuyor; Kıvılcım Patara'nın UP pedinden muza, Deniz'e ve siyah kablodan GND'ye dönüyor; Bilgi ekranında yukarı oku gösteriyor"></canvas></div>
+      <div class="strip-bar">
+        <button class="btn" type="button" id="runLoop">Dokun</button>
+        <span class="seg" role="group" aria-label="Pede bağlı nesne">nesne
+          <button class="chip" type="button" id="objMuz" aria-pressed="true">muz</button>
+          <button class="chip" type="button" id="objSilgi" aria-pressed="false">silgi</button>
+        </span>
+        <span class="seg" role="group" aria-label="GND kıskacı">GND
+          <button class="chip" type="button" id="gndOn" aria-pressed="true">elinde</button>
+          <button class="chip" type="button" id="gndOff" aria-pressed="false">yerde</button>
+        </span>
+        <p id="loopMsg" aria-live="polite">Kıvılcım UP pedinden çıkar, muzdan ve Deniz'den geçer, siyah kablodan GND'ye döner.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== STİL REHBERİ ===================== -->
+  <section aria-labelledby="h-guide">
+    <div class="sec-head">
+      <h2 id="h-guide">Çizim kuralları</h2>
+      <p>Matematik oyunlarındaki mürekkep dünyasıyla aynı aile, Patara'nın kendi renkleriyle. Karakterler kodla çiziliyor; asıl sitede aynı dosya kullanılacak.</p>
+    </div>
+    <div class="guide">
+      <div class="g-box">
+        <h3>Renkler</h3>
+        <div class="sw">
+          <div><i style="background:#5e9b3f"></i>Kabuk yeşili<code>#5e9b3f</code></div>
+          <div><i style="background:#efc04a"></i>Kabuk sarısı<code>#efc04a</code></div>
+          <div><i style="background:#efdcae"></i>Şapka<code>#efdcae</code></div>
+          <div><i style="background:#e8a33d"></i>Kıvılcım<code>#e8a33d</code></div>
+          <div><i style="background:#c4432b"></i>Kıskaç<code>#c4432b</code></div>
+          <div><i style="background:#5b7c99"></i>Deniz mavisi<code>#5b7c99</code></div>
+          <div><i style="background:#f1eadc"></i>Kâğıt<code>#f1eadc</code></div>
+          <div><i style="background:#171411"></i>Mürekkep<code>#171411</code></div>
+        </div>
+      </div>
+      <div class="g-box type-sample">
+        <h3>Yazı</h3>
+        <div><span class="b">Hadi keşfe çıkalım!</span><small>Caveat Brush · isimler, konuşmalar</small></div>
+        <div><span class="s">Kıskacın bir ucunu pede tak.</span><small>Fraunces · anlatım</small></div>
+        <div><span class="m">↑ UP · SPACE · GND</span><small>JetBrains Mono · tuş ve ped adları</small></div>
+      </div>
+      <div class="g-box">
+        <h3>Çizgi, ışık, hareket</h3>
+        <ul>
+          <li>Işık soldan gelir: gövdenin sol üstü açık, sağ altı koyu ve eğik taralı.</li>
+          <li>3 px mürekkep kontur, yanında silik ikinci kalem izi. Titreme sabit, kıpırdamaz.</li>
+          <li>Yer gölgesi yumuşak ve sağa kayık. Benek ve doku az ve bilinçli.</li>
+          <li>Herkes nefes alır ve göz kırpar. Büyük hareket yalnızca dokununca ya da sonuçta.</li>
+          <li>Beş ifade: bekler (yarım gülüş), sevinir, düşünür, şaşırır, üzülür. Göz kapağı ve kaş ifadeyi taşır.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== SONRAKİ ADIM ===================== -->
+  <section aria-labelledby="h-next">
+    <div class="sec-head">
+      <h2 id="h-next">Sonra ne yapacağız?</h2>
+      <p>Karakterler onaylanınca çocuk sitesini bölüm bölüm kuracağız. Taslak akış:</p>
+    </div>
+    <div class="next">
+      <ol class="chapters">
+        <li><div><b>Tanış</b><span>Patara şapkasını sallar, kartın parçalarını tek tek tanıtır.</span></div></li>
+        <li><div><b>Tak</b><span>USB kablosu Bilgi'ye bağlanır; Bilgi "Yeni klavye buldum!" der.</span></div></li>
+        <li><div><b>Kıskaçla</b><span>Timsah Kıskaç'ı sürükleyip pede ve muza ısırttır.</span></div></li>
+        <li><div><b>Halkayı kapat</b><span>GND kıskacını Deniz'in eline ver, muza dokun, Kıvılcım'ı yolculukta izle.</span></div></li>
+        <li><div><b>İletken mi?</b><span>Nesneleri Kıvılcım'a ya da Silgi'ye ayıkla.</span></div></li>
+        <li><div><b>Işık ve müzik</b><span>LED'de resim çiz, karnındaki piyanoyla melodi çal.</span></div></li>
+        <li><div><b>Oyun zamanı</b><span>Muz kumandayla Patara'yı yıldıza götür.</span></div></li>
+      </ol>
+      <aside class="ask">
+        <h3>Senden beklediklerim</h3>
+        <ol>
+          <li>İsimler uygun mu? (Kıvılcım, Timsah Kıskaç, Silgi, Deniz, Bilgi)</li>
+          <li>Patara'nın kartla bu kadar birebir olması iyi mi, yoksa daha çizgi film gibi mi olsun?</li>
+          <li>Etkinlik kitabındaki Roby, Gorki ve Küçük Sincap'ı da ekibe ekleyelim mi?</li>
+          <li>Deniz'in yaşı ve görünüşü ortaokul öğrencilerine de uygun mu?</li>
+        </ol>
+      </aside>
+    </div>
+  </section>
+
+  <footer>
+    <span>Patara Board · Robotistan · tasarım taslağı</span>
+    <span>Çizimlere dokun: her karakter sevinir.</span>
+  </footer>
+</div>
+
+<script src="../cocuk/js/patara-cizim.js"></script>
+<script src="../cocuk/js/kasabalilar.js"></script>
+<script>
+(() => {
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const C = PT.C, CH = PT.chars;
+  const STATES = [['idle', 'bekler'], ['happy', 'sevinir'], ['think', 'düşünür'], ['surprised', 'şaşırır'], ['sad', 'üzülür']];
+  const views = [];
+  const io = 'IntersectionObserver' in window ? new IntersectionObserver((es) => es.forEach((e) => { const v = views.find((x) => x.cv === e.target); if (v) v.vis = e.isIntersecting; })) : null;
+
+  function view(cv, box, draw) {
+    const v = { cv, ctx: cv.getContext('2d'), box, draw, vis: true };
+    v.K = PT.Ink(v.ctx);
+    cv.style.aspectRatio = `${box[2] - box[0]} / ${box[3] - box[1]}`;
+    views.push(v); if (io) io.observe(cv);
+    return v;
+  }
+  function paint(v, t) {
+    const { cv, ctx, box } = v, dpr = Math.min(2, devicePixelRatio || 1), w = cv.clientWidth, h = cv.clientHeight;
+    if (!w || !h) return;
+    const W = Math.round(w * dpr), H = Math.round(h * dpr);
+    if (cv.width !== W || cv.height !== H) { cv.width = W; cv.height = H; }
+    const bw = box[2] - box[0], bh = box[3] - box[1], s = Math.min(w / bw, h / bh);
+    ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, W, H);
+    ctx.setTransform(dpr * s, 0, 0, dpr * s, dpr * ((w - bw * s) / 2 - box[0] * s), dpr * ((h - bh * s) / 2 - box[1] * s));
+    v.K.t = t; v.draw(v.K, t);
+  }
+  // karakteri yerleştir: kutusunun sol kenarı x, zemini gy, ölçek s
+  const place = (K, ch, x, gy, s, o) => K.at(x - ch.box[0] * s, gy - ch.ground * s, s, () => ch.draw(K, o));
+  // karakteri kendi koordinat başlangıcından yerleştir
+  const at0 = (K, ch, x, gy, s, o) => K.at(x, gy - ch.ground * s, s, () => ch.draw(K, o));
+
+  /* ── Boy sırası ── */
+  const LINE = [['pc', 0.74, 'Bilgi'], ['deniz', 0.9, 'Deniz'], ['patara', 1, 'Patara'], ['spark', 0.62, 'Kıvılcım'], ['clip', 0.72, 'Timsah Kıskaç'], ['silgi', 0.72, 'Silgi'], ['muz', 0.8, 'Muz'], ['elma', 0.8, 'Elma']];
+  const G0 = 290;
+  let lx = 10;
+  const lay = LINE.map(([id, s, name], i) => { const ch = CH[id], w = (ch.box[2] - ch.box[0]) * s, it = { ch, s, name, x: lx, w, i }; lx += w + 6; return it; });
+  view(document.getElementById('lineup'), [0, 0, lx + 4, 334], (K, t) => {
+    const c = K.ctx;
+    c.strokeStyle = C.INK; c.lineWidth = 2; c.setLineDash([2, 9]); c.lineCap = 'round'; c.beginPath(); c.moveTo(0, G0 + 4); c.lineTo(lx + 4, G0 + 4); c.stroke(); c.setLineDash([]);
+    lay.forEach((it) => {
+      const happy = !reduce && (t + it.i * 1.9) % 11 < 1.3;
+      place(K, it.ch, it.x, G0, it.s, { state: happy ? 'happy' : 'idle', ph: it.i, noSpark: true });
+      c.fillStyle = C.INK; c.font = '24px "Caveat Brush", "Comic Sans MS", cursive'; c.textAlign = 'center'; c.textBaseline = 'alphabetic';
+      c.fillText(it.name, it.x + it.w / 2, G0 + 34);
+    });
+  });
+
+  /* ── Karakter kartları ── */
+  const FR = [['muz', 0], ['elma', 112], ['hamur', 222], ['kasik', 330]];
+  const friends = { box: [0, 0, 430, 196], ground: 188, draw(K, o) { FR.forEach(([id, x], i) => K.at(x, 0, 1, () => CH[id].draw(K, { ...o, ph: i * 1.3 }))); } };
+  document.querySelectorAll('canvas[data-char]').forEach((cv) => {
+    const id = cv.dataset.char, ch = id === 'friends' ? friends : CH[id];
+    const st = { state: 'idle', until: 0 };
+    view(cv, ch.box, (K) => ch.draw(K, { state: performance.now() < st.until ? 'happy' : st.state }));
+    const chips = document.querySelector(`.chips[data-for="${id}"]`);
+    STATES.forEach(([s, label]) => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'chip'; b.textContent = label;
+      b.setAttribute('aria-pressed', String(s === 'idle'));
+      b.addEventListener('click', () => { st.state = s; st.until = 0; chips.querySelectorAll('.chip').forEach((x) => x.setAttribute('aria-pressed', String(x === b))); });
+      chips.appendChild(b);
+    });
+    const poke = () => { st.until = performance.now() + 1800; };
+    cv.addEventListener('click', poke);
+    cv.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); poke(); } });
+  });
+
+  /* ── Kasabalılar ── */
+  const TOWN = [['led', 'LED', 'uzun bacak +'], ['direnc', 'Direnç', 'akımı yavaşlatır'], ['cip', 'Çip böceği', 'minicik beyin'], ['jumper', 'Jumper kablo', 'breadboard teli'], ['buton', 'Buton', 'bas, bırak: tık'], ['bip', 'Bazır kuşu', 'bip bip!']];
+  view(document.getElementById('town'), [0, 0, 1010, 230], (K, t) => {
+    const c = K.ctx;
+    c.strokeStyle = C.INK; c.lineWidth = 2; c.setLineDash([2, 9]); c.beginPath(); c.moveTo(0, 150); c.lineTo(980, 150); c.stroke(); c.setLineDash([]);
+    TOWN.forEach(([k, name, note], i) => {
+      const x = 64 + i * 124, o = { walk: true, ph: i, col: PT.town.LEDCOL[i % 4], lit: k === 'led' && Math.sin(t * 2) > 0.3, beep: Math.sin(t * 3) > 0.6 };
+      K.at(x, k === 'bip' ? 96 : 150, 1.5, () => PT.town[k](K, o));
+      c.fillStyle = C.INK; c.font = '22px "Caveat Brush", "Comic Sans MS", cursive'; c.textAlign = 'center'; c.textBaseline = 'alphabetic'; c.fillText(name, x, 186);
+      c.fillStyle = 'rgba(23,20,17,.6)'; c.font = '500 11px "JetBrains Mono", monospace'; c.fillText(note, x, 206);
+    });
+    K.at(845, 150, 1.25, () => { PT.town.wagon(K, '↑', PT.town.LEDCOL[0]); });
+    K.at(945, 150, 1.25, () => PT.town.loco(K));
+    c.fillStyle = C.INK; c.font = '22px "Caveat Brush", "Comic Sans MS", cursive'; c.textAlign = 'center'; c.fillText('USB treni', 895, 186);
+    c.fillStyle = 'rgba(23,20,17,.6)'; c.font = '500 11px "JetBrains Mono", monospace'; c.fillText('tuş taşır', 895, 206);
+  });
+
+  /* ── Patara'nın yüzleri ── */
+  document.querySelectorAll('canvas[data-face]').forEach((cv) => {
+    const s = cv.dataset.face;
+    view(cv, [34, -4, 226, 150], (K) => { K.noShadow = true; CH.patara.draw(K, { state: s }); });
+  });
+
+  /* ── Devre sahnesi ── */
+  const FLOOR = 290;
+  const UP_MUZ = 'M359 138 C 320 104 262 116 226 150';
+  const P = {
+    ok: UP_MUZ + ' L 216 169 L 164 171 L 117 171 L 99 225 C 96 274 150 292 250 290 C 330 288 350 214 401 181',
+    nognd: UP_MUZ + ' L 216 169 L 164 171 L 117 171 L 99 225',
+    silgi: 'M359 138 C 320 120 270 150 238 188',
+  };
+  const GND_HELD = 'M99 225 C 96 274 150 292 250 290 C 330 288 350 214 401 181';
+  const GND_DROP = 'M401 181 C 350 214 330 288 250 290 C 190 291 150 291 124 289';
+  const USB = 'M522 222 C 600 214 640 268 746 262';
+  const S = { obj: 'muz', gnd: true, phase: 'idle', t0: 0, out: null };
+  const msg = document.getElementById('loopMsg');
+  const MSG = {
+    idle: () => (S.obj === 'silgi' ? "UP pedi Silgi'ye bağlı. Dokununca ne olacak?" : S.gnd ? "Kıvılcım UP pedinden çıkar, muzdan ve Deniz'den geçer, siyah kablodan GND'ye döner." : 'GND kıskacı yerde. Muza dokunursan ne olur?'),
+    ok: 'Halka kapandı! Patara ↑ tuşuna bastı, Bilgi ekranında yukarı oku gördü.',
+    nognd: "Kıvılcım Deniz'in elinde kaldı: GND kıskacı elinde değil, halka açık. Kıskacı geri al.",
+    silgi: 'Silgi yalıtkan: Kıvılcım geçemedi, geri sekti. Hiçbir tuşa basılmadı.',
+  };
+  const setMsg = (k) => { msg.textContent = typeof MSG[k] === 'function' ? MSG[k]() : MSG[k]; };
+  const route = () => (S.obj === 'silgi' ? 'silgi' : S.gnd ? 'ok' : 'nognd');
+  const RUN = 4.2, END = 3.4;
+  function run() { if (S.phase === 'run') return; S.out = route(); S.phase = 'run'; S.t0 = performance.now() / 1000; }
+  const label = (K, txt, x, y, col = C.INK) => { const c = K.ctx; c.fillStyle = col; c.font = '21px "Caveat Brush", "Comic Sans MS", cursive'; c.textAlign = 'left'; c.textBaseline = 'alphabetic'; c.fillText(txt, x, y); };
+  const smallClip = (K, x, y, a, col) => K.rot(x, y, a, () => {
+    K.shape(`M${x} ${y - 5} L ${x + 16} ${y - 5} L ${x + 16} ${y + 5} L ${x} ${y + 5} Z`, { fill: col, w: 2, hatch: false, trace: false });
+    K.shape(`M${x} ${y - 4} L ${x - 11} ${y - 2} L ${x - 11} ${y + 2} L ${x} ${y + 4} Z`, { fill: C.METAL, w: 2, hatch: false, trace: false });
+  });
+  view(document.getElementById('strip'), [0, 40, 900, 330], (K) => {
+    const c = K.ctx, now = performance.now() / 1000;
+    let f = 0, end = false;
+    if (S.phase === 'run') { f = Math.min(1, (now - S.t0) / (reduce ? 0.01 : RUN)); if (f >= 1) { S.phase = 'end'; S.t0 = now; setMsg(S.out); } }
+    else if (S.phase === 'end') { f = 1; end = true; if (now - S.t0 > END) { S.phase = 'idle'; setMsg('idle'); } }
+    const out = S.phase === 'idle' ? null : S.out, path = P[out || route()];
+    // zemin ve kablolar
+    c.strokeStyle = C.INK; c.lineWidth = 2; c.setLineDash([2, 9]); c.lineCap = 'round'; c.beginPath(); c.moveTo(0, FLOOR + 2); c.lineTo(900, FLOOR + 2); c.stroke(); c.setLineDash([]);
+    K.line(USB, { w: 8, trace: false }); K.line(USB, { w: 4, color: '#8b919c', trace: false });
+    const up = S.obj === 'silgi' ? P.silgi : UP_MUZ;
+    K.line(up, { w: 8, trace: false }); K.line(up, { w: 4, color: C.SEAL, trace: false });
+    const gw = S.gnd ? GND_HELD : GND_DROP;
+    K.line(gw, { w: 7, trace: false }); K.line(gw, { w: 3, color: '#4a403a', trace: false });
+    if (S.phase !== 'idle') {
+      const pts = PT.geo(path).runs[0].pts, n = Math.max(1, Math.floor(f * (pts.length - 1)));
+      c.strokeStyle = C.AMBER; c.lineWidth = 4; c.lineCap = 'round'; c.lineJoin = 'round'; c.globalAlpha = 0.9;
+      c.beginPath(); pts.slice(0, n + 1).forEach((p, i) => (i ? c.lineTo(p[0], p[1]) : c.moveTo(p[0], p[1]))); c.stroke(); c.globalAlpha = 1;
+    }
+    // karakterler
+    const ok = end && out === 'ok', bad = end && out !== 'ok', running = S.phase === 'run';
+    at0(K, CH.deniz, 40, FLOOR, 0.9, { state: ok ? 'happy' : end && out === 'nognd' ? 'surprised' : 'idle', gnd: S.gnd, noWire: true });
+    if (S.obj === 'muz') at0(K, CH.muz, 178, FLOOR, 0.9, { state: ok ? 'happy' : 'idle' });
+    else at0(K, CH.silgi, 156, FLOOR, 0.78, { state: end && out === 'silgi' ? 'happy' : 'idle', noSpark: true });
+    at0(K, CH.patara, 330, FLOOR, 0.92, { state: ok ? 'happy' : bad ? (out === 'nognd' ? 'surprised' : 'sad') : S.phase === 'idle' && (S.obj === 'silgi' || !S.gnd) ? 'think' : 'idle', pad: running || ok ? 'up' : null, led: ok ? 'up' : null });
+    at0(K, CH.pc, 680, FLOOR, 0.86, { state: ok ? 'happy' : bad ? 'sad' : 'idle', key: ok ? '↑' : bad ? '?' : undefined });
+    // kıskaç uçları
+    if (S.obj === 'muz') smallClip(K, 232, 146, -0.75, C.SEAL); else smallClip(K, 244, 184, -0.9, C.SEAL);
+    if (!S.gnd) smallClip(K, 120, 286, 0.1, '#2a2420');
+    // Kıvılcım
+    if (S.phase !== 'idle') {
+      let [x, y] = PT.along(path, f);
+      if (end && out === 'silgi') { const b = Math.min(1, (now - S.t0) * 2); x -= Math.sin(b * Math.PI) * 26 + b * 18; y -= Math.sin(b * Math.PI) * 30; }
+      const sst = !end ? 'idle' : out === 'ok' ? 'happy' : out === 'silgi' && now - S.t0 < 0.5 ? 'surprised' : 'sad';
+      K.noShadow = true;
+      K.at(x, y - 4, 0.24, () => { K.ctx.translate(-100, -134); CH.spark.draw(K, { state: sst }); });
+      K.noShadow = false;
+    }
+    label(K, 'UP pedi', 300, 112); label(K, 'USB', 600, 214);
+    label(K, S.gnd ? 'siyah GND kablosu' : 'GND kıskacı yerde', 150, 318, S.gnd ? C.INK : C.SEAL); if (S.gnd) label(K, '↑ GND pedine döner', 352, 318);
+  });
+  const toggle = (a, b, on) => { a.setAttribute('aria-pressed', String(on)); b.setAttribute('aria-pressed', String(!on)); };
+  const oM = document.getElementById('objMuz'), oS = document.getElementById('objSilgi'), gOn = document.getElementById('gndOn'), gOff = document.getElementById('gndOff');
+  oM.addEventListener('click', () => { S.obj = 'muz'; S.phase = 'idle'; toggle(oM, oS, true); setMsg('idle'); });
+  oS.addEventListener('click', () => { S.obj = 'silgi'; S.phase = 'idle'; toggle(oM, oS, false); setMsg('idle'); });
+  gOn.addEventListener('click', () => { S.gnd = true; S.phase = 'idle'; toggle(gOn, gOff, true); setMsg('idle'); });
+  gOff.addEventListener('click', () => { S.gnd = false; S.phase = 'idle'; toggle(gOn, gOff, false); setMsg('idle'); });
+  document.getElementById('runLoop').addEventListener('click', run);
+
+  /* ── Döngü ── */
+  let last = performance.now();
+  function frame(now) {
+    const t = reduce ? 2.0 : now / 1000;
+    views.forEach((v) => { if (v.vis) paint(v, t); });
+    if (!reduce && S.phase === 'idle' && now - last > 9000) { last = now; run(); }
+    if (S.phase !== 'idle') last = now;
+    requestAnimationFrame(frame);
+  }
+  if (!reduce) setTimeout(run, 1200);
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
