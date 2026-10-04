@@ -86,7 +86,7 @@ section { margin-top: 48px; }
 .mini-names span::before { content: "✓ "; color: var(--shell-deep); }
 
 /* Patara'nın yüzleri */
-.faces { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+.faces { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 14px; }
 .face { background: var(--sheet); border: 2px solid var(--ink); border-radius: 8px; padding: 10px 10px 12px; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
 .face b { font-family: var(--brush); font-weight: 400; font-size: 26px; line-height: 1; }
 .face span { font-size: 13.5px; color: var(--ink-soft); line-height: 1.35; }
@@ -134,6 +134,9 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 2px solid var(--ink); 
   .cast, .guide { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
   .card.wide { grid-column: 1 / -1; }
   .next { grid-template-columns: minmax(0, 1fr); }
+  .faces { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 520px) {
   .faces { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 620px) {
@@ -147,10 +150,10 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 2px solid var(--ink); 
 <div class="wrap">
   <header class="top">
     <div>
-      <div class="eyebrow">Patara Board · çocuk sitesi · kahraman tasarımları, 2. taslak</div>
+      <div class="eyebrow">Patara Board · çocuk sitesi · kahraman tasarımları, 3. taslak · 7–14 yaş</div>
       <h1>Patara'nın Ekibi<span class="dot">.</span></h1>
     </div>
-    <p class="lede">Çocuklar kartı bu karakterlerle tanıyacak. Her biri kartın bir parçasını ya da bir fikri anlatıyor: kıskaç, akım, iletken, yalıtkan, GND ve bilgisayar. Çizim tekniği Nokta'nın Kasabası ile aynı: ışık soldan, gölge tarafı taralı, çift kalem izi.</p>
+    <p class="lede">İlkokul ve ortaokul öğrencileri kartı bu karakterlerle tanıyacak. Bebeksi değil, macera çizgi romanı tadında: göz kapakları ve kalın kaşlarla oynayan yüzler, kendinden emin duruşlar. Çizim tekniği Nokta'nın Kasabası ile aynı: ışık soldan, gölge tarafı taralı, çift kalem izi.</p>
   </header>
   <div class="lineup"><canvas class="cv" id="lineup" role="img" aria-label="Ekip boy sırasında: Bilgi, Deniz, Patara, Kıvılcım, Timsah Kıskaç, Silgi, Muz ve Elma yan yana duruyor"></canvas></div>
 
@@ -158,7 +161,7 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 2px solid var(--ink); 
   <section aria-labelledby="h-cast">
     <div class="sec-head">
       <h2 id="h-cast">Kahramanlar</h2>
-      <p>Yedi karakter, her biri dört ifadeyle. Düğmelerle ifadeyi değiştir; çizime dokununca sevinir.</p>
+      <p>Yedi karakter, her biri beş ifadeyle. Düğmelerle ifadeyi değiştir; çizime dokununca sevinir.</p>
     </div>
 
     <div class="cast">
@@ -169,7 +172,7 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 2px solid var(--ink); 
         </div>
         <div class="txt">
           <div class="name-row"><span class="name">Patara</span><span class="role r-green">rehber · kartın kendisi</span></div>
-          <p>Safari şapkalı kâşif kaplumbağa. Meraklı, sabırlı, biraz da gösterişçi. Kollarındaki altın pedlere bir şey bağlanınca o şey <b>tuşa dönüşür</b>. Kabuğundaki 25 ışıkla duygusunu gösterir, karnındaki piyanoyla şarkı söyler.</p>
+          <p>Safari şapkalı, kırmızı fularlı kâşif kaplumbağa. Meraklı, sabırlı, biraz da gösterişçi; her şeyi önce kendisi denemek ister. Kollarındaki altın pedlere bir şey bağlanınca o şey <b>tuşa dönüşür</b>. Kabuğundaki 25 ışıkla duygusunu gösterir, karnındaki piyanoyla şarkı söyler.</p>
           <p class="quote">"Hadi keşfe çıkalım! Bana bir muz bağla, bak ne olacak."</p>
           <p class="teach"><b>Öğrettiği:</b> sol kolda ↑ ← → ↓, sağ kolda Space, sol/sağ tık, Enter; iki kolun dibinde GND. 5×5 LED, dokunmatik piyano, yön ve X/Y tuşları.</p>
         </div>
@@ -195,7 +198,7 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 2px solid var(--ink); 
         </div>
         <div class="txt">
           <div class="name-row"><span class="name">Timsah Kıskaç</span><span class="role r-red">bağlayıcı</span></div>
-          <p>Isırır ama acıtmaz, sadece sıkı tutar. Bir ağzıyla Patara'nın pedine, öbür ucuyla muza tutunur. Siyah ikizi <b>GND Kıskaç</b> her zaman çocuğun elinde durur.</p>
+          <p>Sırtı dikenli, bakışı havalı. Isırır ama acıtmaz, sadece sıkı tutar. Bir ağzıyla Patara'nın pedine, öbür ucuyla muza tutunur. Siyah ikizi <b>GND Kıskaç</b> her zaman çocuğun elinde durur.</p>
           <p class="quote">"Hap! Tuttum, bırakmam."</p>
           <p class="teach"><b>Öğrettiği:</b> kablonun bir ucu pede, öbür ucu nesneye. Siyah kablo GND'ye ve sana.</p>
         </div>
@@ -222,7 +225,7 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 2px solid var(--ink); 
         </div>
         <div class="txt">
           <div class="name-row"><span class="name">Silgi</span><span class="role r-slate">yalıtkan</span></div>
-          <p>Huysuz değil, sadece kuralcı. Kıvılcım'ı içinden geçirmez; plastik, lastik, tahta ve kâğıt onun takımı. Silgiye bağlanan ped hiçbir tuşa basmaz.</p>
+          <p>Boynunda hakem düdüğü, huysuz değil sadece kuralcı. Kıvılcım'ı içinden geçirmez; plastik, lastik, tahta ve kâğıt onun takımı. Silgiye bağlanan ped hiçbir tuşa basmaz.</p>
           <p class="quote">"Dur bakalım! Buradan geçiş yok."</p>
           <p class="teach"><b>Öğrettiği:</b> iletken mi, yalıtkan mı? Etkinlik kitabındaki ayıklama oyununun hakemi.</p>
         </div>
@@ -235,7 +238,7 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 2px solid var(--ink); 
         </div>
         <div class="txt">
           <div class="name-row"><span class="name">Deniz</span><span class="role r-slate">sen</span></div>
-          <p>Ekranın önündeki çocuk, yani oyuncunun kendisi. Bir elinde siyah GND kıskacı, öbür eliyle muza uzanıyor. Tişörtünde Kıvılcım'ın şimşeği var.</p>
+          <p>Ekranın önündeki çocuk, yani oyuncunun kendisi: 11–12 yaşında, kapüşonlu, boynunda kulaklık, sırtında çanta. Bir elinde siyah GND kıskacı, öbür eliyle muza uzanıyor.</p>
           <p class="quote">"Halkayı ben tamamlarım!"</p>
           <p class="teach"><b>Öğrettiği:</b> GND kıskacını tutmazsan devre açık kalır. Vücudun da halkanın bir parçası.</p>
         </div>
@@ -243,7 +246,7 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 2px solid var(--ink); 
 
       <article class="card">
         <div class="art">
-          <canvas class="cv" data-char="pc" tabindex="0" role="img" aria-label="Bilgi: kollu, piksel yüzlü eski tip bilgisayar; ekranında gelen tuş görünüyor"></canvas>
+          <canvas class="cv" data-char="pc" tabindex="0" role="img" aria-label="Bilgi: kollu, piksel yüzlü, çıkartmalı eski tip bilgisayar; ekranında gelen tuş görünüyor"></canvas>
           <div class="chips" data-for="pc"></div>
         </div>
         <div class="txt">
@@ -260,12 +263,13 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 2px solid var(--ink); 
   <section aria-labelledby="h-faces">
     <div class="sec-head">
       <h2 id="h-faces">Patara'nın yüzleri</h2>
-      <p>Rehber dört duyguyla konuşur. Kabuktaki LED de yüzüyle birlikte değişir; çocuk ekrana bakmadan karttan anlayabilir.</p>
+      <p>Rehber beş duyguyla konuşur. Kabuktaki LED de yüzüyle birlikte değişir; çocuk ekrana bakmadan karttan anlayabilir.</p>
     </div>
     <div class="faces">
       <div class="face"><canvas class="cv" data-face="idle" role="img" aria-label="Patara bekliyor, gülümsüyor"></canvas><b>Bekler</b><span>Yönerge verirken, çocuk düşünürken.</span></div>
       <div class="face"><canvas class="cv" data-face="happy" role="img" aria-label="Patara seviniyor, gözleri kapalı gülüyor"></canvas><b>Sevinir</b><span>Halka kapandı, doğru tuşa basıldı. LED'de kalp.</span></div>
-      <div class="face"><canvas class="cv" data-face="surprised" role="img" aria-label="Patara şaşırmış, gözleri kocaman"></canvas><b>Şaşırır</b><span>"Sence?" sorusu, beklenmedik bir sonuç.</span></div>
+      <div class="face"><canvas class="cv" data-face="think" role="img" aria-label="Patara düşünüyor, bir kaşı kalkık"></canvas><b>Düşünür</b><span>"Sence?" sorusu: çocuğa tahmin için zaman tanır.</span></div>
+      <div class="face"><canvas class="cv" data-face="surprised" role="img" aria-label="Patara şaşırmış, gözleri kocaman"></canvas><b>Şaşırır</b><span>Beklenmedik bir sonuç, yeni bir keşif.</span></div>
       <div class="face"><canvas class="cv" data-face="sad" role="img" aria-label="Patara üzgün, kaşları düşük"></canvas><b>Üzülür</b><span>Devre açık kaldı ya da yalıtkan seçildi. Hiç azarlamaz.</span></div>
     </div>
   </section>
@@ -326,7 +330,7 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 2px solid var(--ink); 
           <li>3 px mürekkep kontur, yanında silik ikinci kalem izi. Titreme sabit, kıpırdamaz.</li>
           <li>Yer gölgesi yumuşak ve sağa kayık. Benek ve doku az ve bilinçli.</li>
           <li>Herkes nefes alır ve göz kırpar. Büyük hareket yalnızca dokununca ya da sonuçta.</li>
-          <li>Dört ifade: bekler, sevinir, şaşırır, üzülür. Sevinçte kehribar kıvılcımlar.</li>
+          <li>Beş ifade: bekler (yarım gülüş), sevinir, düşünür, şaşırır, üzülür. Göz kapağı ve kaş ifadeyi taşır.</li>
         </ul>
       </div>
     </div>
@@ -354,7 +358,7 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 2px solid var(--ink); 
           <li>İsimler uygun mu? (Kıvılcım, Timsah Kıskaç, Silgi, Deniz, Bilgi)</li>
           <li>Patara'nın kartla bu kadar birebir olması iyi mi, yoksa daha çizgi film gibi mi olsun?</li>
           <li>Etkinlik kitabındaki Roby, Gorki ve Küçük Sincap'ı da ekibe ekleyelim mi?</li>
-          <li>Hedef yaş: okul öncesi mi, ilkokul mu? Metinlerin dili buna göre değişecek.</li>
+          <li>Deniz'in yaşı ve görünüşü ortaokul öğrencilerine de uygun mu?</li>
         </ol>
       </aside>
     </div>
@@ -371,7 +375,7 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 2px solid var(--ink); 
 (() => {
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const C = PT.C, CH = PT.chars;
-  const STATES = [['idle', 'bekler'], ['happy', 'sevinir'], ['surprised', 'şaşırır'], ['sad', 'üzülür']];
+  const STATES = [['idle', 'bekler'], ['happy', 'sevinir'], ['think', 'düşünür'], ['surprised', 'şaşırır'], ['sad', 'üzülür']];
   const views = [];
   const io = 'IntersectionObserver' in window ? new IntersectionObserver((es) => es.forEach((e) => { const v = views.find((x) => x.cv === e.target); if (v) v.vis = e.isIntersecting; })) : null;
 
@@ -443,11 +447,11 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 2px solid var(--ink); 
   const FLOOR = 290;
   const UP_MUZ = 'M359 138 C 320 104 262 116 226 150';
   const P = {
-    ok: UP_MUZ + ' L 213 162 L 161 166 L 117 166 L 94 211 C 92 270 150 292 250 290 C 330 288 350 214 401 181',
-    nognd: UP_MUZ + ' L 213 162 L 161 166 L 117 166 L 94 211',
+    ok: UP_MUZ + ' L 216 169 L 164 171 L 117 171 L 99 225 C 96 274 150 292 250 290 C 330 288 350 214 401 181',
+    nognd: UP_MUZ + ' L 216 169 L 164 171 L 117 171 L 99 225',
     silgi: 'M359 138 C 320 120 270 150 238 188',
   };
-  const GND_HELD = 'M94 211 C 92 270 150 292 250 290 C 330 288 350 214 401 181';
+  const GND_HELD = 'M99 225 C 96 274 150 292 250 290 C 330 288 350 214 401 181';
   const GND_DROP = 'M401 181 C 350 214 330 288 250 290 C 190 291 150 291 124 289';
   const USB = 'M522 222 C 600 214 640 268 746 262';
   const S = { obj: 'muz', gnd: true, phase: 'idle', t0: 0, out: null };
@@ -490,7 +494,7 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 2px solid var(--ink); 
     at0(K, CH.deniz, 40, FLOOR, 0.9, { state: ok ? 'happy' : end && out === 'nognd' ? 'surprised' : 'idle', gnd: S.gnd, noWire: true });
     if (S.obj === 'muz') at0(K, CH.muz, 178, FLOOR, 0.9, { state: ok ? 'happy' : 'idle' });
     else at0(K, CH.silgi, 156, FLOOR, 0.78, { state: end && out === 'silgi' ? 'happy' : 'idle', noSpark: true });
-    at0(K, CH.patara, 330, FLOOR, 0.92, { state: ok ? 'happy' : bad ? (out === 'nognd' ? 'surprised' : 'sad') : 'idle', pad: running || ok ? 'up' : null, led: ok ? 'up' : null });
+    at0(K, CH.patara, 330, FLOOR, 0.92, { state: ok ? 'happy' : bad ? (out === 'nognd' ? 'surprised' : 'sad') : S.phase === 'idle' && (S.obj === 'silgi' || !S.gnd) ? 'think' : 'idle', pad: running || ok ? 'up' : null, led: ok ? 'up' : null });
     at0(K, CH.pc, 680, FLOOR, 0.86, { state: ok ? 'happy' : bad ? 'sad' : 'idle', key: ok ? '↑' : bad ? '?' : undefined });
     // kıskaç uçları
     if (S.obj === 'muz') smallClip(K, 232, 146, -0.75, C.SEAL); else smallClip(K, 244, 184, -0.9, C.SEAL);
