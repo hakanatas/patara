@@ -12,7 +12,7 @@
 
   /* ── kayıt ── */
   const KEY = 'patara-kamp:v1';
-  const save = { done: {}, ans: {}, found: [], met: [], intro: false, sound: true };
+  const save = { done: {}, ans: {}, found: [], met: [], intro: false, sound: true, hava: 'sabah' };
   if (Q.has('sifirla')) { try { localStorage.removeItem(KEY); } catch (e) { /* yok */ } }
   try { Object.assign(save, JSON.parse(localStorage.getItem(KEY) || '{}')); } catch (e) { /* yok */ }
   const persist = () => { try { localStorage.setItem(KEY, JSON.stringify(save)); } catch (e) { /* yok */ } };
@@ -64,19 +64,24 @@
   const BUSH = 'M-30 0 C -40 -22 -14 -34 0 -22 C 12 -38 40 -26 32 0 Z';
   function sky(t) {
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    const g = ctx.createLinearGradient(0, 0, 0, H);
-    g.addColorStop(0, '#f3ead6'); g.addColorStop(0.6, '#f1e7d3'); g.addColorStop(1, '#ead9bb');
+    const g = ctx.createLinearGradient(0, 0, 0, H), night = save.hava === 'aksam';
+    if (night) { g.addColorStop(0, '#2a3150'); g.addColorStop(0.6, '#43465f'); g.addColorStop(1, '#6a5f6e'); }
+    else { g.addColorStop(0, '#f3ead6'); g.addColorStop(0.6, '#f1e7d3'); g.addColorStop(1, '#ead9bb'); }
     ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
     const sx = W * 0.82 - cam.x * 0.03 * S, sy = offY + 120 * S;
+    if (night) { cloudsAndBack(t, true); return; }
     const gl = ctx.createRadialGradient(sx, sy, 6, sx, sy, 150 * S);
     gl.addColorStop(0, 'rgba(232,163,61,.5)'); gl.addColorStop(1, 'rgba(232,163,61,0)');
     ctx.fillStyle = gl; ctx.beginPath(); ctx.arc(sx, sy, 150 * S, 0, 7); ctx.fill();
     ctx.fillStyle = '#ecae4f'; ctx.beginPath(); ctx.arc(sx, sy, 40 * S, 0, 7); ctx.fill();
+    cloudsAndBack(t, false);
+  }
+  function cloudsAndBack(t, night) {
     layer(0.15);
     for (let i = 0; i < 14; i++) {
       const x = i * 620 + ((t * 6 + i * 90) % 620) - 300, y = 70 + (i % 3) * 46;
       if (!visible(x, 160, 0.15)) continue;
-      K.at(x, y, 1 + (i % 2) * 0.3, () => K.shape(CLOUD, { fill: '#fbf6ec', w: 2.2, trace: false }));
+      K.at(x, y, 1 + (i % 2) * 0.3, () => K.shape(CLOUD, { fill: night ? '#d9d4e6' : '#fbf6ec', w: 2.2, trace: false }));
     }
     layer(0.3);
     for (let i = 0; i < 9; i++) {
@@ -127,13 +132,66 @@
       ctx.strokeStyle = C.INK; ctx.lineWidth = 6; ctx.beginPath(); ctx.moveTo(x0, y); ctx.lineTo(x1, y); ctx.stroke();
       ctx.strokeStyle = '#d39a4c'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(x0, y); ctx.lineTo(x1, y); ctx.stroke();
       for (let x = Math.floor(x0 / 300) * 300 + k * 150; x < x1; x += 300) { ctx.fillStyle = '#d39a4c'; ctx.beginPath(); ctx.arc(x, y, 7, 0, 7); ctx.fill(); ctx.strokeStyle = C.INK; ctx.lineWidth = 2; ctx.stroke(); ctx.fillStyle = C.PAPER; ctx.beginPath(); ctx.arc(x, y, 2.6, 0, 7); ctx.fill(); }
-      if (!reduce) {
+      if (!reduce && save.hava !== 'aksam') {
         const dir = k ? -1 : 1, off = ((t * 140 * dir) % 90 + 90) % 90;
         ctx.save(); ctx.shadowColor = C.AMBER; ctx.shadowBlur = 8; ctx.fillStyle = '#ffe08f';
         for (let x = Math.floor(x0 / 90) * 90 + off; x < x1; x += 90) { ctx.beginPath(); ctx.arc(x, y, 2.8, 0, 7); ctx.fill(); }
         ctx.restore();
       }
     });
+  }
+  /* ── akşam: karanlık örtü, ay, yıldızlar ve ışık veren her şey ── */
+  function glow(x, y, r, col, a) {
+    const g = ctx.createRadialGradient(x, y, 1, x, y, r);
+    g.addColorStop(0, col); g.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.globalAlpha = a; ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fill(); ctx.globalAlpha = 1;
+  }
+  function nightPass(t, now) {
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.fillStyle = 'rgba(14,18,40,.5)'; ctx.fillRect(0, 0, W, H);
+    // yıldızlar ve ay (ekran uzayı)
+    ctx.fillStyle = '#fff8e0';
+    for (let i = 0; i < 70; i++) {
+      const x = ((i * 197 - cam.x * 0.04 * S) % (W + 40) + W + 40) % (W + 40) - 20, y = offY + ((i * 83) % 330 + 10) * S;
+      ctx.globalAlpha = 0.35 + 0.65 * Math.abs(Math.sin(t * 0.8 + i)); ctx.beginPath(); ctx.arc(x, y, (i % 3) * 0.5 + 0.8, 0, 7); ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+    const mx = W * 0.8 - cam.x * 0.03 * S, my = offY + 110 * S;
+    glow(mx, my, 120 * S, 'rgba(243,231,196,.55)', 1);
+    ctx.fillStyle = '#f3e7c4'; ctx.beginPath(); ctx.arc(mx, my, 34 * S, 0, 7); ctx.fill();
+    ctx.fillStyle = '#3a3e58'; ctx.beginPath(); ctx.arc(mx + 14 * S, my - 8 * S, 30 * S, 0, 7); ctx.fill();
+    // ışıklar
+    layer(1);
+    ctx.save(); ctx.globalCompositeOperation = 'lighter';
+    LAMPS.forEach((x, i) => { if (!visible(x, 140)) return; const col = PT.town.LEDCOL[i % 4]; glow(x, GROUND - 170, 120, col, 0.55); glow(x, GROUND + 6, 90, col, 0.22); });
+    HOUSES.forEach((h) => {
+      if (!visible(h.x, 160) || !h.win) return;
+      h.win.forEach(([wx, wy, r], k) => { if (Math.sin(t * 0.7 + k * 1.3 + h.x) > -0.3) glow(h.x + wx, GROUND + wy, r, '#ffd77a', 0.45); });
+    });
+    WALK.forEach((w) => { if (w.kind === 'led' && visible(w.x, 60)) { const s = laneS(w); glow(w.x, laneY(w) - 46 * s, 64, w.col, 0.6); } });
+    STN.forEach((st) => {
+      if (!visible(st.x, 320)) return;
+      if (st.id === 'tak') glow(st.x + 85, GROUND - 94, 60, '#ffd77a', 0.5);
+      if (st.id === 'halka') glow(st.x, GROUND - 128, 130, '#ffb36a', 0.35);
+      if (st.id === 'sahne') glow(st.x, GROUND - 145, 160, '#ff5040', 0.3);
+      if (st.id === 'tanis') glow(st.x, GROUND - 40, 110, '#ffd77a', 0.3);
+    });
+    const sx = pat.x - pat.dir * 90 + Math.sin(t * 1.3) * 10, sy = GROUND - 190 + Math.sin(t * 2.1) * 8;
+    glow(sx, sy, 90, '#ffd77a', 0.55);
+    glow(pat.x, GROUND - 120, 40, '#ff5040', 0.3);
+    // bakır yollarda akan elektronlar
+    const x0 = cam.x - viewW() / 2 - 60, x1 = cam.x + viewW() / 2 + 60;
+    [GROUND + 42, GROUND + 64].forEach((y, k) => {
+      const dir = k ? -1 : 1, off = (((reduce ? 0 : t) * 140 * dir) % 90 + 90) % 90;
+      for (let x = Math.floor(x0 / 90) * 90 + off; x < x1; x += 90) glow(x, y, 14, '#ffd77a', 0.9);
+    });
+    // havada süzülen elektron ateşböcekleri
+    for (let i = 0; i < 26; i++) {
+      const x = cam.x - viewW() / 2 + ((i * 173 + t * 12 * (i % 2 ? 1 : -1)) % viewW() + viewW()) % viewW();
+      const y = GROUND - 60 - (i * 37) % 220 + Math.sin(t * 1.3 + i) * 14;
+      glow(x, y, 10, '#ffe08f', 0.4 + 0.5 * Math.abs(Math.sin(t * 2 + i)));
+    }
+    ctx.restore();
   }
   function frontGrass(t) {
     layer(1.15);
@@ -212,15 +270,17 @@
     },
   };
   /* ── kasaba yapıları: istasyonların arasını dolduran evler ve lambalar ── */
+  const CHIPWIN = [0, 1].flatMap((r) => [0, 1, 2, 3].map((k) => [-42 + k * 38, -133 + r * 46, 34]));
+  const CAPWIN = [0, 1, 2, 3].map((k) => [-18, -176 + k * 42, 28]);
   const HOUSES = [
     { x: 250, f: (t) => PT.town.gate(K, t) },
-    { x: 1465, f: (t) => PT.town.chipHouse(K, t, { seed: 1 }) },
-    { x: 2465, f: (t) => PT.town.capTower(K, t, { seed: 2 }) },
-    { x: 3465, f: (t) => PT.town.resHouse(K, t) },
-    { x: 4465, f: (t) => PT.town.chipHouse(K, t, { seed: 4, label: 'İŞLEMCİ' }) },
-    { x: 5465, f: (t) => PT.town.capTower(K, t, { seed: 5, col: '#7a4a8a' }) },
-    { x: 6465, f: (t) => PT.town.chipHouse(K, t, { seed: 6, label: 'BELLEK' }) },
-    { x: 7420, f: (t) => PT.town.capTower(K, t, { seed: 7 }) },
+    { x: 1465, f: (t) => PT.town.chipHouse(K, t, { seed: 1 }), win: CHIPWIN },
+    { x: 2465, f: (t) => PT.town.capTower(K, t, { seed: 2 }), win: CAPWIN },
+    { x: 3465, f: (t) => PT.town.resHouse(K, t), win: [[0, -80, 50]] },
+    { x: 4465, f: (t) => PT.town.chipHouse(K, t, { seed: 4, label: 'İŞLEMCİ' }), win: CHIPWIN },
+    { x: 5465, f: (t) => PT.town.capTower(K, t, { seed: 5, col: '#7a4a8a' }), win: CAPWIN },
+    { x: 6465, f: (t) => PT.town.chipHouse(K, t, { seed: 6, label: 'BELLEK' }), win: CHIPWIN },
+    { x: 7420, f: (t) => PT.town.capTower(K, t, { seed: 7 }), win: CAPWIN },
   ];
   const LAMPS = [520, 1290, 1640, 2290, 2640, 3290, 3640, 4290, 4640, 5290, 5640, 6290, 6640, 7250];
   function scenery(t) {
@@ -356,6 +416,7 @@
     drawPatara(t);
     walkDraw(true, now);
     frontGrass(t);
+    if (save.hava === 'aksam') nightPass(t, now);
     bubble(t);
     WALK.forEach((w) => { if (w.sayUntil > now) bubbleAt(w.x, laneY(w) - 72 * laneS(w), w.say); });
     BIRDS.forEach((b) => { if (b.sayUntil > now) { const p = birdPos(b, t); bubbleAt(p.x, p.y - 18, b.say); } });
@@ -615,6 +676,13 @@
   $('#resetBtn').addEventListener('click', () => { save.done = {}; save.ans = {}; save.found = []; save.met = []; persist(); closeSheets(); goTo(0); renderTop(); toast('İlerleme sıfırlandı.'); });
   $('#metBtn').addEventListener('click', () => toast(`${M.dunya.sakinIpucu}<br>Tanıştıkların: ${save.met.length ? save.met.map((k) => M.sakinler[k].ad).join(', ') : 'henüz kimse'}.`, 5600));
   $('#avBtn').addEventListener('click', () => toast(`${M.dunya.avIpucu}<br>Bulunan: ${save.found.length ? save.found.map((id) => M.avlar.find((a) => a.id === id).ad).join(', ') : 'henüz yok'}.`, 5200));
+  const syncHava = () => document.querySelectorAll('#hava [data-hava]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.hava === save.hava)));
+  document.querySelectorAll('#hava [data-hava]').forEach((b) => b.addEventListener('click', () => {
+    if (save.hava === b.dataset.hava) return;
+    save.hava = b.dataset.hava; persist(); syncHava(); SES.pop();
+    say(save.hava === 'aksam' ? 'Akşam oldu: LED\'ler yandı! Lambalar, pencereler, hepsi elektrikle ışık veriyor.' : 'Günaydın! Kasaba uyandı.', 'happy');
+  }));
+  syncHava();
   const sesBtn = $('#sesBtn');
   const syncSes = () => { sesBtn.setAttribute('aria-pressed', String(SES.on)); sesBtn.textContent = SES.on ? 'ses açık' : 'ses kapalı'; };
   sesBtn.addEventListener('click', () => { SES.on = !SES.on; save.sound = SES.on; persist(); syncSes(); SES.tick(); });

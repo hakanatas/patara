@@ -349,14 +349,37 @@
   const HAND = { x: 99, y: 225 }, GNDPAD = { x: 401, y: 181 }, CLIP0 = { x: 136, y: 288 };
   const GND_HELD = 'M99 225 C 96 274 150 292 250 290 C 330 288 350 214 401 181';
   const fracAt = (d, q) => { const P2 = PT.geo(d).runs[0].pts; let bi = 0, bd = 1e9; P2.forEach((p, i) => { const dd = Math.hypot(p[0] - q.x, p[1] - q.y); if (dd < bd) { bd = dd; bi = i; } }); return bi / (P2.length - 1); };
+  /* arkadaş zinciri: Ada muza dokunur, Can ortada, Deniz GND kıskacını tutar */
+  const KS2 = 0.78, KOY = 520 - 230 * KS2;
+  const KIDS = [
+    { ad: 'Ada', ox: 403, colors: { hoodie: '#c4623d', hair: '#6b3a22', skin: '#d9a57a', bag: '#5b7c99' } },
+    { ad: 'Can', ox: 265.7, colors: { hoodie: '#4f9a7a', hair: '#1f1a17', skin: '#a8714a', bag: '#e8a33d' } },
+    { ad: 'Deniz', ox: 128.4, colors: {} },
+  ];
+  const kg = (k, lx, ly) => ({ x: k.ox + lx * KS2, y: KOY + ly * KS2 });
+  const LINKS = [kg(KIDS[2], 200, 140), kg(KIDS[0], 24, 140)]; // el ele tutuşma noktaları: 0 Deniz–Can, 1 Can–Ada
+  const CUP = { x: 650 + 32 * 0.85, y: 297.3 + 97 * 0.85 }, CGND = { x: 650 + 77 * 0.85, y: 297.3 + 143 * 0.85 }, CMUZ = { x: 540 + 52 * 0.8, y: 369.6 + 36 * 0.8 };
+  const CUP_MUZ = `M${CUP.x} ${CUP.y} C 640 352 600 360 ${CMUZ.x} ${CMUZ.y}`;
+  const CBLACK = () => `C 120 520 200 528 300 528 L 620 528 C 700 528 705 470 ${CGND.x} ${CGND.y}`;
+  function chainPath(links) {
+    let d = CUP_MUZ + ' L 562 440';
+    for (let i = 0; i < KIDS.length; i++) {
+      const k = KIDS[i], R = kg(k, 200, 140), s1 = kg(k, 136, 100), s2 = kg(k, 88, 100), L = kg(k, 24, 140);
+      d += ` L ${R.x} ${R.y} L ${s1.x} ${s1.y} L ${s2.x} ${s2.y} L ${L.x} ${L.y}`;
+      const li = KIDS.length - 2 - i; // Ada→Can bağı 1, Can→Deniz bağı 0
+      if (i < KIDS.length - 1 && !links[li]) return { d, full: false };
+    }
+    return { d: d + ' ' + CBLACK(), full: true };
+  }
   KAMP.def('halka', {
     init(Z) {
       const held = Z.isDone('gnd');
-      Z.data = { held, clip: held ? { ...HAND } : { ...CLIP0 }, drag: false, phase: 'idle', t0: 0, out: null };
+      Z.data = { held, clip: held ? { ...HAND } : { ...CLIP0 }, drag: false, phase: 'idle', t0: 0, out: null, mode: Z.isDone('kapali') ? 'chain' : 'solo', links: [true, false] };
       Z.data.fr = { ok: [fracAt(HP.ok, { x: 226, y: 150 }), fracAt(HP.ok, { x: 216, y: 169 }), fracAt(HP.ok, { x: 99, y: 225 })], nognd: [fracAt(HP.nognd, { x: 226, y: 150 }), fracAt(HP.nognd, { x: 216, y: 169 }), 1] };
     },
     draw(K, t, Z) {
       const d = Z.data, c = K.ctx, n = now() / 1000;
+      if (d.mode === 'chain') { this.drawChain(K, t, Z); return; }
       paper(K, FL + Y0 + 2);
       let f = 0, end = false;
       if (d.phase === 'run') { f = Math.min(1, (n - d.t0) / 3.6); if (f >= 1) { d.phase = 'end'; d.t0 = n; this.finish(Z); } }
@@ -388,6 +411,57 @@
       text(K, d.held ? 'GND Deniz\'in elinde' : 'GND kıskacı yerde', 150, 340 - 2, { size: 21, color: d.held ? C.INK : C.SEAL });
       c.restore();
     },
+    drawChain(K, t, Z) {
+      const d = Z.data, c = K.ctx, n = now() / 1000;
+      paper(K, 522);
+      let f = 0, end = false;
+      if (d.phase === 'run') { f = Math.min(1, (n - d.t0) / 4.2); if (f >= 1) { d.phase = 'end'; d.t0 = n; this.finish(Z); } }
+      else if (d.phase === 'end') { f = 1; end = true; if (n - d.t0 > 3.2) d.phase = 'idle'; }
+      const P = d.phase === 'idle' ? null : d.path, ok = end && P && P.full, bad = end && P && !P.full;
+      // şema
+      const nodes = [['Patara · UP', 92], ['Muz', 232], ['Ada', 372], ['Can', 512], ['Deniz', 652], ['GND', 800]];
+      const pts = P ? [0, fracAt(P.d, CMUZ), fracAt(P.d, kg(KIDS[0], 200, 140)), fracAt(P.d, kg(KIDS[1], 200, 140)), fracAt(P.d, kg(KIDS[2], 200, 140)), 1] : [];
+      const lit = (i) => P && f >= pts[i] - 0.001 && (i < 5 || P.full);
+      c.fillStyle = 'rgba(241,234,220,.9)'; c.strokeStyle = C.INK; c.lineWidth = 2;
+      c.beginPath(); c.roundRect ? c.roundRect(24, 16, 852, 130, 14) : c.rect(24, 16, 852, 130); c.fill(); c.stroke();
+      text(K, 'devre şeması: zincir', 44, 42, { mono: true, size: 12, color: 'rgba(23,20,17,.6)' });
+      const Y = 86;
+      for (let i = 0; i < 5; i++) {
+        const broken = (i === 2 && !d.links[1]) || (i === 3 && !d.links[0]);
+        c.strokeStyle = broken ? C.SEAL : lit(i + 1) ? C.AMBER : C.INK; c.lineWidth = lit(i + 1) && !broken ? 6 : 3;
+        if (broken) c.setLineDash([7, 7]);
+        c.beginPath(); c.moveTo(nodes[i][1] + 52, Y); c.lineTo(nodes[i + 1][1] - 52, Y); c.stroke(); c.setLineDash([]);
+        if (broken) text(K, 'eller ayrık!', (nodes[i][1] + nodes[i + 1][1]) / 2, Y + 34, { size: 17, align: 'center', color: C.SEAL });
+      }
+      nodes.forEach(([l, x], i) => {
+        c.fillStyle = lit(i) ? C.AMBER : C.SHEET; c.strokeStyle = C.INK; c.lineWidth = 2.4;
+        c.beginPath(); c.roundRect ? c.roundRect(x - 52, Y - 18, 104, 36, 10) : c.rect(x - 52, Y - 18, 104, 36); c.fill(); c.stroke();
+        text(K, l, x, Y + 1, { mono: true, size: 12, align: 'center', base: 'middle' });
+      });
+      // kablolar
+      K.line(CUP_MUZ, { w: 8, trace: false }); K.line(CUP_MUZ, { w: 4, color: C.SEAL, trace: false });
+      const BL = `M${kg(KIDS[2], 24, 140).x} ${kg(KIDS[2], 24, 140).y} ` + CBLACK();
+      K.line(BL, { w: 7, trace: false }); K.line(BL, { w: 3, color: '#4a403a', trace: false });
+      if (P) {
+        const G = PT.geo(P.d).runs[0].pts, m = Math.max(1, Math.floor(f * (G.length - 1)));
+        c.strokeStyle = C.AMBER; c.lineWidth = 4; c.lineCap = 'round'; c.lineJoin = 'round'; c.globalAlpha = 0.9;
+        c.beginPath(); G.slice(0, m + 1).forEach((q, i) => (i ? c.lineTo(q[0], q[1]) : c.moveTo(q[0], q[1]))); c.stroke(); c.globalAlpha = 1;
+      }
+      // çocuklar (sağdan sola: Ada, Can, Deniz)
+      KIDS.forEach((k, i) => {
+        const rightHeld = i === 0 ? true : d.links[KIDS.length - 1 - i], leftHeld = i === KIDS.length - 1 ? true : d.links[KIDS.length - 2 - i];
+        const hands = { right: rightHeld ? [200, 140] : [186, 178], left: leftHeld ? [24, 140] : [38, 178] };
+        K.at(k.ox, KOY, KS2, () => CH.deniz.draw(K, { state: ok ? 'happy' : bad ? 'surprised' : 'idle', gnd: i === KIDS.length - 1, noWire: true, colors: k.colors, hands }));
+        text(K, k.ad, k.ox + 112 * KS2, 566, { size: 22, align: 'center' });
+      });
+      K.at(540, 369.6, 0.8, () => CH.muz.draw(K, { state: ok ? 'happy' : 'idle' }));
+      K.at(650, 297.3, 0.85, () => CH.patara.draw(K, { state: ok ? 'happy' : bad ? 'sad' : 'idle', pad: d.phase === 'run' || ok ? 'up' : null, led: ok ? 'up' : null }));
+      clipHead(K, { x: CMUZ.x + 6, y: CMUZ.y - 2 }, -1, 0.2, {});
+      // açık bağlar: boşluğu göster
+      d.links.forEach((on, i) => { if (!on) { c.save(); c.strokeStyle = C.SEAL; c.lineWidth = 2.6; c.setLineDash([5, 6]); c.beginPath(); c.arc(LINKS[i].x, LINKS[i].y + 22, 26, 0, 7); c.stroke(); c.restore(); } });
+      if (P) { const [x, y] = PT.along(P.d, f); miniSpark(K, x, y - 4, 0.26, !end ? 'idle' : ok ? 'happy' : 'sad'); }
+      if (ok) bubble(K, '↑ basıldı!', 760, 300);
+    },
     /* üstte devre şeması: hangi parça yanıyor? */
     schema(K, f, out, d) {
       const c = K.ctx, nodes = [['Patara · UP', 110], ['Muz', 330], ['Deniz', 550], ['GND · Patara', 780]];
@@ -416,20 +490,38 @@
     },
     finish(Z) {
       const d = Z.data, tid = Z.task();
+      if (d.mode === 'chain') {
+        if (d.path.full) {
+          Z.sfx.win();
+          if (tid === 'zincir') Z.done('zincir', 'Kıvılcım **üç kişiden** geçti ve halka kapandı! Şimdi bir eli bırakıp tekrar dene: ne olacak?');
+          else Z.say('Zincir sağlam: **↑ basıldı!**', 'happy');
+        } else { Z.sfx.bad(); Z.say('Kıvılcım ayrık ellerde takıldı: zincir kopuksa halka **açık**, tuş basılmaz.', 'sad'); }
+        return;
+      }
       if (d.out === 'nognd') {
         Z.sfx.bad();
         if (tid === 'acik') Z.done('acik', "Gördün mü? Kıvılcım **Deniz'in elinde** kaldı. GND yoksa halka **açık**, tuş basılmaz.");
         else Z.say("Kıvılcım Deniz'de takıldı: GND kıskacı elinde değil.", 'sad');
       } else {
         Z.sfx.win();
-        if (tid === 'kapali') Z.done('kapali', 'Halka kapandı! Kıvılcım pedden muza, Deniz\'e, GND\'ye ve karta döndü. **↑ basıldı!**');
+        if (tid === 'kapali') {
+          Z.done('kapali', 'Halka kapandı! Kıvılcım pedden muza, Deniz\'e, GND\'ye ve karta döndü. **↑ basıldı!**');
+          setTimeout(() => { if (KAMP.Z && KAMP.Z.sid === 'halka') { d.mode = 'chain'; d.phase = 'idle'; Z.say('Ada ve Can da geldi! Üçü el ele zincir kurdu ama bir yerde eller ayrık.', 'think'); } }, 2600);
+        }
         else if (tid === 'acik') Z.say('Halka kapalıyken ↑ basılıyor. Ama önce GND olmadan denemeliydik: siyah kıskacı Deniz\'in elinden alıp yere bırak.', 'think');
         else Z.say('**↑** basıldı. Halka kapalı!', 'happy');
       }
     },
-    run(Z) { const d = Z.data; if (d.phase === 'run') return; d.out = d.held ? 'ok' : 'nognd'; d.phase = 'run'; d.t0 = now() / 1000; Z.sfx.zap(); },
+    run(Z) { const d = Z.data; if (d.phase === 'run') return; if (d.mode === 'chain') d.path = chainPath(d.links); else d.out = d.held ? 'ok' : 'nognd'; d.phase = 'run'; d.t0 = now() / 1000; Z.sfx.zap(); },
     down(p, Z) {
       const d = Z.data, q = p && { x: p.x, y: p.y - Y0 };
+      if (d.mode === 'chain') {
+        if (d.phase === 'run') return;
+        const i = LINKS.findIndex((L) => near(p, { x: L.x, y: L.y + 16 }, 38));
+        if (i >= 0) { d.links[i] = !d.links[i]; d.phase = 'idle'; Z.sfx.pop(); Z.say(d.links[i] ? 'El ele tutuştular. Zincir tamam mı?' : 'Biri elini bıraktı! Şimdi muza dokunursan ne olur?', d.links[i] ? 'happy' : 'think'); Z.refresh(); return; }
+        if ((p.x > 548 && p.x < 622 && p.y > 384 && p.y < 510) || near(p, kg(KIDS[0], 200, 140), 30)) { this.run(Z); return; }
+        Z.say('Ellerin arasındaki boşluğa ya da muza dokun.', 'think'); return;
+      }
       const grab = clipGrab(d.clip, -1, 0.26);
       if (near(q, grab, 40) || (d.held && near(q, HAND, 30))) { d.drag = true; d.held = false; Z.sfx.tick(); return; }
       if ((q.x > 178 && q.x < 272 && q.y > 140 && q.y < 290) || near(q, { x: 216, y: 169 }, 30)) { this.run(Z); return; }
@@ -447,6 +539,12 @@
     },
     guide(tid, Z) {
       const d = Z.data, sh = (q) => ({ x: q.x, y: q.y + Y0 });
+      if (tid === 'zincir') {
+        if (d.mode !== 'chain') return { wait: true };
+        const i = d.links.findIndex((on) => !on);
+        if (i >= 0) { const q = { x: LINKS[i].x, y: LINKS[i].y + 16 }; return { how: { ...q, r: 30, t: 'elleri birleştir' }, pt: { ...q, r: 30, t: 'boşluk' } }; }
+        return { how: { x: 585, y: 450, r: 34, t: 'muza dokun' }, pt: { x: 585, y: 450, r: 34, t: 'muz' } };
+      }
       if (tid === 'acik' || tid === 'kapali') { const m = sh({ x: 226, y: 210 }); return { how: { ...m, r: 34, t: 'muza dokun' }, pt: { ...m, r: 34, t: 'muz' } }; }
       if (tid === 'gnd') { const h = sh(clipGrab(d.clip, -1, 0.26)), to = sh(HAND); return { how: { ...h, r: 30, t: 'GND kıskacı' }, pt: { ...to, r: 26, t: 'Deniz\'in eli' }, drag: [h, to] }; }
       return null;

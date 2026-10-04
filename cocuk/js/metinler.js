@@ -120,8 +120,10 @@ window.PATARA_METIN = {
           ipucu: ['Siyah kıskaç Deniz\'in ayaklarının yanında.', 'Kıskacı sürükle, Deniz\'in sol eline bırak.', 'Tahtadaki ok şimdi Deniz\'in elini gösteriyor.'] },
         { id: 'kapali', metin: 'Halkayı kapat', yonerge: 'Şimdi tekrar **muza dokun**. Halka kapanacak mı?',
           ipucu: ['GND artık Deniz\'in elinde.', 'Muza dokun ve Kıvılcım\'ı sonuna kadar izle.', 'Tahtadaki ok şimdi muzu gösteriyor.'] },
+        { id: 'zincir', metin: 'Arkadaş zinciri', yonerge: "Ada ve Can geldi; üçü el ele bir **zincir** kurdu ama **bir yerde eller ayrık**. Boşluğa dokunup elleri birleştir, sonra **muza dokun**.",
+          ipucu: ['Eli havada kalan iki çocuğu bul.', 'Boşluk Can ile Ada\'nın arasında. Oraya dokun, sonra muza.', 'Tahtadaki ok şimdi sıradaki yeri gösteriyor.'] },
       ],
-      aciklama: "Akım bir **halka** ister: pedden nesneye, nesneden **sana**, senden **GND**'ye ve karta geri. Sen de halkanın bir parçasısın! GND kıskacı elinde değilse halka **açık** kalır ve tuş basılmaz.",
+      aciklama: "Akım bir **halka** ister: pedden nesneye, nesneden **sana**, senden **GND**'ye ve karta geri. Sen de halkanın bir parçasısın! GND kıskacı elinde değilse halka **açık** kalır ve tuş basılmaz. El ele tutuşan bir **zincir** de halkaya katılır; biri elini bırakırsa halka açılır.",
       ogretmen: 'Kapalı ve açık devre. Öğrenciler el ele tutuşup bir insan zinciri kursun: zincirin bir ucu GND, öbür ucu nesneye dokunur. Zincir kopunca tuş basılmaz.',
     },
     {

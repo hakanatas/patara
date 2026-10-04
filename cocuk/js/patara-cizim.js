@@ -650,52 +650,52 @@
     hands: { right: [196, 96], left: [66, 156], rs: [138, 98], ls: [86, 98] },
     draw(K, o = {}) {
       const { ctx, t } = K, st = o.state || 'idle', hap = st === 'happy', sur = st === 'surprised', thk = st === 'think', sad = st === 'sad';
-      const gnd = o.gnd !== false;
+      const gnd = o.gnd !== false, col = o.colors || {}, HOOD = col.hoodie || C.HOODIE, SK = col.skin || C.SKIN, HAIR = col.hair || '#3a2a20', H = o.hands || {};
       K.shadow(112, 230, 120);
       if (gnd && !o.noWire) K.line('M60 166 C 46 206 26 220 -6 228', { w: 5, color: '#2a2420', trace: false });
       ctx.save(); ctx.translate(0, -(hap ? Math.abs(Math.sin(t * 8)) * 10 : 0));
       // sırt çantası (arkada)
-      K.shape('M74 100 C 74 92 150 92 150 100 L 154 150 C 154 156 70 156 70 150 Z', { lit: '#d08a2e' });
+      K.shape('M74 100 C 74 92 150 92 150 100 L 154 150 C 154 156 70 156 70 150 Z', { lit: col.bag || '#d08a2e' });
       // bacaklar: kot, spor ayakkabı
-      K.shape('M82 158 L 142 158 L 144 214 L 122 214 L 112 176 L 104 214 L 80 214 Z', { lit: C.DENIM });
+      K.shape('M82 158 L 142 158 L 144 214 L 122 214 L 112 176 L 104 214 L 80 214 Z', { lit: col.pants || C.DENIM });
       K.line('M112 176 L 112 162', { w: 1.4, alpha: 0.5, trace: false });
       [[92, -1], [133, 1]].forEach(([x, d]) => {
         K.shape(`M${x - 14} 212 L ${x + 10} 212 C ${x + 10 + d * 8} 214 ${x + 12 + d * 10} 222 ${x + 8 + d * 8} 228 L ${x - 16} 228 C ${x - 20} 222 ${x - 18} 214 ${x - 14} 212 Z`, { fill: '#f4efe4', w: 2.4, hatch: false });
         K.line(`M${x - 16} 223 L ${x + 12 + d * 6} 223`, { w: 2, color: C.SEAL, trace: false });
       });
       // kapüşonlu gövde
-      K.shape('M84 94 C 98 88 126 88 140 94 L 147 160 C 128 168 96 168 77 160 Z', { lit: C.HOODIE, inside: () => {
+      K.shape('M84 94 C 98 88 126 88 140 94 L 147 160 C 128 168 96 168 77 160 Z', { lit: HOOD, inside: () => {
         K.line('M94 138 L 130 138 L 135 158 L 89 158 Z', { w: 1.4, alpha: 0.45, trace: false });
         K.shape('M104 112 L 99 124 L 106 124 L 102 136 L 114 120 L 107 120 L 110 112 Z', { fill: C.AMBER, w: 1.4, hatch: false, trace: false });
       } });
       K.line('M88 94 L 94 140 M136 94 L 130 140', { w: 4, color: '#8a5a2e', trace: false });
       K.line('M108 98 L 106 118 M118 98 L 120 116', { w: 1.4, color: C.SHEET, trace: false });
       // sol kol: siyah GND kıskacını tutar
-      const lh = sad ? [70, 160] : [66, 156];
-      K.sleeve([[88, 100], [70, 124], lh], C.HOODIE);
-      K.circle(lh[0], lh[1] + 2, 6.4, { lit: C.SKIN, w: 2.2, hatch: false, trace: false });
+      const lh = H.left || (sad ? [70, 160] : [66, 156]);
+      K.sleeve([[88, 100], H.left ? [(88 + lh[0]) / 2 - 4, Math.max(118, (100 + lh[1]) / 2 + 10)] : [70, 124], lh], HOOD);
+      K.circle(lh[0], lh[1] + 2, 6.4, { lit: SK, w: 2.2, hatch: false, trace: false });
       if (gnd) K.rot(lh[0], lh[1] + 2, 1.15, () => {
         K.shape(`M${lh[0] - 24} ${lh[1] - 4} L ${lh[0] - 5} ${lh[1] - 4} L ${lh[0] - 5} ${lh[1] + 8} L ${lh[0] - 24} ${lh[1] + 8} Z`, { fill: '#2a2420', w: 2, hatch: false, trace: false });
         K.shape(`M${lh[0] - 24} ${lh[1] - 3} L ${lh[0] - 34} ${lh[1]} L ${lh[0] - 34} ${lh[1] + 4} L ${lh[0] - 24} ${lh[1] + 7} Z`, { fill: C.METAL, w: 1.8, hatch: false, trace: false });
       });
       // sağ kol: dokunmak için uzanır / düşünürken çeneye / sevinçte yumruk havada
-      const rh = hap ? [150, 22 + Math.sin(t * 14) * 3] : thk ? [124, 82] : sad ? [150, 160] : [196 + Math.sin(t * 2) * 2, 96];
-      const re = hap ? [160, 60] : thk ? [154, 116] : sad ? [148, 130] : [166, 100];
+      const rh = H.right || (hap ? [150, 22 + Math.sin(t * 14) * 3] : thk ? [124, 82] : sad ? [150, 160] : [196 + Math.sin(t * 2) * 2, 96]);
+      const re = H.right ? [(136 + rh[0]) / 2 + 4, Math.max(118, (100 + rh[1]) / 2 + 10)] : hap ? [160, 60] : thk ? [154, 116] : sad ? [148, 130] : [166, 100];
       // kulaklık bandı boynun arkasında
       K.line('M99 90 C 102 100 122 100 125 90', { w: 4.5, color: '#2a2f36', trace: false });
       // kafa
-      K.shape('M106 76 L 118 76 L 118 92 L 106 92 Z', { fill: mix(C.SKIN, '#1a120a', 0.15), w: 2, hatch: false, trace: false });
-      K.circle(84, 54, 6, { lit: C.SKIN, w: 2.2, hatch: false, trace: false }); K.circle(140, 54, 6, { lit: C.SKIN, w: 2.2, hatch: false, trace: false });
-      K.shape(el(112, 52, 28, 30), { lit: C.SKIN, w: 3.2 });
-      K.shape('M82 48 C 78 22 98 12 116 16 C 134 18 146 30 142 50 C 138 42 132 38 126 42 C 122 32 110 32 106 40 C 100 34 90 38 82 48 Z', { lit: '#3a2a20', w: 2.6 });
+      K.shape('M106 76 L 118 76 L 118 92 L 106 92 Z', { fill: mix(SK, '#1a120a', 0.15), w: 2, hatch: false, trace: false });
+      K.circle(84, 54, 6, { lit: SK, w: 2.2, hatch: false, trace: false }); K.circle(140, 54, 6, { lit: SK, w: 2.2, hatch: false, trace: false });
+      K.shape(el(112, 52, 28, 30), { lit: SK, w: 3.2 });
+      K.shape('M82 48 C 78 22 98 12 116 16 C 134 18 146 30 142 50 C 138 42 132 38 126 42 C 122 32 110 32 106 40 C 100 34 90 38 82 48 Z', { lit: HAIR, w: 2.6 });
       K.line('M110 18 C 108 8 118 4 122 10 M96 22 C 90 16 92 10 98 10', { w: 2.4, trace: false });
-      K.face(112, 56, { s: 1.1, gap: 10, er: 3.6, skin: C.SKIN, my: 12, state: st, ph: 2.2 });
+      K.face(112, 56, { s: 1.1, gap: 10, er: 3.6, skin: SK, my: 12, state: st, ph: 2.2 });
       // kulaklık kapakları
       K.circle(99, 90, 6.5, { lit: '#3a4250', w: 2.2, hatch: false, trace: false }); K.circle(125, 90, 6.5, { lit: '#3a4250', w: 2.2, hatch: false, trace: false });
       K.dot(99, 90, 2.2, C.AMBER); K.dot(125, 90, 2.2, C.AMBER);
-      K.sleeve([[136, 100], re, rh], C.HOODIE);
-      K.circle(rh[0], rh[1], 6.4, { lit: C.SKIN, w: 2.2, hatch: false, trace: false });
-      if (!hap && !thk && !sad) {
+      K.sleeve([[136, 100], re, rh], HOOD);
+      K.circle(rh[0], rh[1], 6.4, { lit: SK, w: 2.2, hatch: false, trace: false });
+      if (!hap && !thk && !sad && !o.hands) {
         ctx.strokeStyle = C.DEEP; ctx.lineWidth = 2.4; ctx.lineCap = 'round';
         const a = 0.5 + 0.5 * Math.sin(t * 4); ctx.globalAlpha = a;
         ctx.beginPath(); ctx.moveTo(rh[0] + 10, rh[1] - 8); ctx.lineTo(rh[0] + 14, rh[1] - 13); ctx.moveTo(rh[0] + 12, rh[1]); ctx.lineTo(rh[0] + 19, rh[1]); ctx.moveTo(rh[0] + 10, rh[1] + 8); ctx.lineTo(rh[0] + 14, rh[1] + 13); ctx.stroke();
