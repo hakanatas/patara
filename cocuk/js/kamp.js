@@ -165,8 +165,8 @@
     ctx.save(); ctx.globalCompositeOperation = 'lighter';
     LAMPS.forEach((x, i) => { if (!visible(x, 140)) return; const col = PT.town.LEDCOL[i % 4]; glow(x, GROUND - 170, 120, col, 0.55); glow(x, GROUND + 6, 90, col, 0.22); });
     HOUSES.forEach((h) => {
-      if (!visible(h.x, 160) || !h.win) return;
-      h.win.forEach(([wx, wy, r], k) => { if (Math.sin(t * 0.7 + k * 1.3 + h.x) > -0.3) glow(h.x + wx, GROUND + wy, r, '#ffd77a', 0.45); });
+      if (!visible(h.x, 160) || !h.wins) return;
+      h.wins(t).forEach((w) => { if (w.on) glow(h.x + w.x, GROUND + w.y, h.r, '#ffd77a', 0.45); });
     });
     WALK.forEach((w) => { if (w.kind === 'led' && visible(w.x, 60)) { const s = laneS(w); glow(w.x, laneY(w) - 46 * s, 64, w.col, 0.6); } });
     STN.forEach((st) => {
@@ -270,17 +270,15 @@
     },
   };
   /* ── kasaba yapıları: istasyonların arasını dolduran evler ve lambalar ── */
-  const CHIPWIN = [0, 1].flatMap((r) => [0, 1, 2, 3].map((k) => [-42 + k * 38, -133 + r * 46, 34]));
-  const CAPWIN = [0, 1, 2, 3].map((k) => [-18, -176 + k * 42, 28]);
   const HOUSES = [
     { x: 250, f: (t) => PT.town.gate(K, t) },
-    { x: 1465, f: (t) => PT.town.chipHouse(K, t, { seed: 1 }), win: CHIPWIN },
-    { x: 2465, f: (t) => PT.town.capTower(K, t, { seed: 2 }), win: CAPWIN },
-    { x: 3465, f: (t) => PT.town.resHouse(K, t), win: [[0, -80, 50]] },
-    { x: 4465, f: (t) => PT.town.chipHouse(K, t, { seed: 4, label: 'İŞLEMCİ' }), win: CHIPWIN },
-    { x: 5465, f: (t) => PT.town.capTower(K, t, { seed: 5, col: '#7a4a8a' }), win: CAPWIN },
-    { x: 6465, f: (t) => PT.town.chipHouse(K, t, { seed: 6, label: 'BELLEK' }), win: CHIPWIN },
-    { x: 7420, f: (t) => PT.town.capTower(K, t, { seed: 7 }), win: CAPWIN },
+    { x: 1465, f: (t) => PT.town.chipHouse(K, t, { seed: 1 }), wins: (t) => PT.town.chipWins(t, 1), r: 34 },
+    { x: 2465, f: (t) => PT.town.capTower(K, t, { seed: 2 }), wins: (t) => PT.town.capWins(t, 2), r: 28 },
+    { x: 3465, f: (t) => PT.town.resHouse(K, t), wins: () => [{ x: 0, y: -80, on: true }], r: 50 },
+    { x: 4465, f: (t) => PT.town.chipHouse(K, t, { seed: 4, label: 'İŞLEMCİ' }), wins: (t) => PT.town.chipWins(t, 4), r: 34 },
+    { x: 5465, f: (t) => PT.town.capTower(K, t, { seed: 5, col: '#7a4a8a' }), wins: (t) => PT.town.capWins(t, 5), r: 28 },
+    { x: 6465, f: (t) => PT.town.chipHouse(K, t, { seed: 6, label: 'BELLEK' }), wins: (t) => PT.town.chipWins(t, 6), r: 34 },
+    { x: 7420, f: (t) => PT.town.capTower(K, t, { seed: 7 }), wins: (t) => PT.town.capWins(t, 7), r: 28 },
   ];
   const LAMPS = [520, 1290, 1640, 2290, 2640, 3290, 3640, 4290, 4640, 5290, 5640, 6290, 6640, 7250];
   function scenery(t) {
@@ -456,7 +454,8 @@
   const trainSay = { text: '', until: 0, n: 0 };
   function meet(kind, who) {
     const d = M.sakinler[kind]; if (!d) return;
-    const line = d.soz[(who.n = (who.n || 0) + 1) % d.soz.length];
+    const line = d.soz[(who.n || 0) % d.soz.length];
+    who.n = (who.n || 0) + 1;
     if (who === trainSay) { trainSay.text = line; trainSay.until = performance.now() + 4200; }
     else { who.say = line; who.sayUntil = performance.now() + 4200; }
     if (!save.met.includes(kind)) {
@@ -563,7 +562,7 @@
     B.init(Z);
     renderSide();
     sizeZoom();
-    setTimeout(() => { const f = $('#zside .z-task button, #zClose'); if (f) f.focus(); }, 30);
+    setTimeout(() => { const f = $('.zside .z-task button, #zClose'); if (f) f.focus(); }, 30);
   }
   function closeZoom() { if (B_ON() && Z.B.close) Z.B.close(Z); $('#zoom').hidden = true; document.body.classList.remove('zooming'); Z = null; renderCard(); const b = $('#cZoom'); if (b) b.focus(); }
   const B_ON = () => !!Z;
@@ -654,6 +653,8 @@
     Z.t = t;
     Z.B.draw(ZK, t, Z);
     guideMark(ZK, t);
+    const g = curTask(), pe = document.querySelector('#ztask .prog');
+    if (g && pe && Z.B.prog) { const v = Z.B.prog(g.id, Z); if (pe.textContent !== v) pe.textContent = v; }
     // Patara yüzü (yan panel)
     const md2 = mcv.width / 150;
     mctx.setTransform(1, 0, 0, 1, 0, 0); mctx.clearRect(0, 0, mcv.width, mcv.height);
@@ -664,7 +665,10 @@
 
   /* ═════════ SAYFALAR: tanıtım, öğretmen ═════════ */
   function openSheet(id) { $(id).hidden = false; const f = $(id).querySelector('button'); if (f) f.focus(); }
-  function closeSheets() { document.querySelectorAll('.sheet').forEach((s) => (s.hidden = true)); }
+  function closeSheets() {
+    if (!$('#intro').hidden && !save.intro) { save.intro = true; persist(); setTimeout(() => say(STN[cur].varis, 'happy'), 200); }
+    document.querySelectorAll('.sheet').forEach((s) => (s.hidden = true));
+  }
   document.querySelectorAll('.sheet').forEach((s) => s.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeSheets(); }));
   document.querySelectorAll('[data-close]').forEach((b) => b.addEventListener('click', closeSheets));
   $('#introText').innerHTML = M.tanitim.metin.map((p) => `<p>${md(p)}</p>`).join('');
