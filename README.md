@@ -44,6 +44,22 @@ ES modülleri `http://` gerektirir; `index.html` dosyasını diskten doğrudan a
 
 `prefers-reduced-motion` animasyonları kısaltır.
 
+## Çocuklar için: Patara'nın Kâşif Kampı
+
+`cocuk/` altında ilkokul ve ortaokul öğrencileri (7–14 yaş) için ayrı bir öğrenme sitesi var: <https://hakanatas.github.io/patara/cocuk/>
+Yan kaydırmalı, el çizimi bir kampta yedi istasyon gezilir: Tanış → Tak → Kıskaçla → Halka → İletken mi? → Işık ve müzik → Oyun zamanı.
+Her istasyon bir "Sence?" tahminiyle açılır, yakın planda 2–4 görevle sürer ve kısa bir açıklamayla kapanır. Kampa 6 iletken nesne saklıdır.
+
+| Dosya | İçerik |
+| --- | --- |
+| `cocuk/js/metinler.js` | Bütün metinler (istasyonlar, görevler, ipuçları, öğretmen notları); kod bilmeden düzenlenebilir |
+| `cocuk/js/patara-cizim.js` | Mürekkep çizim seti ve karakterler (Patara, Kıvılcım, Timsah Kıskaç, İletken Dostlar, Silgi, Deniz, Bilgi) |
+| `cocuk/js/kamp.js` | Dünya motoru, istasyon kartı, yakın plan ve rehber |
+| `cocuk/js/istasyonlar.js` | Yedi istasyonun yakın plan tahtaları |
+| `tasarim/karakterler.html` | Karakter tasarım sayfası |
+
+Adres parametreleri: `?tanitimsiz` tanıtımı atlar, `?sifirla` ilerlemeyi siler, `?istasyon=halka` doğrudan bir istasyonla açar.
+
 ## Kaynaklar
 
 - Ürün deposu: <https://github.com/Robotistan/Patara-Board> (Apache‑2.0)

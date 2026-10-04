@@ -315,6 +315,7 @@
   const ARM = 'M92 150 C 56 146 26 124 22 94 C 20 78 40 72 48 88 C 56 108 74 124 102 130 Z';
   const FOOT = 'M82 226 C 58 228 44 242 48 254 C 62 262 90 258 100 246 C 104 236 96 226 82 226 Z';
   const PADS = [[32, 97], [38, 112], [48, 125], [61, 135], [77, 143]];
+  const DPAD = [[84, 182, 'up'], [84, 204, 'down'], [73, 193, 'left'], [95, 193, 'right']];
   const RIM = el(130, 184, 82, 70), INNER = el(130, 184, 72, 61);
   const TOP = 'M48 152 C 50 122 92 116 130 116 C 168 116 210 122 212 152 C 212 166 198 170 178 170 L 82 170 C 62 170 48 166 48 152 Z';
   const MIDL = 'M52 186 C 52 178 58 176 66 176 L 120 176 C 126 176 128 180 128 186 L 128 202 C 128 208 124 210 118 210 L 62 210 C 56 210 52 206 52 200 Z';
@@ -324,15 +325,24 @@
   const SCARF = 'M88 116 C 108 132 152 132 172 116 L 174 125 C 152 138 108 138 86 125 Z';
   chars.patara = {
     box: [-8, 0, 268, 272], ground: 262,
+    /* tıklama hedefleri için parça konumları (Patara'nın kendi koordinatlarında) */
+    parts: {
+      left: PADS.map(([x, y], i) => ({ x, y, key: ['up', 'left', 'right', 'down', 'gnd'][i] })),
+      right: PADS.map(([x, y], i) => ({ x: 260 - x, y, key: ['space', 'click', 'rclick', 'enter', 'gnd2'][i] })),
+      dpad: DPAD.map(([x, y, key]) => ({ x, y, key })), xy: [{ x: 168, y: 188, key: 'X' }, { x: 192, y: 198, key: 'Y' }],
+      led: { x: 112, y: 133, w: 36, h: 36 }, piano: { x: 40, y: 216, w: 180, h: 44, keyW: 22.5 },
+    },
     draw(K, o = {}) {
       const { ctx, t } = K, st = o.state || 'idle', hap = st === 'happy', sad = st === 'sad', sur = st === 'surprised', thk = st === 'think';
-      const hop = hap ? Math.abs(Math.sin(t * 8)) * 12 : sur ? Math.max(0, Math.sin(t * 3)) * 3 : 0;
+      const walking = o.walk != null;
+      const hop = hap ? Math.abs(Math.sin(t * 8)) * 12 : sur ? Math.max(0, Math.sin(t * 3)) * 3 : walking ? Math.abs(Math.cos(o.walk)) * 4 : 0;
       K.shadow(130, 262, 210, 1 - hop / 40);
       ctx.save(); ctx.translate(0, -hop + (sad ? 2 : 0));
       // kuyruk ve arka ayaklar
       K.shape('M198 214 C 214 218 228 232 238 230 C 232 218 216 206 204 204 Z', { lit: C.G });
-      const foot = () => { K.shape(FOOT, { lit: C.G }); K.line('M58 250 L 62 243 M69 254 L 73 246', { w: 1.6, trace: false }); };
-      foot(); K.mirror(130, foot);
+      const foot = (lift) => { ctx.save(); ctx.translate(0, hop - lift); K.shape(FOOT, { lit: C.G }); K.line('M58 250 L 62 243 M69 254 L 73 246', { w: 1.6, trace: false }); ctx.restore(); };
+      const lift = (sgn) => (walking ? Math.max(0, sgn * Math.sin(o.walk)) * 9 : hop);
+      foot(lift(1)); K.mirror(130, () => foot(lift(-1)));
       // kollar: sol kol yön pedleri, sağ kol Space / tıklar / Enter; dipte GND
       const arm = (keys, swing) => K.rot(96, 140, swing, () => {
         K.shape(ARM, { lit: C.G });
@@ -367,16 +377,16 @@
       // 5x5 LED
       K.shape(LEDR, { fill: '#1b1f26', w: 2.4, hatch: false, trace: false });
       const cyc = ['smile', 'heart', 'star', 'note'];
-      const pat = LED[o.led || (hap ? 'heart' : sad ? 'sad' : sur ? 'wow' : thk ? 'think' : cyc[Math.floor(t / 1.8) % cyc.length])];
+      const pat = o.ledGrid || LED[o.led || (hap ? 'heart' : sad ? 'sad' : sur ? 'wow' : thk ? 'think' : cyc[Math.floor(t / 1.8) % cyc.length])];
       for (let r = 0; r < 5; r++) for (let c = 0; c < 5; c++) {
-        const on = pat[r][c] === '#', x = 118 + c * 6, y = 139 + r * 6;
+        const on = o.ledGrid ? !!pat[r * 5 + c] : pat[r][c] === '#', x = 118 + c * 6, y = 139 + r * 6;
         if (on) { ctx.save(); ctx.shadowColor = '#ff4a3a'; ctx.shadowBlur = 6; K.dot(x, y, 2.3, '#ff5040'); ctx.restore(); }
         else K.dot(x, y, 2.1, '#3a2a14');
       }
       // yön tuşları ve X / Y
-      [[84, 182], [84, 204], [73, 193], [95, 193]].forEach(([x, y]) => K.circle(x, y, 4.8, { fill: C.SHEET, w: 1.8, trace: false }));
+      DPAD.forEach(([x, y, k]) => K.circle(x, y, 4.8, { fill: o.btn === k ? C.AMBER : C.SHEET, w: 1.8, trace: false }));
       [[168, 188, 'X'], [192, 198, 'Y']].forEach(([x, y, s]) => {
-        K.circle(x, y, 6.2, { fill: C.SHEET, w: 1.8, trace: false });
+        K.circle(x, y, 6.2, { fill: o.btn === s ? C.AMBER : C.SHEET, w: 1.8, trace: false });
         ctx.fillStyle = INK; ctx.font = '600 8px "JetBrains Mono", monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(s, x, y + 0.5);
       });
       // kâşif fuları: düğüm sağda, uçları rüzgârda
@@ -465,10 +475,10 @@
     draw(K, o = {}) {
       const { ctx, t } = K, st = o.state || 'idle', hap = st === 'happy', sad = st === 'sad', sur = st === 'surprised', thk = st === 'think';
       const boot = o.black ? '#3d342e' : C.SEAL, bootD = o.black ? '#2a2420' : '#a8341f';
-      K.shadow(150, 182, 240, 0.8);
+      if (!o.noShadow) K.shadow(150, 182, 240, 0.8);
       ctx.save(); ctx.translate(0, -(hap ? Math.abs(Math.sin(t * 8)) * 7 : 0));
       const wire = 'M204 112 C 238 112 248 146 226 158 C 204 170 214 190 270 188';
-      K.line(wire, { w: 10, trace: false }); K.line(wire, { w: 5, color: o.black ? '#4a403a' : C.SEAL, trace: false });
+      if (!o.noWire) { K.line(wire, { w: 10, trace: false }); K.line(wire, { w: 5, color: o.black ? '#4a403a' : C.SEAL, trace: false }); }
       // bacaklar ve pençeler
       [['M160 130 L 156 166 C 156 172 170 172 170 166 L 174 132 Z', 158], ['M186 128 L 188 166 C 190 172 202 172 202 166 L 198 126 Z', 190]].forEach(([d, fx]) => {
         K.shape(d, { lit: bootD });
