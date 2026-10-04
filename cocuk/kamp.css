@@ -135,6 +135,8 @@ b { font-weight: 600; }
   .top { padding-inline: 10px; gap: 6px; }
   .stations { order: 3; flex-basis: 100%; }
   .st em { display: none; }
+  .tools { gap: 4px; }
+  .chip-btn { font-size: 11px; padding: 6px 9px; }
   .st { padding-right: 3px; }
   .st.on em { display: inline; padding-right: 8px; }
   .card { left: 8px; right: 8px; width: auto; bottom: calc(8px + var(--safe-b)); max-height: 52vh; }

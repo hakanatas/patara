@@ -44,15 +44,16 @@ ES modülleri `http://` gerektirir; `index.html` dosyasını diskten doğrudan a
 
 `prefers-reduced-motion` animasyonları kısaltır.
 
-## Çocuklar için: Patara'nın Kâşif Kampı
+## Çocuklar için: Devre Kasabası
 
 `cocuk/` altında ilkokul ve ortaokul öğrencileri (7–14 yaş) için ayrı bir öğrenme sitesi var: <https://hakanatas.github.io/patara/cocuk/>
-Yan kaydırmalı, el çizimi bir kampta yedi istasyon gezilir: Tanış → Tak → Kıskaçla → Halka → İletken mi? → Işık ve müzik → Oyun zamanı.
-Her istasyon bir "Sence?" tahminiyle açılır, yakın planda 2–4 görevle sürer ve kısa bir açıklamayla kapanır. Kampa 6 iletken nesne saklıdır.
+Yan kaydırmalı, el çizimi bir kasabada yedi istasyon gezilir. Kasabada herkes bir elektronik parçadır (yürüyen LED'ler, dirençler, çip böcekleri, jumper kablolar, butonlar, bazır kuşları, USB treni); dokununca kendilerini anlatırlar. İstasyonlar: Tanış → Tak → Kıskaçla → Halka → İletken mi? → Işık ve müzik → Oyun zamanı.
+Her istasyon bir "Sence?" tahminiyle açılır, yakın planda 2–4 görevle sürer ve kısa bir açıklamayla kapanır. Kasabaya 6 iletken nesne saklıdır.
 
 | Dosya | İçerik |
 | --- | --- |
 | `cocuk/js/metinler.js` | Bütün metinler (istasyonlar, görevler, ipuçları, öğretmen notları); kod bilmeden düzenlenebilir |
+| `cocuk/js/kasabalilar.js` | Kasabalılar ve kasaba yapıları (çip evi, kondansatör kulesi, direnç evi, LED lambalar, halka anıtı) |
 | `cocuk/js/patara-cizim.js` | Mürekkep çizim seti ve karakterler (Patara, Kıvılcım, Timsah Kıskaç, İletken Dostlar, Silgi, Deniz, Bilgi) |
 | `cocuk/js/kamp.js` | Dünya motoru, istasyon kartı, yakın plan ve rehber |
 | `cocuk/js/istasyonlar.js` | Yedi istasyonun yakın plan tahtaları |

@@ -1,4 +1,4 @@
-/* Patara'nın Kâşif Kampı · istasyonların yakın plan tahtaları (900 × 600 mantıksal).
+/* Devre Kasabası · istasyonların yakın plan tahtaları (900 × 600 mantıksal).
    Her tahta: init(Z) · draw(K, t, Z) · down/move/up(p, Z) · guide(tid, Z) → { how, pt } · prog(tid, Z) · ctl(host, Z) · key(e, Z).
    Z.task() sıradaki görev, Z.done(tid, söz) görevi bitirir, Z.say(söz, ruh hâli) Patara'nın kutusuna yazar. */
 (function () {
@@ -9,6 +9,7 @@
   const inRect = (p, r) => !!p && p.x >= r.x && p.x <= r.x + r.w && p.y >= r.y && p.y <= r.y + r.h;
   const shuffle = (a) => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
   const pick = (a) => a[Math.floor(Math.random() * a.length)];
+  const ease = (x) => x * x * (3 - 2 * x);
   const KEYLBL = { up: '↑ UP', left: '← LEFT', right: '→ RIGHT', down: '↓ DOWN', space: 'SPACE', click: 'SOL TIK', rclick: 'SAĞ TIK', enter: 'ENTER', gnd: 'GND', gnd2: 'GND' };
   const ARROW = { up: '↑', left: '←', right: '→', down: '↓' };
   const WIRE = { up: '#c4623d', left: '#d9a441', right: '#4f9a7a', down: '#5b7c99' };
@@ -133,7 +134,7 @@
       Z.done(tid, {
         yon: 'Dört yön tamam! Bu pedler klavyedeki **ok tuşları** gibi çalışır.',
         sag: 'Sağ kol hem klavye (**Space, Enter**) hem **fare** (sol tık, sağ tık).',
-        gnd: '**GND** pedleri devrenin dönüş yolu. Kamp ateşinde çok işimize yarayacak!',
+        gnd: '**GND** pedleri devrenin dönüş yolu. Halka Meydanı\'nda çok işimize yarayacak!',
         govde: 'LED ekranla resim çizer, piyanoyla şarkı çalarım. Sahnede deneyeceğiz!',
       }[tid]);
     },
@@ -150,14 +151,26 @@
 
   /* ═════════ 2 · TAK ═════════ */
   const KEYSYM = { up: '↑', down: '↓', left: '←', right: '→', X: 'X', Y: 'Y' };
+  const PLUG0 = { x: 420, y: 470 };
+  /* USB fişi: büyük siyah gövde (üstünde USB yazısı), gümüş uç sağa bakar. (x, y) = gövdenin ortası */
+  function usbPlug(K, x, y, o = {}) {
+    const c = K.ctx;
+    if (o.ring) { c.save(); c.strokeStyle = C.AMBER; c.lineWidth = 4; c.setLineDash([7, 6]); c.beginPath(); c.roundRect ? c.roundRect(x - 40, y - 26, 96, 52, 14) : c.rect(x - 40, y - 26, 96, 52); c.stroke(); c.restore(); }
+    K.shape(`M${x + 22} ${y - 11} L ${x + 50} ${y - 11} L ${x + 50} ${y + 11} L ${x + 22} ${y + 11} Z`, { lit: '#d3d8de', w: 2.4, hatch: false, trace: false });
+    c.fillStyle = '#353b43'; c.fillRect(x + 30, y - 5, 7, 4); c.fillRect(x + 40, y - 5, 7, 4);
+    K.shape(`M${x - 32} ${y - 18} L ${x + 22} ${y - 18} L ${x + 22} ${y + 18} L ${x - 32} ${y + 18} Z`, { lit: '#353b43', w: 2.8 });
+    c.fillStyle = '#fff'; c.font = '600 15px "JetBrains Mono", monospace'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('USB', x - 5, y + 1);
+  }
   KAMP.def('tak', {
-    geo: () => ({ ps: 1.2, pox: 60, poy: 564 - 262 * 1.2, cs: 1.3, cox: 520, coy: 564 - 224 * 1.3 }),
-    port() { const g = this.geo(); return { x: g.cox + 150 * g.cs, y: g.coy + 186 * g.cs }; },
-    start() { const g = this.geo(); return { x: g.pox + 200 * g.ps, y: g.poy + 126 * g.ps }; },
+    geo: () => ({ ps: 1.2, pox: 40, poy: 564 - 262 * 1.2, cs: 1.3, cox: 560, coy: 564 - 224 * 1.3 }),
+    port() { const g = this.geo(); return { x: g.cox + 40 * g.cs, y: g.coy + 186 * g.cs }; },
+    start() { const g = this.geo(); return { x: g.pox + 214 * g.ps, y: g.poy + 140 * g.ps }; },
     btns() { const g = this.geo(); return [...P.dpad, ...P.xy].map((q) => ({ ...pg(g.pox, g.poy, g.ps, q), key: q.key })); },
+    /* fiş takılınca gövde ortası girişin solunda durur */
+    seat() { const pt = this.port(); return { x: pt.x - 52, y: pt.y }; },
     init(Z) {
       const conn = Z.isDone('usb');
-      Z.data = { plug: conn ? this.port() : { x: 380, y: 540 }, conn, drag: false, log: [], seen: new Set(), btn: null, btnUntil: 0, hello: 0 };
+      Z.data = { plug: conn ? this.seat() : { ...PLUG0 }, conn, drag: false, moved: conn, log: [], seen: new Set(), btn: null, btnUntil: 0, hello: 0 };
     },
     draw(K, t, Z) {
       const d = Z.data, g = this.geo(), n = now(), c = K.ctx;
@@ -166,31 +179,39 @@
       c.fillStyle = 'rgba(29,42,51,.92)'; c.strokeStyle = C.INK; c.lineWidth = 2.4;
       c.beginPath(); c.roundRect ? c.roundRect(40, 22, 820, 54, 10) : c.rect(40, 22, 820, 54); c.fill(); c.stroke();
       text(K, "Bilgi'nin gördüğü:", 58, 56, { size: 22, color: '#ffd77a' });
-      if (!d.log.length) text(K, d.conn ? 'tuşlara bas…' : 'kablo takılı değil', 250, 56, { size: 20, color: 'rgba(255,215,122,.55)' });
+      if (!d.log.length) text(K, d.conn ? 'tuşlara bas…' : 'hiçbir şey: kablo takılı değil', 250, 56, { size: 20, color: 'rgba(255,215,122,.55)' });
       d.log.slice(-12).forEach((k, i) => tag(K, k, 270 + i * 48, 49, { fill: '#ffd77a', size: 16 }));
       // Patara ve Bilgi
       K.at(g.pox, g.poy, g.ps, () => CH.patara.draw(K, { state: d.btnUntil > n ? 'happy' : d.conn ? 'idle' : 'think', btn: d.btnUntil > n ? d.btn : null }));
       const pcState = d.hello > n ? 'happy' : d.conn ? 'idle' : 'think';
       K.at(g.cox, g.coy, g.cs, () => CH.pc.draw(K, { state: pcState, key: d.btnUntil > n ? KEYSYM[d.btn] : d.conn ? '⌨' : '…' }));
-      // USB girişi
-      const pt = this.port();
-      c.fillStyle = '#2a2f36'; c.strokeStyle = C.INK; c.lineWidth = 2; c.fillRect(pt.x - 9, pt.y - 5, 18, 10); c.strokeRect(pt.x - 9, pt.y - 5, 18, 10);
-      if (!d.conn) text(K, 'USB', pt.x, pt.y + 30, { mono: true, size: 13, align: 'center' });
-      // kablo ve fiş
-      const a = this.start(), b = d.plug;
-      wire(K, a, b, '#8b919c', d.conn ? 20 : 30, 5);
-      c.save(); c.translate(b.x, b.y);
-      c.fillStyle = '#c3c8d0'; c.strokeStyle = C.INK; c.lineWidth = 2; c.fillRect(-6, -4, 12, 8); c.strokeRect(-6, -4, 12, 8);
+      // USB girişi: Bilgi'nin ayağında, etiketli
+      const pt = this.port(), hot = d.drag && near(d.plug, this.seat(), 70);
       if (!d.conn) {
-        c.fillStyle = '#2a2420'; c.fillRect(-26, -7, 20, 14); c.strokeRect(-26, -7, 20, 14);
-        c.beginPath(); c.arc(-34, 0, 13, 0, 7); c.fillStyle = 'rgba(232,163,61,.85)'; c.fill(); c.lineWidth = 2.4; c.stroke();
+        const k = 0.5 + 0.5 * Math.sin(t * 5);
+        c.save(); c.globalAlpha = 0.35 + k * 0.4; c.fillStyle = hot ? C.AMBER : '#ffd77a'; c.beginPath(); c.arc(pt.x, pt.y, 30, 0, 7); c.fill(); c.restore();
       }
-      c.restore();
+      K.shape(`M${pt.x - 20} ${pt.y - 12} L ${pt.x + 20} ${pt.y - 12} L ${pt.x + 20} ${pt.y + 12} L ${pt.x - 20} ${pt.y + 12} Z`, { fill: '#2a2f36', w: 2.6, hatch: false, trace: false });
+      c.fillStyle = '#d3d8de'; c.fillRect(pt.x - 12, pt.y - 4, 24, 8);
+      if (!d.conn) tag(K, 'USB girişi', pt.x, pt.y + 42, { fill: C.AMBER, size: 14 });
+      // kablo ve fiş
+      const back = { x: d.plug.x - 32, y: d.plug.y };
+      wire(K, this.start(), back, '#8b919c', d.conn ? 26 : 34, 6);
+      // ilk dokunuşa kadar: fişin gideceği yol ve kayan hayalet fiş
+      if (!d.moved) {
+        const a = PLUG0, b = this.seat(), m = { x: (a.x + b.x) / 2, y: Math.min(a.y, b.y) - 80 };
+        c.save(); c.strokeStyle = C.DEEP; c.lineWidth = 3; c.setLineDash([3, 9]); c.lineCap = 'round';
+        c.beginPath(); c.moveTo(a.x + 56, a.y); c.quadraticCurveTo(m.x, m.y, b.x, b.y); c.stroke(); c.restore();
+        const f = (t * 0.6) % 1, q = qpt(a, m, b, ease(f));
+        c.save(); c.globalAlpha = 0.28 * Math.sin(f * Math.PI); usbPlug(K, q.x, q.y); c.restore();
+        tag(K, 'USB fişi', a.x + 8, a.y + 48, { fill: C.SHEET, size: 14 });
+      }
+      usbPlug(K, d.plug.x, d.plug.y, { ring: !d.conn && !d.drag });
       if (d.hello > n) bubble(K, 'Yeni klavye ve fare bulundu!', g.cox + 120 * g.cs, g.coy + 20);
     },
     down(p, Z) {
       const d = Z.data;
-      if (!d.conn && near(p, { x: d.plug.x - 30, y: d.plug.y }, 40)) { d.drag = true; Z.sfx.tick(); return; }
+      if (!d.conn && inRect(p, { x: d.plug.x - 46, y: d.plug.y - 34, w: 110, h: 68 })) { d.drag = true; d.moved = true; d.off = { x: d.plug.x - p.x, y: d.plug.y - p.y }; Z.sfx.tick(); return; }
       const b = this.btns().find((q) => near(p, q, 18));
       if (b) {
         if (!d.conn) { Z.say('Önce kabloyu tak: Bilgi henüz Patara\'yı görmüyor.', 'think'); Z.sfx.bad(); return; }
@@ -198,14 +219,14 @@
         this.check(Z); return;
       }
     },
-    move(p, Z) { if (Z.data.drag && p) Z.data.plug = { x: p.x + 30, y: p.y }; },
+    move(p, Z) { const d = Z.data; if (d.drag && p) d.plug = { x: p.x + d.off.x, y: p.y + d.off.y }; },
     up(p, Z) {
       const d = Z.data; if (!d.drag) return;
       d.drag = false;
-      if (near(d.plug, this.port(), 46)) {
-        d.plug = this.port(); d.conn = true; d.hello = now() + 2800; Z.sfx.win();
+      if (near(d.plug, this.seat(), 70) || near({ x: d.plug.x + 40, y: d.plug.y }, this.port(), 60)) {
+        d.plug = this.seat(); d.conn = true; d.hello = now() + 2800; Z.sfx.win();
         Z.done('usb', 'Tık! Bilgi beni hemen tanıdı: **yeni klavye ve fare**. Program kurmaya gerek yok.');
-      } else Z.say('Fişi biraz daha yaklaştır: Bilgi\'nin altındaki küçük **USB girişine** bırak.', 'think');
+      } else Z.say('Fişin gümüş ucunu Bilgi\'nin ayağındaki **USB girişine** yaklaştır ve bırak.', 'think');
     },
     check(Z) {
       const tid = Z.task(), d = Z.data;
@@ -219,7 +240,7 @@
     },
     guide(tid, Z) {
       const d = Z.data;
-      if (tid === 'usb') { const pt = this.port(), h = { x: d.plug.x - 30, y: d.plug.y }; return { how: { ...h, r: 26, t: 'sürükle' }, pt: { ...pt, r: 24, t: 'USB girişi', below: true }, drag: [h, pt] }; }
+      if (tid === 'usb') { const to = this.seat(), h = { x: d.plug.x, y: d.plug.y }; return { how: { ...h, r: 48, t: 'sürükle' }, pt: { ...this.port(), r: 34, t: 'USB girişi', below: true }, drag: [h, to] }; }
       const need = tid === 'yon' ? ['up', 'down', 'left', 'right'] : ['X', 'Y'], k = need.find((x) => !d.seen.has(x));
       const q = this.btns().find((b) => b.key === k); if (!q) return null;
       return { how: { x: q.x, y: q.y, r: 18, t: 'bas' }, pt: { x: q.x, y: q.y, r: 18, t: 'bu tuş' } };

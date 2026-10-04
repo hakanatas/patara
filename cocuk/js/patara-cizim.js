@@ -16,7 +16,7 @@
   const INK = C.INK;
   const nz = (PT.nz = (a) => { const v = Math.sin(a * 12.9898 + 78.233) * 43758.5453; return v - Math.floor(v); });
   const sn = (x) => { const i = Math.floor(x), f = x - i, u = f * f * (3 - 2 * f); return nz(i) * (1 - u) + nz(i + 1) * u; };
-  const hex = (h) => { h = h.replace('#', ''); return [0, 2, 4].map((i) => parseInt(h.slice(i, i + 2), 16)); };
+  const hex = (h) => { if (h.startsWith('rgb')) return h.match(/[\d.]+/g).slice(0, 3).map(Number); h = h.replace('#', ''); return [0, 2, 4].map((i) => parseInt(h.slice(i, i + 2), 16)); };
   const mix = (PT.mix = (a, b, k) => { const A = hex(a), B = hex(b); return `rgb(${A.map((v, i) => Math.round(v + (B[i] - v) * k)).join(',')})`; });
   const f1 = (v) => Math.round(v * 10) / 10;
   const el = (PT.el = (cx, cy, rx, ry = rx) => `M${f1(cx - rx)} ${f1(cy)} A${f1(rx)} ${f1(ry)} 0 1 0 ${f1(cx + rx)} ${f1(cy)} A${f1(rx)} ${f1(ry)} 0 1 0 ${f1(cx - rx)} ${f1(cy)} Z`);

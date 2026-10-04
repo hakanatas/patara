@@ -1,4 +1,4 @@
-/* Patara'nın Kâşif Kampı · sentezlenmiş küçük sesler (ses dosyası yok). */
+/* Devre Kasabası · sentezlenmiş küçük sesler (ses dosyası yok). */
 (function () {
   let ac = null;
   const S = (window.SES = { on: true });

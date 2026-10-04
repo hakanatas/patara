@@ -1,28 +1,30 @@
-/* Patara'nın Kâşif Kampı · bütün metinler.
+/* Devre Kasabası · bütün metinler.
    Öğretmen bu dosyayı kod bilmeden değiştirebilir: yalnızca tırnak içindeki yazıları düzenle.
    **kalın** yazmak için iki yıldız kullan. Her istasyonun görev sırası, motorun beklediği sıradır; id'leri değiştirme. */
 window.PATARA_METIN = {
   dunya: {
-    ad: "Patara'nın Kâşif Kampı",
-    kisa: 'Kâşif Kampı',
+    ad: "Patara ve Devre Kasabası",
+    kisa: 'Devre Kasabası',
     tema: 'Patara Board · ilkokul ve ortaokul · iletkenlik, devre, klavye',
     soz: [
       'Şapkam yeni değil ama keşif ruhum hep yeni!',
       'Bir muz, bir kıskaç ve biraz merak. Gerisi kolay.',
       'Kıvılcım bugün çok enerjik. Hep öyle zaten.',
-      'Kampın her köşesinde iletken bir şey saklı. Bulabilir misin?',
+      'Kasabanın her köşesinde iletken bir şey saklı. Bulabilir misin?',
+      'Buradaki herkes bir elektronik parça. Dokun, kendilerini anlatsınlar!',
       'Bilgisayar beni klavye sanıyor. Aramızda kalsın.',
     ],
     avAd: 'iletken avı',
-    avIpucu: 'Kampta 6 iletken nesne saklı: metal ya da kalem izi. Dünyada bulup dokun!',
+    avIpucu: 'Kasabada 6 iletken nesne saklı: metal ya da kalem izi. Bulup dokun!',
+    sakinIpucu: 'Kasabada 7 çeşit kasabalı yaşıyor: yürüyen LED, direnç, çip böceği, jumper kablo, buton, bazır kuşu ve USB treni. Hepsine dokun!',
   },
 
   tanitim: {
-    baslik: "Patara'nın Kâşif Kampı",
+    baslik: 'Devre Kasabası',
     metin: [
       "Ben **Patara**. Safari şapkalı bir kaplumbağayım ama aynı zamanda bir **devre kartıyım**.",
-      "Beni bilgisayara takınca bir **klavyeye** dönüşürüm. Kollarıma bir muz bağlarsan, muz bir **tuşa** dönüşür.",
-      "Kampta **yedi istasyon** var. Her birinde önce tahmin et, sonra yakından incele, görevleri bitir. Hazır mısın?",
+      "**Devre Kasabası**'na hoş geldin! Burada herkes bir elektronik parça: yürüyen **LED**'ler, **dirençler**, **çip böcekleri**… Dokun, kendilerini anlatsınlar.",
+      "Kasabada **yedi istasyon** var. Her birinde önce tahmin et, sonra yakından incele, görevleri bitir. Hazır mısın?",
     ],
     dugme: 'Keşfe başla',
   },
@@ -30,7 +32,7 @@ window.PATARA_METIN = {
   istasyonlar: [
     {
       id: 'tanis', ad: "Patara'nın Çadırı", kisa: 'Tanış', x: 900,
-      varis: 'Burası benim çadırım. Önce beni yakından tanı!',
+      varis: 'Kasabanın girişine çadırımı kurdum. Önce beni yakından tanı!',
       gozlem: "Patara bir kaplumbağa ama aynı zamanda bir devre kartı. Kollarında altın yuvarlaklar, kabuğunda küçük ışıklar, karnında piyano tuşları var.",
       soru: 'Kollardaki altın yuvarlaklar ne işe yarar?',
       secenekler: ['Süs: parlasınlar diye', 'Ped: kıskaç takılır, her biri bir tuş olur', 'Pil yuvası: kart pille çalışır'],
@@ -54,7 +56,7 @@ window.PATARA_METIN = {
       ogretmen: 'Kartın parçalarını tanıma. Ped, GND, LED matris ve dokunmatik piyano kavramlarını adlandırır. Sınıfta gerçek kartı elden ele dolaştırıp aynı parçaları buldurun.',
     },
     {
-      id: 'tak', ad: "Bilgi'nin Kulübesi", kisa: 'Tak', x: 1900,
+      id: 'tak', ad: "Bilgi'nin Evi", kisa: 'Tak', x: 1900,
       varis: 'Bilgi burada yaşıyor. Onunla tanışmak için bir kablo yeter.',
       gozlem: "Bilgi eski ama becerikli bir bilgisayar. Patara'yı ona USB kablosuyla bağlayacağız.",
       soru: "Patara'yı bilgisayara taktın. Çalışması için başka ne gerekir?",
@@ -66,8 +68,8 @@ window.PATARA_METIN = {
         'İnternet gerekmez; Patara ile bilgisayar kabloyla doğrudan konuşur.',
       ],
       gorevler: [
-        { id: 'usb', metin: 'USB kablosunu tak', yonerge: "Kablonun ucundaki **yuvarlak tutamağı** sürükle ve Bilgi'nin **USB girişine** bırak.",
-          ipucu: ["USB girişi Bilgi'nin kasasının altında, küçük bir dikdörtgen.", 'Tutamağa bas, basılı tutup sürükle, sonra bırak.', 'Tahtadaki ok şimdi girişin yerini gösteriyor.'] },
+        { id: 'usb', metin: 'USB kablosunu tak', yonerge: "Ortadaki siyah **USB fişini** sürükle ve Bilgi'nin **USB girişine** tak.",
+          ipucu: ["USB girişi Bilgi'nin ayağında; üstünde **USB girişi** yazıyor.", 'Siyah fişe bas, basılı tutup sağa sürükle, sonra bırak.', 'Tahtadaki ok şimdi girişin yerini gösteriyor.'] },
         { id: 'yon', metin: 'Yön tuşlarına bas', yonerge: "Kartın üstündeki **dört yön tuşuna** bas ve Bilgi'nin ekranına bak.",
           ipucu: ['Yön tuşları kabuğun sol tarafında, artı şeklinde dört beyaz düğme.', 'Her birine bir kez bas: yukarı, aşağı, sol, sağ.', 'Tahtadaki ok şimdi sıradaki tuşu gösteriyor.'] },
         { id: 'xy', metin: 'X ve Y tuşları', yonerge: 'Şimdi kabuğun sağındaki **X** ve **Y** tuşlarına bas.',
@@ -77,7 +79,7 @@ window.PATARA_METIN = {
       ogretmen: 'Tak ve çalıştır (HID) fikri. Bilgisayarın girdi aygıtlarını nasıl tanıdığını tartışın: klavye, fare, oyun kolu. Kartı farklı işletim sistemlerinde deneyin.',
     },
     {
-      id: 'kiskac', ad: 'Atölye Tezgâhı', kisa: 'Kıskaçla', x: 2900,
+      id: 'kiskac', ad: 'Kıskaç Atölyesi', kisa: 'Kıskaçla', x: 2900,
       varis: 'Timsah Kıskaç işbaşında. Kıskaçlar olmadan hiçbir şey bağlanmaz!',
       gozlem: "Tezgâhta dört kırmızı kıskaç var; her biri Patara'nın bir pedinden çıkıyor. Masada muz, elma, oyun hamuru ve kaşık bekliyor.",
       soru: 'Kıskacın bir ucu pede takılı. Öbür ucunu nereye takarız?',
@@ -100,8 +102,8 @@ window.PATARA_METIN = {
       ogretmen: 'Girdi eşleme. Öğrenciler aynı nesneyi farklı pedlere bağlayıp sonucun nasıl değiştiğini tahmin etsin. Güvenlik: kıskaçlar yalnızca karta ve nesnelere takılır; priz ve pil asla.',
     },
     {
-      id: 'halka', ad: 'Kamp Ateşi', kisa: 'Halka', x: 3900,
-      varis: 'Deniz burada. Bir halka kuracağız ama önce bir şey eksik…',
+      id: 'halka', ad: 'Halka Meydanı', kisa: 'Halka', x: 3900,
+      varis: 'Meydandaki bakır halkayı görüyor musun? Deniz de burada. Bir halka kuracağız ama önce bir şey eksik…',
       gozlem: "Muz UP pedine bağlı. Deniz muza dokunmaya hazır. Siyah GND kıskacı ise yerde duruyor.",
       soru: 'GND kıskacı yerdeyken Deniz muza dokunursa ne olur?',
       secenekler: ['Yine ↑ tuşu basılır', 'Hiçbir tuş basılmaz', 'Muz ısınır'],
@@ -123,7 +125,7 @@ window.PATARA_METIN = {
       ogretmen: 'Kapalı ve açık devre. Öğrenciler el ele tutuşup bir insan zinciri kursun: zincirin bir ucu GND, öbür ucu nesneye dokunur. Zincir kopunca tuş basılmaz.',
     },
     {
-      id: 'iletken', ad: 'Kamp Mutfağı', kisa: 'İletken mi?', x: 4900,
+      id: 'iletken', ad: 'Malzeme Pazarı', kisa: 'İletken mi?', x: 4900,
       varis: "Silgi ve İletken Dostlar burada tartışıyor: kim Kıvılcım'ı geçirir?",
       gozlem: 'Tezgâhta sekiz nesne var. Bazıları Kıvılcım\'ı geçirir, bazıları geçirmez. Test kıskaçlarıyla deneyebilirsin.',
       soru: "Kurşun kalemle çizilmiş koyu bir çizgi Kıvılcım'ı geçirir mi?",
@@ -146,7 +148,7 @@ window.PATARA_METIN = {
       ogretmen: 'İletken ve yalıtkan maddeler (Fen: elektrik ünitesi). Sınıfta gerçek kartla nesne kutusu hazırlayın; önce tahmin tablosu doldurulsun, sonra test edilsin.',
     },
     {
-      id: 'sahne', ad: 'Açık Hava Sahnesi', kisa: 'Işık ve müzik', x: 5900,
+      id: 'sahne', ad: 'Işık Sahnesi', kisa: 'Işık ve müzik', x: 5900,
       varis: 'Sahne bizim! Işıklar ve müzik kabuğumda.',
       gozlem: "Patara'nın kabuğunda 25 küçük ışık, karnında 8 piyano tuşu var. Piyano için kıskaç gerekmez.",
       soru: 'Piyano tuşları neden kablo istemez?',
@@ -169,7 +171,7 @@ window.PATARA_METIN = {
       ogretmen: 'Çıktı aygıtları ve piksel fikri. 5×5 ızgarada harf tasarlatın; ortaokulda ızgarayı 0 ve 1 dizisiyle (ikilik) yazdırın.',
     },
     {
-      id: 'oyun', ad: 'Oyun Alanı', kisa: 'Oyun zamanı', x: 6900,
+      id: 'oyun', ad: 'Oyun Salonu', kisa: 'Oyun zamanı', x: 6900,
       varis: 'Son durak! Mutfak kumandasıyla oyun zamanı.',
       gozlem: 'Muz ↑, elma ←, hamur →, kaşık ↓ pedine bağlı. Bu dört nesne artık bir oyun kumandası.',
       soru: 'Muzla oynarken bilgisayar ne görür?',
@@ -193,6 +195,17 @@ window.PATARA_METIN = {
     },
   ],
 
+  /* kasabalılar: dokununca söyledikleri (her dokunuşta sıradaki söz) */
+  sakinler: {
+    led: { ad: 'LED', soz: ['Ben LED! Uzun bacağım artı (+), kısa bacağım eksi (−).', 'Akım beni doğru yönden geçerse yanarım. Ters takarsan küserim!', "Patara'nın kabuğunda benden 25 tane var."] },
+    direnc: { ad: 'Direnç', soz: ['Ben direnç: akımı yavaşlatırım. LED\'ler beni çok sever.', 'Renkli şeritlerim değerimi söyler: kahverengi, siyah, kırmızı = 1000 ohm.'] },
+    cip: { ad: 'Çip böceği', soz: ["Ben bir mikroçip: minicik bir beyin. Patara'nın içinde de bir çip var!", 'Bacaklarım aslında pin: her biri bir bağlantı.'] },
+    jumper: { ad: 'Jumper kablo', soz: ["Jumper kablo! Breadboard'a ve Patara'nın pinlerine takılırım.", 'Kıskaçtan sonra sıra bende: daha ince işler için.'] },
+    buton: { ad: 'Buton', soz: ['Bas, bırak: tık! Ben bir butonum.', "Patara'nın yön tuşları da benim gibi butondur."] },
+    bip: { ad: 'Bazır kuşu', soz: ['Bip! Ben bir bazır (buzzer): elektrikle ses çıkarırım.', 'Bip bip! Saatlerde, oyuncaklarda, fırınlarda ben öterim.'] },
+    tren: { ad: 'USB treni', soz: ["USB treni! Patara'dan Bilgi'ye tuş taşırım: ↑, SPACE, ENTER…", 'Kablo benim rayım. Bir ucu Patara, öbür ucu Bilgi.'] },
+  },
+
   /* iletken avı: dünyaya saklanmış nesneler (x: dünya konumu, y: yerden yükseklik) */
   avlar: [
     { id: 'para', ad: 'Madeni para', x: 640, y: 596, not: 'Metal: iletken!' },
@@ -203,5 +216,5 @@ window.PATARA_METIN = {
     { id: 'kasik', ad: 'Kaşık', x: 6620, y: 596, not: 'Metal kaşık: iletken!' },
   ],
 
-  ogretmenGenel: "Bu kamp, Patara Board'u ilk kez kullanacak 7–14 yaş öğrenciler için hazırlandı. Her istasyon tahminle açılır, yakın planda 2–4 görevle sürer, kısa bir açıklamayla kapanır. Tek başına ya da akıllı tahtada sınıfça oynanabilir. İlerleme tarayıcıda saklanır; menüdeki Sıfırla düğmesiyle silinir. Metinler js/metinler.js dosyasındadır.",
+  ogretmenGenel: "Devre Kasabası, Patara Board'u ilk kez kullanacak 7–14 yaş öğrenciler için hazırlandı. Kasabalılar (LED, direnç, çip, jumper kablo, buton, bazır, USB treni) dokununca kendilerini tanıtır; elektronik parçalara ilk merakı uyandırır. Her istasyon tahminle açılır, yakın planda 2–4 görevle sürer, kısa bir açıklamayla kapanır. Tek başına ya da akıllı tahtada sınıfça oynanabilir. İlerleme tarayıcıda saklanır; menüdeki Sıfırla düğmesiyle silinir. Metinler js/metinler.js dosyasındadır.",
 };

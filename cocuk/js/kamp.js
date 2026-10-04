@@ -1,4 +1,4 @@
-/* Patara'nın Kâşif Kampı · dünya motoru.
+/* Devre Kasabası · dünya motoru.
    Yan kaydırmalı, paralaks katmanlı kamp; yedi istasyon; istasyon kartı (gözlem → Sence? → yakından incele → görevler → açıklama);
    yakın plan tahtası (900 × 600) ve rehber (görev kutusu, kademeli ipucu, tahtada işaret). İstasyon tahtaları istasyonlar.js içinde. */
 (function () {
@@ -12,7 +12,7 @@
 
   /* ── kayıt ── */
   const KEY = 'patara-kamp:v1';
-  const save = { done: {}, ans: {}, found: [], intro: false, sound: true };
+  const save = { done: {}, ans: {}, found: [], met: [], intro: false, sound: true };
   if (Q.has('sifirla')) { try { localStorage.removeItem(KEY); } catch (e) { /* yok */ } }
   try { Object.assign(save, JSON.parse(localStorage.getItem(KEY) || '{}')); } catch (e) { /* yok */ }
   const persist = () => { try { localStorage.setItem(KEY, JSON.stringify(save)); } catch (e) { /* yok */ } };
@@ -82,15 +82,36 @@
     for (let i = 0; i < 9; i++) {
       const x = i * 560 - 400;
       if (!visible(x + 300, 400, 0.3)) continue;
-      K.at(x, GROUND - 40, 1 + (i % 3) * 0.12, () => K.shape(MOUNT, { lit: i % 2 ? '#d8cbb0' : '#cfc2a6', w: 2, trace: false, hatchK: 0.6 }));
+      K.at(x, GROUND - 40, 1 + (i % 3) * 0.12, () => K.shape(MOUNT, { lit: i % 2 ? '#ddd2ba' : '#d5c9b0', w: 2, trace: false, hatchK: 0.4 }));
+    }
+    // uzak kasaba silüeti: kondansatörler, çip gökdelenleri, transistörler, anten
+    for (let i = 0; i < 40; i++) {
+      const x = i * 130 - 300 + (PT.nz(i * 3) - 0.5) * 50;
+      if (!visible(x, 90, 0.3)) continue;
+      K.at(x, GROUND - 30, 0.55 + PT.nz(i + 11) * 0.45, () => PT.town.skyline(K, Math.floor(PT.nz(i * 5) * 4), i % 2 ? '#d2c3a6' : '#c9bb9f'));
     }
     layer(0.6);
     for (let i = 0; i < 60; i++) {
       const x = i * 170 + (PT.nz(i) - 0.5) * 80 - 300;
-      if (!visible(x, 60, 0.6)) continue;
-      const s = 0.8 + PT.nz(i + 3) * 0.6;
-      K.at(x, GROUND - 22, s, () => { K.shape(PINE, { lit: i % 3 ? '#9fb489' : '#8fa87b', w: 2.2, trace: false }); K.line('M0 8 L 0 22', { w: 3, color: '#7a5a3a', trace: false }); });
+      if (!visible(x, 70, 0.6)) continue;
+      const s = 0.8 + PT.nz(i + 3) * 0.5;
+      if (i % 3 === 1) K.at(x, GROUND - 14, s * 0.9, () => PT.town.wireTree(K, t, { seed: i, col: i % 2 ? '#9fb489' : '#8fa87b' }));
+      else K.at(x, GROUND - 22, s, () => { K.shape(PINE, { lit: i % 3 ? '#9fb489' : '#8fa87b', w: 2.2, trace: false }); K.line('M0 8 L 0 22', { w: 3, color: '#7a5a3a', trace: false }); });
     }
+    train(t);
+  }
+  /* USB treni: arka planda kablodan bir ray üstünde Patara'dan Bilgi'ye tuş taşır */
+  const TRAIN = ['↑', 'SPACE', '←', 'ENTER', '→'];
+  const TRAIN_Y = GROUND - 8, TRAIN_LEN = WW * 0.6 + 1400;
+  const trainX = (t) => ((t * 70) % TRAIN_LEN) - 500;
+  function train(t) {
+    const x0 = cam.x * 0.6 - viewW() / 2 - 80, x1 = cam.x * 0.6 + viewW() / 2 + 80;
+    ctx.strokeStyle = C.INK; ctx.lineWidth = 7; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(x0, TRAIN_Y); ctx.lineTo(x1, TRAIN_Y); ctx.stroke();
+    ctx.strokeStyle = '#8b919c'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(x0, TRAIN_Y); ctx.lineTo(x1, TRAIN_Y); ctx.stroke();
+    const hx = trainX(t);
+    if (hx < x0 - 60 || hx - TRAIN.length * 64 - 60 > x1) return;
+    TRAIN.forEach((l, i) => K.at(hx - 66 - i * 62, TRAIN_Y - 2, 0.9, () => PT.town.wagon(K, l, PT.town.LEDCOL[i % 4])));
+    K.at(hx, TRAIN_Y - 2, 0.9, () => PT.town.loco(K));
   }
   function ground(t) {
     layer(1);
@@ -101,9 +122,18 @@
     ctx.beginPath();
     for (let x = Math.floor(x0 / 40) * 40; x < x1; x += 40) ctx.lineTo(x, GROUND + (PT.nz(x * 0.01) - 0.5) * 2.2);
     ctx.stroke();
-    ctx.strokeStyle = 'rgba(23,20,17,.22)'; ctx.lineWidth = 1.4; ctx.beginPath();
-    for (let x = Math.floor(x0 / 70) * 70; x < x1; x += 70) { const y = GROUND + 40 + PT.nz(x) * 26; ctx.moveTo(x, y); ctx.lineTo(x + 18, y); }
-    ctx.stroke();
+    // bakır yollar (devre kartındaki izler gibi), lehim noktaları ve akan elektronlar
+    [GROUND + 42, GROUND + 64].forEach((y, k) => {
+      ctx.strokeStyle = C.INK; ctx.lineWidth = 6; ctx.beginPath(); ctx.moveTo(x0, y); ctx.lineTo(x1, y); ctx.stroke();
+      ctx.strokeStyle = '#d39a4c'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(x0, y); ctx.lineTo(x1, y); ctx.stroke();
+      for (let x = Math.floor(x0 / 300) * 300 + k * 150; x < x1; x += 300) { ctx.fillStyle = '#d39a4c'; ctx.beginPath(); ctx.arc(x, y, 7, 0, 7); ctx.fill(); ctx.strokeStyle = C.INK; ctx.lineWidth = 2; ctx.stroke(); ctx.fillStyle = C.PAPER; ctx.beginPath(); ctx.arc(x, y, 2.6, 0, 7); ctx.fill(); }
+      if (!reduce) {
+        const dir = k ? -1 : 1, off = ((t * 140 * dir) % 90 + 90) % 90;
+        ctx.save(); ctx.shadowColor = C.AMBER; ctx.shadowBlur = 8; ctx.fillStyle = '#ffe08f';
+        for (let x = Math.floor(x0 / 90) * 90 + off; x < x1; x += 90) { ctx.beginPath(); ctx.arc(x, y, 2.8, 0, 7); ctx.fill(); }
+        ctx.restore();
+      }
+    });
   }
   function frontGrass(t) {
     layer(1.15);
@@ -159,30 +189,8 @@
       K.shape('M-150 -96 L 150 -96 L 150 -80 L -150 -80 Z', { lit: '#9c6b3e', w: 2.8 });
       K.line('M-136 -80 L -136 0 M136 -80 L 136 0 M-120 -40 L 120 -40', { w: 5, color: '#7a5434', trace: false });
     },
-    halka(t) {
-      for (let i = 0; i < 9; i++) { const a = (i / 9) * Math.PI * 2; K.at(Math.cos(a) * 58, Math.sin(a) * 12 - 6, 1, () => K.shape(PT.el(0, 0, 12, 8), { lit: '#a69c8c', w: 2, trace: false })); }
-      K.shape('M-50 -8 L 46 -26 L 50 -14 L -46 4 Z', { lit: '#8a5a3a', w: 2.4 });
-      K.shape('M-46 -26 L 50 -8 L 46 4 L -50 -14 Z', { lit: '#7a4e32', w: 2.4 });
-      const f = 1 + Math.sin(t * 9) * 0.06;
-      ctx.save(); ctx.translate(0, -16); ctx.scale(f, 2 - f); ctx.translate(0, 16);
-      const g = ctx.createRadialGradient(0, -40, 4, 0, -40, 120); g.addColorStop(0, 'rgba(255,190,90,.45)'); g.addColorStop(1, 'rgba(255,190,90,0)');
-      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, -40, 120, 0, 7); ctx.fill();
-      K.shape('M0 -96 C 22 -66 36 -46 30 -26 C 26 -14 -26 -14 -30 -26 C -36 -46 -20 -60 -10 -52 C -8 -70 -6 -82 0 -96 Z', { lit: '#f08a3a', w: 2.6 });
-      K.shape('M2 -62 C 12 -46 18 -36 14 -26 C 10 -20 -10 -20 -14 -26 C -16 -36 -6 -46 2 -62 Z', { fill: '#ffd77a', w: 0 });
-      ctx.restore();
-      K.shape('M-170 -10 L -100 -10 L -96 4 L -174 4 Z', { lit: '#9c6b3e', w: 2.4 });
-      K.shape('M100 -10 L 170 -10 L 174 4 L 96 4 Z', { lit: '#9c6b3e', w: 2.4 });
-    },
-    iletken(t) {
-      K.shape('M-150 -96 L 150 -96 L 140 -76 L -140 -76 Z', { fill: '#f6efe0', w: 2.6, hatch: false, inside: () => {
-        ctx.fillStyle = 'rgba(196,67,43,.5)'; for (let i = -150; i < 150; i += 20) ctx.fillRect(i, -96, 10, 20);
-      } });
-      K.line('M-130 -76 L -130 0 M130 -76 L 130 0', { w: 5, color: '#7a5434', trace: false });
-      K.shape('M-110 -96 C -110 -130 -60 -130 -60 -96 Z', { lit: '#8b919c', w: 2.4 });
-      K.line('M-116 -112 L -134 -118 M-54 -112 L -36 -118', { w: 3, trace: false });
-      K.shape('M50 -96 L 54 -124 L 92 -124 L 96 -96 Z', { lit: '#c99f6a', w: 2.4 });
-      for (let i = 0; i < 3; i++) K.line(`M${-96 + i * 18} -${138 + Math.sin(t * 2 + i) * 4} Q ${-90 + i * 18} -${150 + i * 2} ${-96 + i * 18} -${162}`, { w: 1.6, alpha: 0.35, trace: false });
-    },
+    halka(t) { PT.town.ringMonument(K, t, { lit: stationDone(STN[idx('halka')]) || Math.sin(t * 1.6) > 0.9 }); },
+    iletken(t) { PT.town.market(K, t); },
     sahne(t) {
       K.shape('M-170 -44 L 170 -44 L 176 0 L -176 0 Z', { lit: '#a8743c', w: 3 });
       for (let x = -150; x < 170; x += 40) K.line(`M${x} -44 L ${x - 4} 0`, { w: 1.3, alpha: 0.4, trace: false });
@@ -203,6 +211,52 @@
       K.rot(10, -214, Math.sin(t * 2) * 0.15, () => K.shape('M10 -246 L 18 -224 L 42 -222 L 24 -208 L 30 -184 L 10 -198 L -10 -184 L -4 -208 L -22 -222 L 2 -224 Z', { lit: '#ffcf4a', w: 2.6 }));
     },
   };
+  /* ── kasaba yapıları: istasyonların arasını dolduran evler ve lambalar ── */
+  const HOUSES = [
+    { x: 250, f: (t) => PT.town.gate(K, t) },
+    { x: 1465, f: (t) => PT.town.chipHouse(K, t, { seed: 1 }) },
+    { x: 2465, f: (t) => PT.town.capTower(K, t, { seed: 2 }) },
+    { x: 3465, f: (t) => PT.town.resHouse(K, t) },
+    { x: 4465, f: (t) => PT.town.chipHouse(K, t, { seed: 4, label: 'İŞLEMCİ' }) },
+    { x: 5465, f: (t) => PT.town.capTower(K, t, { seed: 5, col: '#7a4a8a' }) },
+    { x: 6465, f: (t) => PT.town.chipHouse(K, t, { seed: 6, label: 'BELLEK' }) },
+    { x: 7420, f: (t) => PT.town.capTower(K, t, { seed: 7 }) },
+  ];
+  const LAMPS = [520, 1290, 1640, 2290, 2640, 3290, 3640, 4290, 4640, 5290, 5640, 6290, 6640, 7250];
+  function scenery(t) {
+    LAMPS.forEach((x, i) => { if (visible(x, 60)) K.at(x, GROUND, 1, () => PT.town.ledLamp(K, t, { col: PT.town.LEDCOL[i % 4] })); });
+    HOUSES.forEach((h) => { if (visible(h.x, 160)) K.at(h.x, GROUND, 1, () => h.f(t)); });
+  }
+  /* ── kasabalılar: yürüyen elektronik parçalar ── */
+  const KINDS = ['led', 'direnc', 'cip', 'led', 'jumper', 'buton', 'led', 'cip', 'direnc', 'jumper'];
+  const SPEED = { led: 38, direnc: 24, cip: 70, jumper: 30, buton: 34 };
+  const WALK = KINDS.concat(KINDS, KINDS, KINDS).slice(0, 38).map((kind, i) => ({
+    kind, i, x: 160 + PT.nz(i * 7.3) * (WW - 320), dir: PT.nz(i * 2.1) > 0.5 ? 1 : -1,
+    v: SPEED[kind] * (0.75 + PT.nz(i + 5) * 0.5), ph: i * 1.7, col: kind === 'jumper' ? ['#4f9a7a', '#c4432b', '#4f86c6'][i % 3] : PT.town.LEDCOL[i % 4],
+    front: i % 3 !== 0, pause: 0, lit: 0, say: '', sayUntil: 0, n: 0,
+  }));
+  const BIRDS = Array.from({ length: 6 }, (_, i) => ({ i, ph: i * 1.3, beep: 0, say: '', sayUntil: 0 }));
+  const birdPos = (b, t) => ({ x: ((t * 46 + b.i * 70 + 300) % (WW + 600)) - 300, y: 150 + Math.sin(t * 1.4 + b.ph) * 12 + (b.i % 3) * 22 });
+  const laneY = (w) => GROUND + (w.front ? 30 : 10), laneS = (w) => (w.front ? 1.15 : 0.95);
+  function walkStep(dt, now) {
+    WALK.forEach((w) => {
+      if (w.pause > now) return;
+      w.x += w.dir * w.v * dt;
+      if (w.x < 120 || w.x > WW - 120) w.dir *= -1;
+      if (Math.random() < dt * 0.06) { w.pause = now + 1200 + Math.random() * 2400; if (Math.random() < 0.4) w.dir *= -1; }
+    });
+  }
+  function walkDraw(front, now) {
+    WALK.forEach((w) => {
+      if (w.front !== front || !visible(w.x, 60)) return;
+      const s = laneS(w), o = { walk: w.pause < now, ph: w.ph, col: w.col, lit: w.lit > now || (w.kind === 'led' && Math.sin(K.t * 0.9 + w.ph) > 0.92), state: w.sayUntil > now ? 'happy' : 'idle' };
+      K.at(w.x, laneY(w), s, () => { if (w.dir < 0) K.mirror(0, () => PT.town[w.kind](K, o)); else PT.town[w.kind](K, o); });
+    });
+  }
+  function birdsDraw(t, now) {
+    BIRDS.forEach((b) => { const p = birdPos(b, t); if (visible(p.x, 40)) K.at(p.x, p.y, 1.3, () => PT.town.bip(K, { ph: b.ph, beep: b.beep > now })); });
+  }
+
   /* sahnede istasyonlarda duran karakterler */
   const CAST = [
     { id: 'pc', x: 1990, s: 0.46, st: 'tak' },
@@ -260,10 +314,14 @@
   }
   function bubble(t) {
     if (pat.sayUntil < performance.now() || !pat.say) return;
+    bubbleAt(pat.x, GROUND - 262 * PS - 20, pat.say);
+  }
+  /* dünya noktasının üstünde konuşma balonu (ekran uzayında çizilir) */
+  function bubbleAt(wx, wy, text, p = 1) {
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    const px = W / 2 + (pat.x - cam.x) * S, py = offY + (GROUND - 262 * PS - 20) * S;
+    const px = W / 2 + (wx - cam.x * p) * S, py = offY + wy * S;
     ctx.font = '19px "Caveat Brush", "Comic Sans MS", cursive';
-    const words = pat.say.split(' '), lines = []; let line = '';
+    const words = text.split(' '), lines = []; let line = '';
     words.forEach((w) => { const tt = line ? line + ' ' + w : w; if (ctx.measureText(tt).width > 220 && line) { lines.push(line); line = w; } else line = tt; });
     if (line) lines.push(line);
     const bw = Math.max(...lines.map((l) => ctx.measureText(l).width)) + 28, bh = lines.length * 22 + 18;
@@ -284,16 +342,24 @@
     sky(t);
     ground(t);
     layer(1);
+    scenery(t);
     STN.forEach((s, i) => {
       if (!visible(s.x, 320)) return;
       K.at(s.x, GROUND, 1, () => BUILD[s.id](t));
       sign(s.x + 330, s.kisa, i + 1, stationDone(s), i === cur);
     });
+    const now = performance.now();
+    birdsDraw(t, now);
+    walkDraw(false, now);
     CAST.forEach((c) => { if (visible(c.x, 160)) castDraw(c); });
     M.avlar.forEach(huntDraw);
     drawPatara(t);
+    walkDraw(true, now);
     frontGrass(t);
     bubble(t);
+    WALK.forEach((w) => { if (w.sayUntil > now) bubbleAt(w.x, laneY(w) - 72 * laneS(w), w.say); });
+    BIRDS.forEach((b) => { if (b.sayUntil > now) { const p = birdPos(b, t); bubbleAt(p.x, p.y - 18, b.say); } });
+    if (trainSay.until > now) bubbleAt(trainX(t) - 60, TRAIN_Y - 70, trainSay.text, 0.6);
   }
 
   /* ── dünya girdisi ── */
@@ -315,10 +381,28 @@
     for (const a of M.avlar) {
       if (Math.hypot(x - a.x, y - (a.y - 4)) < 30) { findHunt(a); return; }
     }
+    const now = performance.now(), t = reduce ? 2 : now / 1000;
+    for (const b of BIRDS) { const p = birdPos(b, t); if (Math.hypot(x - p.x, y - p.y) < 28) { b.beep = now + 900; SES.zap(); setTimeout(() => SES.zap(), 160); meet('bip', b); return; } }
+    const hit = WALK.filter((w) => Math.abs(x - w.x) < 30 * laneS(w) && y < laneY(w) + 8 && y > laneY(w) - 70 * laneS(w)).sort((a, b) => b.front - a.front)[0];
+    if (hit) { hit.pause = now + 2800; hit.lit = now + 2200; ({ led: SES.pop, buton: SES.key, cip: SES.zap, jumper: SES.tick, direnc: SES.tick })[hit.kind](); meet(hit.kind, hit); return; }
+    const tx = trainX(t), lx = x - cam.x * 0.4;
+    if (lx < tx + 40 && lx > tx - 66 - TRAIN.length * 62 && y > TRAIN_Y - 70 && y < TRAIN_Y + 6) { SES.key(); meet('tren', trainSay); return; }
     if (Math.abs(x - pat.x) < 80 && y > GROUND - 160 && y < GROUND + 10) { say(M.dunya.soz[Math.floor(Math.random() * M.dunya.soz.length)], 'happy'); SES.pop(); return; }
     for (const c of CAST) if (Math.abs(x - c.x) < 50 && y > GROUND - 160 && y < GROUND + 10) { castState[c.id] = performance.now() + 1600; SES.pop(); }
     const i = STN.findIndex((s) => x > s.x - 280 && x < s.x + 410 && y > 200 && y < GROUND + 40);
     if (i >= 0) goTo(i);
+  }
+  const trainSay = { text: '', until: 0, n: 0 };
+  function meet(kind, who) {
+    const d = M.sakinler[kind]; if (!d) return;
+    const line = d.soz[(who.n = (who.n || 0) + 1) % d.soz.length];
+    if (who === trainSay) { trainSay.text = line; trainSay.until = performance.now() + 4200; }
+    else { who.say = line; who.sayUntil = performance.now() + 4200; }
+    if (!save.met.includes(kind)) {
+      save.met.push(kind); persist(); renderTop();
+      toast(`Yeni kasabalı: <b>${d.ad}</b> (${save.met.length}/${Object.keys(M.sakinler).length})`);
+      if (save.met.length === Object.keys(M.sakinler).length) say('Bütün kasabalılarla tanıştın! Artık Devre Kasabası\'nın yerlisisin.', 'happy');
+    }
   }
   function findHunt(a) {
     if (save.found.includes(a.id)) { toast(`${a.ad}: zaten buldun. ${a.not}`); return; }
@@ -339,6 +423,7 @@
   function renderTop() {
     $('#stations').innerHTML = STN.map((s, i) => `<button type="button" class="st${i === cur ? ' on' : ''}${stationDone(s) ? ' ok' : ''}" data-i="${i}" aria-label="${i + 1}. istasyon: ${s.ad}${stationDone(s) ? ', tamamlandı' : ''}"><span>${stationDone(s) ? '✓' : i + 1}</span><em>${s.kisa}</em></button>`).join('');
     $('#avBtn').textContent = `${M.dunya.avAd} ${save.found.length}/${M.avlar.length}`;
+    $('#metBtn').textContent = `kasabalılar ${save.met.length}/${Object.keys(M.sakinler).length}`;
   }
   $('#stations').addEventListener('click', (e) => { const b = e.target.closest('button[data-i]'); if (b) goTo(+b.dataset.i); });
   let toastT = 0;
@@ -527,7 +612,8 @@
   $('#ogrBody').innerHTML = `<p>${md(M.ogretmenGenel)}</p><ol>${STN.map((s) => `<li><b>${s.ad}</b> · ${md(s.ogretmen)}</li>`).join('')}</ol>`;
   $('#ogrBtn').addEventListener('click', () => openSheet('#ogretmen'));
   $('#yardimBtn').addEventListener('click', () => openSheet('#intro'));
-  $('#resetBtn').addEventListener('click', () => { save.done = {}; save.ans = {}; save.found = []; persist(); closeSheets(); goTo(0); renderTop(); toast('İlerleme sıfırlandı.'); });
+  $('#resetBtn').addEventListener('click', () => { save.done = {}; save.ans = {}; save.found = []; save.met = []; persist(); closeSheets(); goTo(0); renderTop(); toast('İlerleme sıfırlandı.'); });
+  $('#metBtn').addEventListener('click', () => toast(`${M.dunya.sakinIpucu}<br>Tanıştıkların: ${save.met.length ? save.met.map((k) => M.sakinler[k].ad).join(', ') : 'henüz kimse'}.`, 5600));
   $('#avBtn').addEventListener('click', () => toast(`${M.dunya.avIpucu}<br>Bulunan: ${save.found.length ? save.found.map((id) => M.avlar.find((a) => a.id === id).ad).join(', ') : 'henüz yok'}.`, 5200));
   const sesBtn = $('#sesBtn');
   const syncSes = () => { sesBtn.setAttribute('aria-pressed', String(SES.on)); sesBtn.textContent = SES.on ? 'ses açık' : 'ses kapalı'; };
@@ -546,8 +632,10 @@
     const dx = pat.tx - pat.x;
     if (Math.abs(dx) > 2) { const v = Math.sign(dx) * Math.min(Math.abs(dx), (reduce ? 4000 : 300) * dt); pat.x += v; pat.dir = Math.sign(dx); pat.walk += dt * 11; }
     else if (pat.arrive) { say(pat.arrive, 'happy'); pat.arrive = null; pat.dir = 1; }
-    if (!Z) { layoutY(); drawWorld(t); }
-    else drawZoom(t);
+    try {
+      if (!Z) { if (!reduce) walkStep(dt, now); layoutY(); drawWorld(t); }
+      else drawZoom(t);
+    } catch (err) { if (!frame.warned) { frame.warned = true; console.error(err); } }
     if (!$('#intro').hidden) {
       const d = Math.min(2, devicePixelRatio || 1), w = icv.clientWidth;
       if (icv.width !== Math.round(w * d)) { icv.width = Math.round(w * d); icv.height = Math.round(icv.clientHeight * d); }

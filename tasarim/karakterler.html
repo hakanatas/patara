@@ -274,6 +274,15 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 2px solid var(--ink); 
     </div>
   </section>
 
+  <!-- ===================== KASABALILAR ===================== -->
+  <section aria-labelledby="h-town">
+    <div class="sec-head">
+      <h2 id="h-town">Devre Kasabası'nın sakinleri</h2>
+      <p>Kasabada herkes bir elektronik parça. Dokununca kendilerini bir cümleyle anlatırlar; çocuk böylece breadboard dünyasına ilk adımı atar.</p>
+    </div>
+    <div class="strip"><div class="strip-scroll"><canvas class="cv" id="town" role="img" aria-label="Kasabalılar: yürüyen LED, direnç, çip böceği, jumper kablo, buton, bazır kuşu ve USB treni"></canvas></div></div>
+  </section>
+
   <!-- ===================== DEVRE SAHNESİ ===================== -->
   <section aria-labelledby="h-strip">
     <div class="sec-head">
@@ -371,6 +380,7 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 2px solid var(--ink); 
 </div>
 
 <script src="../cocuk/js/patara-cizim.js"></script>
+<script src="../cocuk/js/kasabalilar.js"></script>
 <script>
 (() => {
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -435,6 +445,23 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 2px solid var(--ink); 
     const poke = () => { st.until = performance.now() + 1800; };
     cv.addEventListener('click', poke);
     cv.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); poke(); } });
+  });
+
+  /* ── Kasabalılar ── */
+  const TOWN = [['led', 'LED', 'uzun bacak +'], ['direnc', 'Direnç', 'akımı yavaşlatır'], ['cip', 'Çip böceği', 'minicik beyin'], ['jumper', 'Jumper kablo', 'breadboard teli'], ['buton', 'Buton', 'bas, bırak: tık'], ['bip', 'Bazır kuşu', 'bip bip!']];
+  view(document.getElementById('town'), [0, 0, 1010, 230], (K, t) => {
+    const c = K.ctx;
+    c.strokeStyle = C.INK; c.lineWidth = 2; c.setLineDash([2, 9]); c.beginPath(); c.moveTo(0, 150); c.lineTo(980, 150); c.stroke(); c.setLineDash([]);
+    TOWN.forEach(([k, name, note], i) => {
+      const x = 64 + i * 124, o = { walk: true, ph: i, col: PT.town.LEDCOL[i % 4], lit: k === 'led' && Math.sin(t * 2) > 0.3, beep: Math.sin(t * 3) > 0.6 };
+      K.at(x, k === 'bip' ? 96 : 150, 1.5, () => PT.town[k](K, o));
+      c.fillStyle = C.INK; c.font = '22px "Caveat Brush", "Comic Sans MS", cursive'; c.textAlign = 'center'; c.textBaseline = 'alphabetic'; c.fillText(name, x, 186);
+      c.fillStyle = 'rgba(23,20,17,.6)'; c.font = '500 11px "JetBrains Mono", monospace'; c.fillText(note, x, 206);
+    });
+    K.at(845, 150, 1.25, () => { PT.town.wagon(K, '↑', PT.town.LEDCOL[0]); });
+    K.at(945, 150, 1.25, () => PT.town.loco(K));
+    c.fillStyle = C.INK; c.font = '22px "Caveat Brush", "Comic Sans MS", cursive'; c.textAlign = 'center'; c.fillText('USB treni', 895, 186);
+    c.fillStyle = 'rgba(23,20,17,.6)'; c.font = '500 11px "JetBrains Mono", monospace'; c.fillText('tuş taşır', 895, 206);
   });
 
   /* ── Patara'nın yüzleri ── */

@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Patara'nın Kâşif Kampı</title>
-<meta name="description" content="Patara Board'u keşfet: kampta yedi istasyon. Kıskaç tak, halkayı kapat, iletkenleri ayır, muzdan oyun kumandası yap. İlkokul ve ortaokul için.">
+<title>Patara ve Devre Kasabası</title>
+<meta name="description" content="Patara Board'u keşfet: Devre Kasabası'nda yedi istasyon, yürüyen LED'ler ve çip böcekleri. Kıskaç tak, halkayı kapat, iletkenleri ayır, muzdan oyun kumandası yap. İlkokul ve ortaokul için.">
 <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -12,12 +12,13 @@
 <link rel="stylesheet" href="kamp.css">
 </head>
 <body>
-<canvas id="world" aria-label="Kâşif kampı: sürükleyerek gez, istasyonlara ve nesnelere dokun"></canvas>
+<canvas id="world" aria-label="Devre Kasabası: sürükleyerek gez, istasyonlara, kasabalılara ve nesnelere dokun"></canvas>
 
 <header class="ui top">
-  <div class="brand"><a href="../" aria-label="Patara Board ürün sayfasına dön">←</a><h1>Patara'nın Kâşif Kampı</h1></div>
+  <div class="brand"><a href="../" aria-label="Patara Board ürün sayfasına dön">←</a><h1>Devre Kasabası</h1></div>
   <nav class="stations" id="stations" aria-label="İstasyonlar"></nav>
   <div class="tools">
+    <button type="button" class="chip-btn" id="metBtn">kasabalılar 0/7</button>
     <button type="button" class="chip-btn" id="avBtn">iletken avı 0/6</button>
     <button type="button" class="chip-btn" id="ogrBtn">öğretmen</button>
     <button type="button" class="chip-btn" id="sesBtn" aria-pressed="true">ses açık</button>
@@ -45,9 +46,9 @@
   <div class="sbox intro">
     <canvas id="introPat" aria-hidden="true"></canvas>
     <div>
-      <h2 id="introTitle">Patara'nın Kâşif Kampı</h2>
+      <h2 id="introTitle">Devre Kasabası</h2>
       <div id="introText"></div>
-      <div class="s-foot"><button type="button" class="go pulse" id="introGo">Keşfe başla</button><span class="s-note">Sürükleyerek gez · istasyona dokun · 1–7 tuşlarıyla atla</span></div>
+      <div class="s-foot"><button type="button" class="go pulse" id="introGo">Keşfe başla</button><span class="s-note">Sürükleyerek gez · istasyona ve kasabalılara dokun · 1–7 tuşlarıyla atla</span></div>
     </div>
   </div>
 </div>
@@ -61,6 +62,7 @@
 </div>
 
 <script src="js/patara-cizim.js"></script>
+<script src="js/kasabalilar.js"></script>
 <script src="js/metinler.js"></script>
 <script src="js/ses.js"></script>
 <script src="js/kamp.js"></script>
