@@ -116,6 +116,9 @@
   };
 
   /* ═════════ YAPILAR ═════════ */
+  /* pencereler: hangisi yanıyor? (gece parıltısı da aynı listeyi kullanır) — x, y pencere ortası */
+  T.chipWins = (t, seed = 0) => [0, 1].flatMap((r) => [0, 1, 2, 3].map((k) => ({ x: -42 + k * 38, y: -133 + r * 46, on: Math.sin(t * 0.7 + r * 3 + k * 1.3 + seed) > -0.3 })));
+  T.capWins = (t, seed = 0) => [0, 1, 2, 3].map((k) => ({ x: -18, y: -176 + k * 42, on: Math.sin(t * 0.6 + k * 2 + seed) > -0.2 }));
   /* çip evi: pinler kazık, gövde siyah, pencereler sarı */
   T.chipHouse = (K, t, o = {}) => {
     const c = K.ctx;
@@ -123,10 +126,7 @@
     K.shape('M-96 -46 L 96 -46 L 96 -168 L -96 -168 Z', { lit: '#353b43', w: 3.2 });
     K.shape('M-96 -114 C -84 -114 -84 -96 -96 -96 Z', { fill: C.PAPER, w: 2, hatch: false, trace: false });
     K.dot(-78, -152, 4, '#d3d8de');
-    for (let r = 0; r < 2; r++) for (let k = 0; k < 4; k++) {
-      const on = Math.sin(t * 0.7 + r * 3 + k * 1.3 + (o.seed || 0)) > -0.3, x = -54 + k * 38, y = -146 + r * 46;
-      c.fillStyle = on ? '#ffd77a' : '#4a525c'; c.fillRect(x, y, 24, 26); c.strokeStyle = INK; c.lineWidth = 2; c.strokeRect(x, y, 24, 26);
-    }
+    T.chipWins(t, o.seed).forEach(({ x, y, on }) => { c.fillStyle = on ? '#ffd77a' : '#4a525c'; c.fillRect(x - 12, y - 13, 24, 26); c.strokeStyle = INK; c.lineWidth = 2; c.strokeRect(x - 12, y - 13, 24, 26); });
     c.fillStyle = 'rgba(255,255,255,.6)'; c.font = '600 12px "JetBrains Mono", monospace'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(o.label || 'ÇİP EVİ', 0, -58);
   };
   /* kondansatör kulesi: silindir, eksi şeridi, tepede çentik */
@@ -137,7 +137,7 @@
     K.shape('M18 -14 L 18 -218 C 26 -218 40 -222 40 -212 L 40 -14 Z', { fill: 'rgba(255,255,255,.28)', w: 1.6, hatch: false, trace: false });
     c.fillStyle = INK; for (let y = -190; y < -30; y += 34) c.fillRect(25, y, 8, 3);
     K.line('M-24 -222 L 24 -214 M24 -222 L -24 -214', { w: 2, trace: false, alpha: 0.6 });
-    for (let k = 0; k < 4; k++) { const on = Math.sin(t * 0.6 + k * 2 + (o.seed || 0)) > -0.2, y = -186 + k * 42; c.fillStyle = on ? '#ffd77a' : 'rgba(23,20,17,.35)'; c.fillRect(-26, y, 16, 20); c.strokeStyle = INK; c.lineWidth = 1.8; c.strokeRect(-26, y, 16, 20); }
+    T.capWins(t, o.seed).forEach(({ x, y, on }) => { c.fillStyle = on ? '#ffd77a' : 'rgba(23,20,17,.35)'; c.fillRect(x - 8, y - 10, 16, 20); c.strokeStyle = INK; c.lineWidth = 1.8; c.strokeRect(x - 8, y - 10, 16, 20); });
   };
   /* direnç evi: yatık direnç gövdesi, uç telleri sütun */
   T.resHouse = (K, t) => {

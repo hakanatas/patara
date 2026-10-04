@@ -154,12 +154,14 @@
   const PLUG0 = { x: 420, y: 470 };
   /* USB fişi: büyük siyah gövde (üstünde USB yazısı), gümüş uç sağa bakar. (x, y) = gövdenin ortası */
   function usbPlug(K, x, y, o = {}) {
-    const c = K.ctx;
-    if (o.ring) { c.save(); c.strokeStyle = C.AMBER; c.lineWidth = 4; c.setLineDash([7, 6]); c.beginPath(); c.roundRect ? c.roundRect(x - 40, y - 26, 96, 52, 14) : c.rect(x - 40, y - 26, 96, 52); c.stroke(); c.restore(); }
-    K.shape(`M${x + 22} ${y - 11} L ${x + 50} ${y - 11} L ${x + 50} ${y + 11} L ${x + 22} ${y + 11} Z`, { lit: '#d3d8de', w: 2.4, hatch: false, trace: false });
-    c.fillStyle = '#353b43'; c.fillRect(x + 30, y - 5, 7, 4); c.fillRect(x + 40, y - 5, 7, 4);
-    K.shape(`M${x - 32} ${y - 18} L ${x + 22} ${y - 18} L ${x + 22} ${y + 18} L ${x - 32} ${y + 18} Z`, { lit: '#353b43', w: 2.8 });
-    c.fillStyle = '#fff'; c.font = '600 15px "JetBrains Mono", monospace'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('USB', x - 5, y + 1);
+    K.at(x, y, 1, () => {
+      const c = K.ctx;
+      if (o.ring) { c.save(); c.strokeStyle = C.AMBER; c.lineWidth = 4; c.setLineDash([7, 6]); c.beginPath(); c.roundRect ? c.roundRect(-40, -26, 96, 52, 14) : c.rect(-40, -26, 96, 52); c.stroke(); c.restore(); }
+      K.shape('M22 -11 L 50 -11 L 50 11 L 22 11 Z', { lit: '#d3d8de', w: 2.4, hatch: false, trace: false });
+      c.fillStyle = '#353b43'; c.fillRect(30, -5, 7, 4); c.fillRect(40, -5, 7, 4);
+      K.shape('M-32 -18 L 22 -18 L 22 18 L -32 18 Z', { lit: '#353b43', w: 2.8 });
+      c.fillStyle = '#fff'; c.font = '600 15px "JetBrains Mono", monospace'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('USB', -5, 1);
+    });
   }
   KAMP.def('tak', {
     geo: () => ({ ps: 1.2, pox: 40, poy: 564 - 262 * 1.2, cs: 1.3, cox: 560, coy: 564 - 224 * 1.3 }),
@@ -367,15 +369,15 @@
       const k = KIDS[i], R = kg(k, 200, 140), s1 = kg(k, 136, 100), s2 = kg(k, 88, 100), L = kg(k, 24, 140);
       d += ` L ${R.x} ${R.y} L ${s1.x} ${s1.y} L ${s2.x} ${s2.y} L ${L.x} ${L.y}`;
       const li = KIDS.length - 2 - i; // Ada→Can bağı 1, Can→Deniz bağı 0
-      if (i < KIDS.length - 1 && !links[li]) return { d, full: false };
+      if (i < KIDS.length - 1 && !links[li]) return { d, full: false, reach: i + 1 };
     }
-    return { d: d + ' ' + CBLACK(), full: true };
+    return { d: d + ' ' + CBLACK(), full: true, reach: KIDS.length };
   }
   KAMP.def('halka', {
     init(Z) {
       const held = Z.isDone('gnd');
       Z.data = { held, clip: held ? { ...HAND } : { ...CLIP0 }, drag: false, phase: 'idle', t0: 0, out: null, mode: Z.isDone('kapali') ? 'chain' : 'solo', links: [true, false] };
-      Z.data.fr = { ok: [fracAt(HP.ok, { x: 226, y: 150 }), fracAt(HP.ok, { x: 216, y: 169 }), fracAt(HP.ok, { x: 99, y: 225 })], nognd: [fracAt(HP.nognd, { x: 226, y: 150 }), fracAt(HP.nognd, { x: 216, y: 169 }), 1] };
+      Z.data.fr = { ok: [fracAt(HP.ok, { x: 226, y: 150 }), fracAt(HP.ok, { x: 216, y: 169 }), fracAt(HP.ok, { x: 99, y: 225 })], nognd: [fracAt(HP.nognd, { x: 226, y: 150 }), fracAt(HP.nognd, { x: 216, y: 169 }), 2] }; // 2: açık devrede GND'ye hiç ulaşılmaz
     },
     draw(K, t, Z) {
       const d = Z.data, c = K.ctx, n = now() / 1000;
@@ -420,7 +422,8 @@
       const P = d.phase === 'idle' ? null : d.path, ok = end && P && P.full, bad = end && P && !P.full;
       // şema
       const nodes = [['Patara · UP', 92], ['Muz', 232], ['Ada', 372], ['Can', 512], ['Deniz', 652], ['GND', 800]];
-      const pts = P ? [0, fracAt(P.d, CMUZ), fracAt(P.d, kg(KIDS[0], 200, 140)), fracAt(P.d, kg(KIDS[1], 200, 140)), fracAt(P.d, kg(KIDS[2], 200, 140)), 1] : [];
+      const kidAt = (j) => (j < P.reach ? fracAt(P.d, kg(KIDS[j], 200, 140)) : 2); // 2: kopukluğun ötesine Kıvılcım hiç varmaz
+      const pts = P ? [0, fracAt(P.d, CMUZ), kidAt(0), kidAt(1), kidAt(2), P.full ? 1 : 2] : [];
       const lit = (i) => P && f >= pts[i] - 0.001 && (i < 5 || P.full);
       c.fillStyle = 'rgba(241,234,220,.9)'; c.strokeStyle = C.INK; c.lineWidth = 2;
       c.beginPath(); c.roundRect ? c.roundRect(24, 16, 852, 130, 14) : c.rect(24, 16, 852, 130); c.fill(); c.stroke();
@@ -657,12 +660,13 @@
       d.drag = -1;
       const it = d.items[i];
       const home = () => { it.x = it.home.x; it.y = it.home.y; it.at = 'shelf'; };
+      if (d.test && d.test.i === i && !near(it, TEST, 64)) d.test = null;
       if (near(it, TEST, 64)) {
         if (d.test && d.test.i !== i) { const o = d.items[d.test.i]; o.x = o.home.x; o.y = o.home.y; o.at = 'shelf'; }
         it.x = TEST.x; it.y = TEST.y; it.at = 'test'; d.test = { i, t0: now() / 1000 };
         Z.sfx.zap();
         setTimeout(() => {
-          if (!KAMP.Z || KAMP.Z.sid !== 'iletken') return;
+          if (!KAMP.Z || KAMP.Z.sid !== 'iletken' || !d.test || d.test.i !== i) return;
           it.il ? Z.sfx.good() : Z.sfx.bad();
           if (Z.task() === 'test') Z.done('test', `${it.il ? 'Kıvılcım geçti, ↑ basıldı' : 'Kıvılcım geçemedi, tuş basılmadı'}. ${it.why} Şimdi hepsini sepetlere ayır.`);
           else Z.say(`${it.ad}: ${it.il ? '**iletken**' : '**yalıtkan**'}. ${it.why}`, it.il ? 'happy' : 'idle');
@@ -671,7 +675,6 @@
       }
       const bin = inRect(it, BIN.il) ? 'il' : inRect(it, BIN.ya) ? 'ya' : null;
       if (!bin) { home(); return; }
-      if (d.test && d.test.i === i) d.test = null;
       if ((bin === 'il') === it.il) {
         const k = d.items.filter((x) => x.at === 'bin' && x.il === it.il).length;
         it.at = 'bin'; it.x = BIN[bin].x + 50 + (k % 4) * 90; it.y = BIN[bin].y + 92;
@@ -796,8 +799,9 @@
   ];
   const MINI = { up: { x: 676, y: 432 }, left: { x: 626, y: 482 }, down: { x: 676, y: 482 }, right: { x: 726, y: 482 } };
   const CBOX = { muz: [0, 6, 104, 194], elma: [0, 40, 104, 194], hamur: [0, 80, 106, 194], kasik: [8, 24, 92, 194] };
-  function bfs(rocks) {
-    const key = (c, r) => r * MC + c, prev = new Map([[key(START.c, START.r), null]]), q = [START];
+  /* en kısa yol (yön listesi): from'dan yıldıza; yol yoksa null */
+  function bfs(rocks, from = START) {
+    const key = (c, r) => r * MC + c, prev = new Map([[key(from.c, from.r), null]]), q = [from];
     while (q.length) {
       const u = q.shift();
       if (u.c === GOAL.c && u.r === GOAL.r) { const path = []; let k = key(u.c, u.r); while (prev.get(k)) { const [pk, dir] = prev.get(k); path.unshift(dir); k = pk; } return path; }
@@ -891,17 +895,8 @@
     guide(tid, Z) {
       const d = Z.data;
       if (tid === 'ilk') { const o = CTRL[0]; return { how: { x: o.cx, y: o.cy, r: 50, t: 'muza dokun' }, pt: { x: o.cx, y: o.cy, r: 50, t: 'muz = ↑' } }; }
-      const cur = { ...d.pos };
-      // sıradaki hamle: Patara'nın şimdiki yerinden yıldıza en kısa yol
-      const nextDir = (() => {
-        const key = (c, r) => r * MC + c, prev = new Map([[key(cur.c, cur.r), null]]), q = [cur];
-        while (q.length) {
-          const u = q.shift();
-          if (u.c === GOAL.c && u.r === GOAL.r) { let k = key(u.c, u.r), first = null; while (prev.get(k)) { const [pk, dir] = prev.get(k); first = dir; k = pk; } return first; }
-          for (const [dir, [dc, dr]] of Object.entries(DIRS)) { const c = u.c + dc, r = u.r + dr, k = key(c, r); if (c < 0 || c >= MC || r < 0 || r >= MR || d.rocks.has(k) || prev.has(k)) continue; prev.set(k, [key(u.c, u.r), dir]); q.push({ c, r }); }
-        }
-        return 'up';
-      })() || 'up';
+      // sıradaki hamle: Patara'nın şimdiki yerinden yıldıza en kısa yolun ilk adımı
+      const nextDir = (bfs(d.rocks, d.pos) || [])[0] || 'up';
       if (tid === 'yildiz') { const o = CTRL.find((x) => x.key === nextDir); return { how: { x: o.cx, y: o.cy, r: 50, t: 'nesnelere dokun' }, pt: { x: o.cx, y: o.cy, r: 50, t: ARROW[nextDir] } }; }
       if (tid === 'klavye') { const q = MINI[nextDir]; return { how: { x: 676, y: 460, r: 64, t: 'ok tuşları' }, pt: { ...q, r: 26, t: ARROW[nextDir] } }; }
       return null;
