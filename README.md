@@ -59,6 +59,8 @@ Her istasyon bir "Sence?" tahminiyle açılır, yakın planda 2–4 görevle sü
 | `cocuk/js/istasyonlar.js` | Yedi istasyonun yakın plan tahtaları |
 | `tasarim/karakterler.html` | Karakter tasarım sayfası |
 
+Klavyeyle de oynanır: kasabada `←` `→` (ya da `A` `D`) Patara'yı yürütür, `Enter` istasyona girer, `Boşluk` yakındaki kasabalıyla konuşur ya da nesneyi toplar, `1`–`7` istasyona atlar. Tahtalarda oklar parçalar arasında gezer, `Enter` dokunur ya da parçayı alıp bırakır, `Esc` vazgeçer, `H` ipucu açar. Oyun Salonu'nda oklar Patara'yı yürütür, nesneler `Tab` ile seçilir.
+
 Adres parametreleri: `?tanitimsiz` tanıtımı atlar, `?sifirla` ilerlemeyi siler, `?istasyon=halka` doğrudan bir istasyonla açar.
 
 ## Kaynaklar

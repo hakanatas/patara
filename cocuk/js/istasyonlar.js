@@ -1,5 +1,5 @@
 /* Devre Kasabası · istasyonların yakın plan tahtaları (900 × 600 mantıksal).
-   Her tahta: init(Z) · draw(K, t, Z) · down/move/up(p, Z) · guide(tid, Z) → { how, pt } · prog(tid, Z) · ctl(host, Z) · key(e, Z).
+   Her tahta: init(Z) · draw(K, t, Z) · down/move/up(p, Z) · guide(tid, Z) → { how, pt } · prog(tid, Z) · ctl(host, Z) · key(e, Z) · keys(Z) → klavyeyle seçilebilir parçalar [{ x, y, r, label, at?, drops? }] (x, y: down/move/up'a giden nokta)
    Z.task() sıradaki görev, Z.done(tid, söz) görevi bitirir, Z.say(söz, ruh hâli) Patara'nın kutusuna yazar. */
 (function () {
   const C = PT.C, CH = PT.chars, P = CH.patara.parts;
@@ -92,6 +92,12 @@
         piano: { x: g.ox + P.piano.x * g.s, y: g.oy + P.piano.y * g.s, w: P.piano.w * g.s, h: 34 * g.s },
       };
     },
+    keys() {
+      const L = this.spots().map((q) => ({ x: q.x, y: q.y, r: 20, label: KEYLBL[q.key] + ' pedi' })), R = this.rects();
+      L.push({ x: R.led.x + R.led.w / 2, y: R.led.y + R.led.h / 2, r: 40, label: 'LED ekran' });
+      for (let i = 0; i < 8; i++) L.push({ x: R.piano.x + (i + 0.5) * (R.piano.w / 8), y: R.piano.y + R.piano.h / 2, r: 16, label: `piyano ${'CDEFGABC'[i]}` });
+      return L;
+    },
     init(Z) { Z.data = { hit: new Set(), glow: null, glowUntil: 0, led: null, ledUntil: 0, note: null, noteUntil: 0, joy: 0 }; },
     draw(K, t, Z) {
       const d = Z.data, g = this.geo(), n = now();
@@ -170,6 +176,12 @@
     btns() { const g = this.geo(); return [...P.dpad, ...P.xy].map((q) => ({ ...pg(g.pox, g.poy, g.ps, q), key: q.key })); },
     /* fiş takılınca gövde ortası girişin solunda durur */
     seat() { const pt = this.port(); return { x: pt.x - 52, y: pt.y }; },
+    keys(Z) {
+      const d = Z.data, L = [];
+      if (!d.conn) L.push({ x: d.plug.x, y: d.plug.y, r: 44, label: 'USB fişi', drops: [{ ...this.seat(), at: this.port(), r: 30, label: 'USB girişi' }] });
+      this.btns().forEach((b) => L.push({ x: b.x, y: b.y, r: 16, label: `${KEYSYM[b.key]} tuşu` }));
+      return L;
+    },
     init(Z) {
       const conn = Z.isDone('usb');
       Z.data = { plug: conn ? this.seat() : { ...PLUG0 }, conn, drag: false, moved: conn, log: [], seen: new Set(), btn: null, btnUntil: 0, hello: 0 };
@@ -270,6 +282,15 @@
         at[k] = o ? o.id : null; pos[k] = o ? this.bite(o) : this.idle(i);
       });
       Z.data = { at, pos, drag: null, chomp: {}, ask: pick(OBJ.slice(1)) };
+    },
+    keys(Z) {
+      const d = Z.data, L = [];
+      PADKEYS.forEach((k) => {
+        const drops = OBJ.filter((o) => !PADKEYS.some((key) => key !== k && d.at[key] === o.id)).map((o) => { const b = this.bite(o); return { ...clipGrab(b, -1, CLS), at: b, r: 24, label: o.ad }; });
+        L.push({ ...clipGrab(d.pos[k], -1, CLS), r: 26, label: `${ARROW[k]} kıskacı`, drops });
+      });
+      OBJ.forEach((o) => L.push({ x: o.x + 52 * KS, y: KGY - 70, at: { x: o.x + 52 * KS, y: KGY - 90 }, r: 40, label: o.ad }));
+      return L;
     },
     draw(K, t, Z) {
       const d = Z.data, g = this.geo(), n = now(), c = K.ctx;
@@ -515,6 +536,17 @@
         else Z.say('**↑** basıldı. Halka kapalı!', 'happy');
       }
     },
+    keys(Z) {
+      const d = Z.data;
+      if (d.mode === 'chain') {
+        const L = LINKS.map((q, i) => ({ x: q.x, y: q.y + 16, r: 30, label: `${i ? 'Can–Ada' : 'Deniz–Can'} elleri` }));
+        L.push({ x: 585, y: 450, r: 36, label: 'muz' });
+        return L;
+      }
+      const g = d.held ? HAND : clipGrab(d.clip, -1, 0.26), sh = (q) => ({ x: q.x, y: q.y + Y0 });
+      const hand = { x: HAND.x - 30, y: HAND.y + Y0, at: sh(HAND), r: 26, label: 'Deniz\'in eli' }, floor = { x: 270, y: FL - 2 + Y0, at: sh({ x: 300, y: FL - 2 }), r: 26, label: 'yer' };
+      return [{ ...sh(g), r: 28, label: 'GND kıskacı', drops: d.held ? [floor, hand] : [hand, floor] }, { x: 226, y: 200 + Y0, r: 36, label: 'muz' }];
+    },
     run(Z) { const d = Z.data; if (d.phase === 'run') return; if (d.mode === 'chain') d.path = chainPath(d.links); else d.out = d.held ? 'ok' : 'nognd'; d.phase = 'run'; d.t0 = now() / 1000; Z.sfx.zap(); },
     down(p, Z) {
       const d = Z.data, q = p && { x: p.x, y: p.y - Y0 };
@@ -652,6 +684,10 @@
         if (it.at === 'shelf' || i === d.drag) text(K, it.ad, it.x, it.y + 48, { size: 16, align: 'center' });
       });
     },
+    keys(Z) {
+      const drops = [{ ...TEST, r: 40, label: 'test yeri' }, ...['il', 'ya'].map((b) => ({ x: BIN[b].x + BIN[b].w / 2, y: BIN[b].y + 92, r: 50, label: b === 'il' ? 'İLETKEN sepeti' : 'YALITKAN sepeti' }))];
+      return Z.data.items.filter((it) => it.at !== 'bin').map((it) => ({ x: it.x, y: it.y, r: 34, label: it.ad, drops }));
+    },
     pickAt(p) { const d = KAMP.Z.data; for (let i = d.items.length - 1; i >= 0; i--) { const it = d.items[i]; if (it.at !== 'bin' && near(p, it, 36)) return i; } return -1; },
     down(p, Z) { const i = this.pickAt(p); if (i >= 0) { const it = Z.data.items[i]; Z.data.drag = i; Z.data.off = { x: it.x - p.x, y: it.y - p.y }; Z.sfx.tick(); } },
     move(p, Z) { const d = Z.data; if (d.drag >= 0 && p) { const it = d.items[d.drag]; it.x = p.x + d.off.x; it.y = p.y + d.off.y; } },
@@ -714,6 +750,12 @@
       const tg = pick(['heart', 'smile', 'up', 'star', 'note']);
       const mel = []; while (mel.length < 4) { const k = Math.floor(Math.random() * 8); if (k !== mel[mel.length - 1]) mel.push(k); }
       Z.data = { grid: Array(25).fill(0), tg, target: toGrid(tg), mel, mpos: 0, lit: -1, litUntil: 0, show: 0, play: null };
+    },
+    keys() {
+      const L = [];
+      for (let i = 0; i < 25; i++) L.push({ x: GX + (i % 5) * GC + GC / 2, y: GY + Math.floor(i / 5) * GC + GC / 2, r: 20, label: `ışık ${Math.floor(i / 5) + 1}. satır ${(i % 5) + 1}. sütun` });
+      for (let i = 0; i < 8; i++) L.push({ x: PIA.x + (i + 0.5) * (PIA.w / 8), y: PIA.y + 120, r: 30, label: `piyano ${NOTE[i]}` });
+      return L;
     },
     cell(p) { const c = Math.floor((p.x - GX) / GC), r = Math.floor((p.y - GY) / GC); return c >= 0 && c < 5 && r >= 0 && r < 5 ? r * 5 + c : -1; },
     draw(K, t, Z) {
@@ -824,6 +866,12 @@
     return new Set([8, 9, 10, 22, 23, 25]);
   }
   KAMP.def('oyun', {
+    tabNav: true,
+    kbHelp: '<b>Klavye:</b> <kbd>←</kbd><kbd>↑</kbd><kbd>→</kbd><kbd>↓</kbd> ya da <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> Patara\'yı yürütür · <kbd>Tab</kbd> nesne seç · <kbd>Enter</kbd> dokun · <kbd>H</kbd> ipucu · <kbd>Esc</kbd> kapat',
+    keys() {
+      const AD = { muz: 'muz', elma: 'elma', hamur: 'oyun hamuru', kasik: 'kaşık' };
+      return [...CTRL.map((o) => ({ x: o.cx, y: o.cy, r: 50, label: `${AD[o.id]} (${ARROW[o.key]})` })), ...Object.entries(MINI).map(([k, q]) => ({ x: q.x, y: q.y, r: 24, label: `klavye ${ARROW[k]}` }))];
+    },
     init(Z) { Z.data = { rocks: makeMaze(), pos: { ...START }, from: { ...START }, mt: 0, log: [], bump: 0, win: 0, moves: 0, pressed: null, pressedUntil: 0 }; },
     ctrlBox(o) { const s = 0.55, b = CBOX[o.id]; return { ox: o.cx - ((b[0] + b[2]) / 2) * s, oy: o.cy - ((b[1] + b[3]) / 2) * s, s }; },
     draw(K, t, Z) {
@@ -889,8 +937,8 @@
     },
     key(e, Z) {
       const m = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right', w: 'up', s: 'down', a: 'left', d: 'right', W: 'up', S: 'down', A: 'left', D: 'right' }[e.key];
-      if (!m) return;
-      e.preventDefault(); this.go(m, 'klavye', Z);
+      if (!m || e.ctrlKey || e.metaKey || e.altKey) return false;
+      e.preventDefault(); this.go(m, 'klavye', Z); return true;
     },
     guide(tid, Z) {
       const d = Z.data;

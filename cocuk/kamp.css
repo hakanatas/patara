@@ -108,6 +108,13 @@ b { font-weight: 600; }
 #zpat { width: 72px; height: 72px; }
 .z-say p { margin: 0; font-size: 15px; }
 .z-ctl:empty { display: none; }
+.z-keys { font-size: 12.5px; line-height: 1.7; color: var(--ink-soft, #5a4e44); }
+.z-keys:empty { display: none; }
+.z-keys kbd { font-family: var(--mono); font-size: 11px; background: var(--sheet); border: 1.5px solid var(--ink); border-bottom-width: 2.5px; border-radius: 4px; padding: 0 4px; }
+#zcv:focus { outline: none; }
+#zcv:focus-visible { outline: 3px dashed var(--amber-deep); outline-offset: 4px; }
+@media (hover: none) and (pointer: coarse) { .z-keys { display: none; } }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 .z-ctl .q { margin: 0 0 6px; font-size: 15.5px; }
 .z-ctl .row { display: flex; gap: 8px; flex-wrap: wrap; }
 .z-ctl .col { display: grid; gap: 6px; }

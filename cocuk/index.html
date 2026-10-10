@@ -29,13 +29,15 @@
 
 <section class="ui card" id="card" aria-live="polite"></section>
 <div class="ui toast" id="toast" role="status"></div>
+<div class="sr-only" id="zlive" aria-live="polite"></div>
 
 <div class="zoom" id="zoom" role="dialog" aria-modal="true" aria-labelledby="zTitle" hidden>
   <div class="zbox">
-    <div class="zboard"><canvas id="zcv" aria-label="Yakın plan tahtası"></canvas></div>
+    <div class="zboard"><canvas id="zcv" tabindex="0" role="application" aria-label="Etkinlik tahtası: oklarla parça seç, Enter ile dokun"></canvas></div>
     <aside class="zside">
       <div class="z-head"><h2 id="zTitle">İstasyon</h2><button type="button" class="z-close" id="zClose" aria-label="Yakın planı kapat">✕</button></div>
       <div class="z-task" id="ztask"></div>
+      <div class="z-keys" id="zkeys"></div>
       <div class="z-say"><canvas id="zpat" aria-hidden="true"></canvas><p id="zsay"></p></div>
       <div class="z-ctl" id="zctl"></div>
       <ol class="z-tasks" id="ztasks"></ol>
@@ -49,7 +51,7 @@
     <div>
       <h2 id="introTitle">Devre Kasabası</h2>
       <div id="introText"></div>
-      <div class="s-foot"><button type="button" class="go pulse" id="introGo">Keşfe başla</button><span class="s-note">Sürükleyerek gez · istasyona ve kasabalılara dokun · 1–7 tuşlarıyla atla</span></div>
+      <div class="s-foot"><button type="button" class="go pulse" id="introGo">Keşfe başla</button><span class="s-note">Sürükleyerek gez ya da ← → ile yürü · Enter istasyona gir · Boşluk dokun · 1–7 istasyona atla</span></div>
     </div>
   </div>
 </div>
