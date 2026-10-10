@@ -416,6 +416,7 @@
     frontGrass(t);
     if (save.hava === 'aksam') nightPass(t, now);
     bubble(t);
+    kbPrompt();
     WALK.forEach((w) => { if (w.sayUntil > now) bubbleAt(w.x, laneY(w) - 72 * laneS(w), w.say); });
     BIRDS.forEach((b) => { if (b.sayUntil > now) { const p = birdPos(b, t); bubbleAt(p.x, p.y - 18, b.say); } });
     if (trainSay.until > now) bubbleAt(trainX(t) - 60, TRAIN_Y - 70, trainSay.text, 0.6);
@@ -471,13 +472,63 @@
     say(save.found.length === M.avlar.length ? 'Hepsini buldun! Gerçek bir iletken avcısısın.' : `${a.ad}! ${a.not}`, 'happy');
     renderTop();
   }
+  /* ── klavye: ← → (A D) yürü · Enter / ↑ istasyona gir · Boşluk yakındakiyle etkileş · 1–7 istasyona atla ── */
+  const held = { l: false, r: false };
+  let kbUsed = false;
+  const WALK_KEYS = { ArrowLeft: 'l', a: 'l', A: 'l', ArrowRight: 'r', d: 'r', D: 'r' };
+  const stationAt = (x) => STN.findIndex((s) => x > s.x - 330 && x < s.x + 420);
+  function enterStation() {
+    const s = STN[cur];
+    if (Math.abs(pat.x - s.x) > 520) { goTo(cur); return; }
+    const card = $('#card'); card.classList.remove('min');
+    if (save.ans[s.id] == null) {
+      const o = card.querySelector('.opt'); if (o) o.focus();
+      say('Önce tahminini seç: ↑ ↓ ile gez, Enter ile seç.', 'think');
+    } else openZoom(s.id);
+  }
+  function nearThing() {
+    const a = M.avlar.find((h) => !save.found.includes(h.id) && Math.abs(h.x - pat.x) < 95);
+    if (a) return { kind: 'av', a };
+    const w = WALK.filter((v) => Math.abs(v.x - pat.x) < 85).sort((p, q) => Math.abs(p.x - pat.x) - Math.abs(q.x - pat.x))[0];
+    if (w) return { kind: 'sakin', w };
+    return null;
+  }
+  function interactNear() {
+    const n = nearThing(); if (!n) return false;
+    if (n.kind === 'av') findHunt(n.a);
+    else { const now = performance.now(); n.w.pause = now + 2800; n.w.lit = now + 2200; SES.pop(); meet(n.w.kind, n.w); }
+    return true;
+  }
   addEventListener('keydown', (e) => {
     if (zoomOpen() || sheetOpen()) return;
     if (e.target.closest && e.target.closest('input, textarea')) return;
-    if (e.key === 'ArrowRight') { cam.tx = clampCam(cam.tx + 260); e.preventDefault(); }
-    else if (e.key === 'ArrowLeft') { cam.tx = clampCam(cam.tx - 260); e.preventDefault(); }
+    const onBtn = e.target.closest && e.target.closest('button, a');
+    // kartta şıklar arasında ↑ ↓ ile gez
+    if (onBtn && onBtn.classList.contains('opt') && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) {
+      const os = [...document.querySelectorAll('#card .opt:not(:disabled)')], i = os.indexOf(onBtn);
+      os[(i + (e.key === 'ArrowDown' ? 1 : -1) + os.length) % os.length].focus(); e.preventDefault(); return;
+    }
+    const w = WALK_KEYS[e.key];
+    if (w) { held[w] = true; kbUsed = true; if (onBtn) onBtn.blur(); e.preventDefault(); return; }
+    if (onBtn && (e.key === 'Enter' || e.key === ' ')) return; // düğmenin kendi işi
+    if (e.key === 'Enter' || e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') { kbUsed = true; e.preventDefault(); enterStation(); }
+    else if (e.key === ' ') { kbUsed = true; e.preventDefault(); if (!interactNear()) enterStation(); }
     else if (/^[1-7]$/.test(e.key)) goTo(+e.key - 1);
   });
+  addEventListener('keyup', (e) => { const w = WALK_KEYS[e.key]; if (w) held[w] = false; });
+  addEventListener('blur', () => { held.l = held.r = false; });
+  /* klavyeyle yürürken Patara'nın üstünde ne yapılabileceğini söyleyen küçük etiket */
+  function kbPrompt() {
+    if (!kbUsed || Z || pat.sayUntil > performance.now()) return;
+    const n = nearThing(), i = stationAt(pat.x);
+    const txt = n ? (n.kind === 'av' ? `Boşluk: ${n.a.ad.toLowerCase()} topla` : `Boşluk: ${M.sakinler[n.w.kind].ad} ile konuş`) : i >= 0 ? `Enter: ${STN[i].kisa}` : '← → yürü';
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const px = W / 2 + (pat.x - cam.x) * S, py = offY + (GROUND - 262 * PS - 28) * S;
+    ctx.font = '500 13px "JetBrains Mono", ui-monospace, monospace';
+    const tw = ctx.measureText(txt).width + 20;
+    ctx.fillStyle = C.INK; ctx.beginPath(); ctx.roundRect ? ctx.roundRect(px - tw / 2, py - 26, tw, 26, 13) : ctx.rect(px - tw / 2, py - 26, tw, 26); ctx.fill();
+    ctx.fillStyle = C.SHEET; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(txt, px, py - 12);
+  }
 
   /* ═════════ ARAYÜZ: üst çubuk, kart, tost ═════════ */
   function renderTop() {
@@ -533,6 +584,7 @@
     if (i === s.dogru) { SES.good(); say('Güzel tahmin! Hadi yakından bakalım.', 'happy'); }
     else { SES.bad(); say('Hımm, ilginç bir tahmin. Deneyince göreceğiz!', 'think'); }
     renderCard();
+    if (kbUsed || document.activeElement === document.body) { const z = $('#cZoom'); if (z) z.focus(); }
   }
 
   /* ═════════ YAKIN PLAN ═════════ */
@@ -562,7 +614,11 @@
     B.init(Z);
     renderSide();
     sizeZoom();
-    setTimeout(() => { const f = $('.zside .z-task button, #zClose'); if (f) f.focus(); }, 30);
+    Z.kf = 0; Z.carry = null;
+    const G0 = curTask() && B.guide ? B.guide(curTask().id, Z) : null, T0 = boardTargets();
+    if (G0 && G0.how && T0.length) Z.kf = T0.reduce((bi, q, i) => (Math.hypot(q.x - G0.how.x, q.y - G0.how.y) < Math.hypot(T0[bi].x - G0.how.x, T0[bi].y - G0.how.y) ? i : bi), 0);
+    Z.kbUsed = lastKb; // klavyeyle açıldıysa seçim halkası hemen görünsün
+    setTimeout(() => { zcv.focus(); if (Z && Z.kbUsed) announce(); }, 30);
   }
   function closeZoom() { if (B_ON() && Z.B.close) Z.B.close(Z); $('#zoom').hidden = true; document.body.classList.remove('zooming'); Z = null; renderCard(); const b = $('#cZoom'); if (b) b.focus(); }
   const B_ON = () => !!Z;
@@ -577,10 +633,84 @@
   addEventListener('resize', () => { if (Z) sizeZoom(); });
   $('#zClose').addEventListener('click', () => closeZoom());
   $('#zoom').addEventListener('keydown', (e) => {
+    if (!Z) return;
+    if (e.target === zcv) { boardKey(e); if (e.defaultPrevented) return; }
+    else if (Z.B.key && Z.B.key(e, Z)) return;
     if (e.key === 'Escape') closeZoom();
-    else if (Z && Z.B.key) Z.B.key(e, Z);
   });
-  addEventListener('keydown', (e) => { if (Z && Z.B.key && !e.target.closest('#zoom')) Z.B.key(e, Z); });
+  addEventListener('keydown', (e) => { // odak tahtanın dışına düştüyse (ör. body) tuşlar yine tahtaya gider
+    if (!Z || (e.target.closest && e.target.closest('#zoom'))) return;
+    if (e.key === 'Escape') { closeZoom(); return; }
+    if (/^(Arrow|Enter$| $|Tab$|h$|H$)/.test(e.key) || (Z.B.key && /^[wasdWASD]$/.test(e.key))) { zcv.focus(); boardKey(e); }
+  });
+
+  /* ── tahtada klavye: oklar parçalar arasında gezer, Enter / Boşluk dokunur ya da alır-bırakır, Esc vazgeçer, H ipucu ── */
+  let lastKb = false; // son girdi klavye miydi?
+  addEventListener('keydown', () => { lastKb = true; }, true);
+  addEventListener('pointerdown', () => { lastKb = false; }, true);
+  const boardTargets = () => (Z && Z.B.keys ? Z.B.keys(Z) || [] : []);
+  function navIdx(L, i, dir, back) {
+    if (!dir) return (i + (back ? -1 : 1) + L.length) % L.length;
+    const a = L[clamp(i, 0, L.length - 1)]; let best = -1, bs = Infinity;
+    L.forEach((q, j) => {
+      if (j === i) return;
+      const dx = q.x - a.x, dy = q.y - a.y, along = dx * dir[0] + dy * dir[1], perp = Math.abs(dx * dir[1] - dy * dir[0]);
+      if (along < 6) return;
+      const sc = along + perp * 2.2; if (sc < bs) { bs = sc; best = j; }
+    });
+    return best < 0 ? i : best;
+  }
+  function announce() {
+    const T = boardTargets(), el = $('#zlive'); if (!el) return;
+    if (Z.carry) { const d = Z.carry.drops[Z.carry.di]; el.textContent = `${Z.carry.src.label} taşınıyor → ${d.label}. Enter ile bırak, Esc ile vazgeç.`; }
+    else if (T.length) { const q = T[clamp(Z.kf, 0, T.length - 1)]; el.textContent = `${q.label}. Enter ile ${q.drops ? 'al' : 'dokun'}.`; }
+  }
+  function boardKey(e) {
+    if (Z.B.key && Z.B.key(e, Z)) { e.preventDefault(); return; }
+    const DIRS = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] };
+    if (e.key === 'Escape' && Z.carry) { const p = Z.carry.src; Z.B.move && Z.B.move(p, Z); Z.B.up && Z.B.up(p, Z); Z.carry = null; e.preventDefault(); announce(); return; }
+    if (e.key === 'h' || e.key === 'H') { const hb = $('#zHint'); if (hb) hb.click(); e.preventDefault(); return; }
+    const T = boardTargets();
+    if (!T.length && !Z.carry) return;
+    const tab = e.key === 'Tab' && Z.B.tabNav;
+    if (tab && !Z.carry) { // listenin ucunda Tab odağı tahtadan çıkarır: klavye tuzağı yok
+      const i = clamp(Z.kf, 0, T.length - 1);
+      if (Z.kbUsed && (e.shiftKey ? i === 0 : i === T.length - 1)) { Z.kf = e.shiftKey ? T.length - 1 : 0; return; }
+    }
+    if (DIRS[e.key] || tab) {
+      e.preventDefault(); Z.kbUsed = true; Z.touched = true;
+      if (Z.carry) { const L = Z.carry.drops; Z.carry.di = navIdx(L, Z.carry.di, DIRS[e.key], e.shiftKey); Z.B.move && Z.B.move(L[Z.carry.di], Z); }
+      else Z.kf = navIdx(T, clamp(Z.kf, 0, T.length - 1), DIRS[e.key], e.shiftKey);
+      SES.tick(); announce(); return;
+    }
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault(); Z.kbUsed = true; Z.touched = true;
+      if (Z.carry) { const p = Z.carry.drops[Z.carry.di]; Z.B.move && Z.B.move(p, Z); Z.carry = null; Z.B.up && Z.B.up(p, Z); announce(); return; }
+      const q = T[clamp(Z.kf, 0, T.length - 1)];
+      Z.B.down && Z.B.down(q, Z);
+      if (q.drops && q.drops.length) { Z.carry = { src: q, drops: q.drops, di: 0 }; Z.B.move && Z.B.move(q.drops[0], Z); }
+      else Z.B.up && Z.B.up(q, Z);
+      announce();
+    }
+  }
+  /* klavye odağı: seçili parçanın çevresinde halka ve etiket */
+  function keyMark(K2, t) {
+    if (document.activeElement !== zcv || !Z.kbUsed) return;
+    const c = K2.ctx, T = boardTargets();
+    const ring = (q, lbl, dashed) => {
+      const at = q.at || q, r = (q.r || 26) + 6;
+      c.save(); c.lineWidth = 7; c.strokeStyle = 'rgba(255,250,240,.9)'; c.beginPath(); c.arc(at.x, at.y, r, 0, 7); c.stroke();
+      c.lineWidth = 3.5; c.strokeStyle = C.INK; if (dashed) c.setLineDash([6, 6]); c.beginPath(); c.arc(at.x, at.y, r, 0, 7); c.stroke(); c.restore();
+      c.font = '500 14px "JetBrains Mono", ui-monospace, monospace'; const w = c.measureText(lbl).width + 18, ly = at.y + r + 24 > BH - 6 ? at.y - r - 10 : at.y + r + 24, lx = clamp(at.x - w / 2, 4, BW - w - 4);
+      c.fillStyle = C.INK; c.beginPath(); c.roundRect ? c.roundRect(lx, ly - 18, w, 24, 12) : c.rect(lx, ly - 18, w, 24); c.fill();
+      c.fillStyle = C.SHEET; c.textAlign = 'left'; c.textBaseline = 'alphabetic'; c.fillText(lbl, lx + 9, ly - 1);
+    };
+    if (Z.carry) {
+      const src = Z.carry.src.at || Z.carry.src, d = Z.carry.drops[Z.carry.di], at = d.at || d;
+      c.save(); c.strokeStyle = C.INK; c.lineWidth = 2.5; c.setLineDash([3, 8]); c.beginPath(); c.moveTo(src.x, src.y); c.lineTo(at.x, at.y); c.stroke(); c.restore();
+      ring(d, `⏎ bırak: ${d.label}`, true);
+    } else if (T.length) { const q = T[clamp(Z.kf, 0, T.length - 1)]; ring(q, `⏎ ${q.label}`); }
+  }
 
   function renderSay() { $('#zsay').innerHTML = `<b>Patara:</b> ${md(Z.msg || '')}`; }
   function renderSide() {
@@ -602,6 +732,7 @@
       Z.justDone = null;
     }
     renderSay();
+    $('#zkeys').innerHTML = Z.B.kbHelp || '<b>Klavye:</b> oklarla parça seç · <kbd>Enter</kbd> dokun / al-bırak · <kbd>Esc</kbd> vazgeç · <kbd>H</kbd> ipucu · <kbd>Tab</kbd> düğmelere geç';
     const ctl = $('#zctl'); ctl.innerHTML = '';
     if (Z.B.ctl) Z.B.ctl(ctl, Z);
     $('#ztasks').innerHTML = s.gorevler.map((x) => `<li class="${isDone(s.id, x.id) ? 'ok' : x === g ? 'now' : ''}">${md(x.metin)}</li>`).join('');
@@ -611,7 +742,7 @@
 
   /* tahta girdisi: 900 × 600 mantıksal koordinat */
   const bp = (e) => { const r = zcv.getBoundingClientRect(); return { x: ((e.clientX - r.left) / r.width) * BW, y: ((e.clientY - r.top) / r.height) * BH }; };
-  zcv.addEventListener('pointerdown', (e) => { if (!Z) return; e.preventDefault(); zcv.setPointerCapture(e.pointerId); Z.down = true; Z.touched = true; Z.B.down && Z.B.down(bp(e), Z); });
+  zcv.addEventListener('pointerdown', (e) => { if (!Z) return; e.preventDefault(); Z.kbUsed = false; Z.carry = null; zcv.setPointerCapture(e.pointerId); Z.down = true; Z.touched = true; Z.B.down && Z.B.down(bp(e), Z); });
   zcv.addEventListener('pointermove', (e) => { if (!Z) return; const p = bp(e); Z.hover = p; Z.B.move && Z.B.move(p, Z); });
   zcv.addEventListener('pointerup', (e) => { if (!Z) return; Z.down = false; Z.B.up && Z.B.up(bp(e), Z); });
   zcv.addEventListener('pointercancel', () => { if (Z) { Z.down = false; Z.B.up && Z.B.up(null, Z); } });
@@ -653,6 +784,7 @@
     Z.t = t;
     Z.B.draw(ZK, t, Z);
     guideMark(ZK, t);
+    keyMark(ZK, t);
     const g = curTask(), pe = document.querySelector('#ztask .prog');
     if (g && pe && Z.B.prog) { const v = Z.B.prog(g.id, Z); if (pe.textContent !== v) pe.textContent = v; }
     // Patara yüzü (yan panel)
@@ -700,6 +832,13 @@
     const dt = Math.min(0.05, (now - last) / 1000); last = now;
     const t = reduce ? 2 : now / 1000;
     // kamera ve Patara
+    if (!Z && held.l !== held.r) {
+      const dir = held.r ? 1 : -1;
+      pat.tx = clamp(pat.x + dir * 60, 120, WW - 120); pat.arrive = null;
+      cam.tx = clampCam(pat.x - (W > 760 ? 150 : 0) / S + dir * 70);
+      const i = stationAt(pat.x);
+      if (i >= 0 && i !== cur) { cur = i; renderTop(); renderCard(); say(`${STN[i].varis} (Enter: içeri gir)`, 'happy'); }
+    }
     cam.x += (cam.tx - cam.x) * (reduce ? 1 : 0.1);
     const dx = pat.tx - pat.x;
     if (Math.abs(dx) > 2) { const v = Math.sign(dx) * Math.min(Math.abs(dx), (reduce ? 4000 : 300) * dt); pat.x += v; pat.dir = Math.sign(dx); pat.walk += dt * 11; }
@@ -727,5 +866,5 @@
   if (!save.intro && !Q.has('tanitimsiz')) openSheet('#intro');
   else setTimeout(() => say(STN[cur].varis, 'happy'), 600);
   requestAnimationFrame(frame);
-  window.KAMP.open = openZoom; window.KAMP.goTo = goTo; window.KAMP.close = () => Z && closeZoom();
+  window.KAMP.open = openZoom; window.KAMP.pat = pat; window.KAMP.goTo = goTo; window.KAMP.close = () => Z && closeZoom();
 })();
