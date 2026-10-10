@@ -734,9 +734,11 @@
         ctx.fillStyle = g; ctx.fillRect(46, 32, 148, 108);
         ctx.fillStyle = 'rgba(0,0,0,.22)'; for (let y = 34; y < 140; y += 4) ctx.fillRect(46, y, 148, 1.4);
         ctx.fillStyle = 'rgba(255,255,255,.08)'; ctx.fill(K.path('M58 36 L 120 36 L 70 90 L 50 90 L 50 44 Z'));
+        if (o.screen) { ctx.save(); o.screen(ctx); ctx.restore(); } // ekranda bir oyun ya da resim (46..194 × 32..140)
       } });
       // piksel yüz
       const P = '#ffd77a', blink = K.blinking(3.1);
+      if (!o.screen) {
       ctx.fillStyle = P;
       [[96, -1], [144, 1]].forEach(([x, sd]) => {
         if (hap) [[-6, 6], [0, 0], [6, 6]].forEach(([dx, dy]) => ctx.fillRect(x + dx - 3, 54 + dy, 6, 6));
@@ -752,6 +754,7 @@
       ctx.fillText(o.key ?? (sad ? '?' : sur ? '!' : thk ? '…' : keys[Math.floor(t / 1.4) % keys.length]), 120, 104);
       ctx.font = '500 11px "JetBrains Mono", ui-monospace, monospace'; ctx.textAlign = 'left'; ctx.shadowBlur = 0;
       ctx.fillText('>' + (Math.floor(t * 2) % 2 ? '_' : ''), 56, 130);
+      }
       // klavye
       K.shape('M48 196 L 192 196 L 204 216 L 36 216 Z', { lit: '#efe6d2', w: 2.6 });
       ctx.fillStyle = 'rgba(23,20,17,.5)';
