@@ -28,13 +28,15 @@
     c.fillStyle = o.color || C.INK; c.textAlign = o.align || 'left'; c.textBaseline = o.base || 'alphabetic';
     c.fillText(s, x, y);
   }
+  /* açık zeminde koyu yazı, koyu zeminde açık yazı */
+  const light = (col) => { const h = String(col).replace('#', ''); if (h.length < 6) return true; const [r, g, b] = [0, 2, 4].map((i) => parseInt(h.slice(i, i + 2), 16)); return 0.299 * r + 0.587 * g + 0.114 * b > 150; };
   function tag(K, s, x, y, o = {}) {
     const c = K.ctx;
     c.font = `500 ${o.size || 14}px "JetBrains Mono", ui-monospace, monospace`;
     const w = c.measureText(s).width + 16, h = (o.size || 14) + 12;
     c.fillStyle = o.fill || C.SHEET; c.strokeStyle = C.INK; c.lineWidth = 2;
     c.beginPath(); c.roundRect ? c.roundRect(x - w / 2, y - h / 2, w, h, h / 2) : c.rect(x - w / 2, y - h / 2, w, h); c.fill(); c.stroke();
-    c.fillStyle = o.color || (o.fill && o.fill !== C.SHEET ? C.SHEET : C.INK); c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(s, x, y + 1);
+    c.fillStyle = o.color || (light(o.fill || C.SHEET) ? C.INK : C.SHEET); c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(s, x, y + 1);
     return w;
   }
   function bubble(K, s, x, y, o = {}) {
@@ -77,6 +79,7 @@
     space: '**SPACE**: boşluk tuşu. Birçok oyunda ateş ya da zıpla.', click: '**Sol tık**: farenin sol düğmesi gibi.', rclick: '**Sağ tık**: farenin sağ düğmesi gibi.', enter: '**ENTER**: onay tuşu.',
     gnd: '**GND**: toprak pedi. Akımın karta geri döndüğü yol.', gnd2: '**GND**: öbür koldaki toprak pedi. İkisi aynı işi yapar.',
   };
+  const PADORD = ['up', 'left', 'right', 'down', 'gnd', 'space', 'click', 'rclick', 'enter', 'gnd2'];
   KAMP.def('tanis', {
     geo: () => { const s = 1.95; return { s, ox: 450 - 130 * s, oy: 24 }; },
     spots() {
@@ -92,30 +95,46 @@
         piano: { x: g.ox + P.piano.x * g.s, y: g.oy + P.piano.y * g.s, w: P.piano.w * g.s, h: 34 * g.s },
       };
     },
-    keys() {
-      const L = this.spots().map((q) => ({ x: q.x, y: q.y, r: 20, label: KEYLBL[q.key] + ' pedi' })), R = this.rects();
+    keys(Z) {
+      const quiz = Z && Z.data.quiz; // ped avında adı söylersek cevabı vermiş oluruz
+      const L = this.spots().map((q) => ({ x: q.x, y: q.y, r: 20, label: quiz ? `${q.side < 0 ? 'sol' : 'sağ'} kol, ${(PADORD.indexOf(q.key) % 5) + 1}. ped` : KEYLBL[q.key] + ' pedi' })), R = this.rects();
       L.push({ x: R.led.x + R.led.w / 2, y: R.led.y + R.led.h / 2, r: 40, label: 'LED ekran' });
       for (let i = 0; i < 8; i++) L.push({ x: R.piano.x + (i + 0.5) * (R.piano.w / 8), y: R.piano.y + R.piano.h / 2, r: 16, label: `piyano ${'CDEFGABC'[i]}` });
       return L;
     },
-    init(Z) { Z.data = { hit: new Set(), glow: null, glowUntil: 0, led: null, ledUntil: 0, note: null, noteUntil: 0, joy: 0 }; },
+    init(Z) { Z.data = { hit: new Set(), glow: null, glowUntil: 0, led: null, ledUntil: 0, note: null, noteUntil: 0, joy: 0, quiz: null, peek: null, peekUntil: 0 }; },
+    /* etiket sütunları: sol koldaki pedler solda, sağdakiler sağda; üst üste binmez */
+    lblAt(p) { const i = PADORD.indexOf(p.key) % 5; return { x: p.side < 0 ? 112 : 788, y: 150 + i * 48 }; },
     draw(K, t, Z) {
-      const d = Z.data, g = this.geo(), n = now();
+      const d = Z.data, g = this.geo(), n = now(), c = K.ctx, q = d.quiz;
       paper(K, 560);
-      K.at(g.ox, g.oy, g.s, () => CH.patara.draw(K, { state: d.joy > n ? 'happy' : 'idle', pad: d.glowUntil > n ? d.glow : null, led: d.ledUntil > n ? d.led : null, note: d.noteUntil > n ? d.note : null }));
+      K.at(g.ox, g.oy, g.s, () => CH.patara.draw(K, { state: d.joy > n ? 'happy' : q ? 'think' : 'idle', pad: d.glowUntil > n ? d.glow : null, led: d.ledUntil > n ? d.led : null, note: d.noteUntil > n ? d.note : null }));
+      const lead = (x1, y1, x2, y2) => { c.save(); c.lineCap = 'round'; c.strokeStyle = 'rgba(255,250,240,.9)'; c.lineWidth = 5; c.beginPath(); c.moveTo(x1, y1); c.lineTo(x2, y2); c.stroke(); c.strokeStyle = C.INK; c.lineWidth = 1.6; c.beginPath(); c.moveTo(x1, y1); c.lineTo(x2, y2); c.stroke(); c.restore(); };
       this.spots().forEach((p) => {
-        if (!d.hit.has(p.key)) return;
-        const tx = p.x + p.side * 78, c = K.ctx;
-        c.strokeStyle = C.INK; c.lineWidth = 1.6; c.beginPath(); c.moveTo(p.x + p.side * 12, p.y); c.lineTo(tx - p.side * 30, p.y); c.stroke();
-        tag(K, KEYLBL[p.key], tx, p.y, { fill: p.key.startsWith('gnd') ? '#3a2f28' : C.SHEET });
+        const show = q ? d.peek === p.key && d.peekUntil > n : d.hit.has(p.key);
+        if (!show) return;
+        const L = this.lblAt(p);
+        lead(p.x + p.side * 12, p.y, L.x - p.side * 52, L.y);
+        tag(K, KEYLBL[p.key], L.x, L.y, { fill: p.key.startsWith('gnd') ? '#3a2f28' : C.SHEET });
       });
       const R = this.rects();
-      if (d.hit.has('led')) tag(K, '5×5 LED · 25 ışık', R.led.x + R.led.w + 90, R.led.y + 20, { fill: C.AMBER, color: C.INK });
-      if (d.hit.has('piano')) tag(K, 'dokunmatik piyano', R.piano.x + R.piano.w / 2, R.piano.y + R.piano.h + 34, { fill: C.AMBER, color: C.INK });
+      if (!q && d.hit.has('led')) { lead(R.led.x + R.led.w, R.led.y + R.led.h / 2, 700, 420); tag(K, '5×5 LED · 25 ışık', 770, 420, { fill: C.AMBER }); }
+      if (!q && d.hit.has('piano')) tag(K, 'dokunmatik piyano', R.piano.x + R.piano.w / 2, R.piano.y + R.piano.h + 34, { fill: C.AMBER });
+      if (q) {
+        // soru kartı: sol alttaki boşlukta
+        c.save(); c.fillStyle = C.SHEET; c.strokeStyle = C.INK; c.lineWidth = 2.6; c.translate(0, Math.sin(t * 3) * 2);
+        c.beginPath(); c.roundRect ? c.roundRect(24, 372, 196, 160, 14) : c.rect(24, 372, 196, 160); c.fill(); c.stroke();
+        text(K, 'ped avı', 40, 398, { mono: true, size: 12, color: 'rgba(23,20,17,.6)' });
+        tag(K, KEYLBL[q.key], 122, 438, { size: 22, fill: q.key.startsWith('gnd') ? '#3a2f28' : C.AMBER });
+        text(K, 'pedi hangisi?', 122, 488, { size: 26, align: 'center' });
+        for (let i = 0; i < 5; i++) { c.fillStyle = i < q.n ? C.AMBER : 'rgba(23,20,17,.14)'; c.beginPath(); c.arc(122 - 52 + i * 26, 512, 8, 0, 7); c.fill(); }
+        c.restore();
+      }
     },
     down(p, Z) {
       const d = Z.data, n = now();
       const s = this.spots().find((q) => near(p, q, 22));
+      if (d.quiz) { this.answer(s, Z); return; }
       if (s) {
         d.hit.add(s.key); d.glow = s.key; d.glowUntil = n + 800; Z.sfx.zap();
         if (ARROW[s.key]) { d.led = s.key === 'up' ? 'up' : 'smile'; d.ledUntil = n + 900; }
@@ -133,6 +152,26 @@
       }
       Z.say('Altın pedlere, kabuktaki LED ekrana ya da piyanoya dokun.', 'think');
     },
+    /* ped avı: Patara bir ped söyler, çocuk bulur */
+    ask(Z) {
+      const q = Z.data.quiz, last = q.key;
+      const ASK = PADORD.filter((x) => x !== 'gnd2'); // iki GND aynı ad: bir kez sorulur, ikisi de doğru sayılır
+      let k; do k = pick(ASK); while (k === last || (q.asked.has(k) && q.asked.size < ASK.length));
+      q.key = k; q.asked.add(k); q.miss = 0;
+    },
+    answer(s, Z) {
+      const d = Z.data, q = d.quiz, n = now();
+      if (!s) { Z.say(`Altın pedlerden birine dokun: **${KEYLBL[q.key]}** hangisi?`, 'think'); return; }
+      d.glow = s.key; d.glowUntil = n + 600;
+      if (s.key === q.key || (q.key === 'gnd' && s.key === 'gnd2')) {
+        q.n++; d.joy = n + 900; Z.sfx.good();
+        if (q.n >= 5) { d.quiz = null; Z.done('bul', 'Beşte beş! Artık Patara\'nın pedlerini ezbere biliyorsun.'); return; }
+        Z.say(`Evet, **${KEYLBL[s.key]}**! (${q.n}/5)`, 'happy'); this.ask(Z); Z.refresh();
+      } else {
+        q.miss++; d.peek = s.key; d.peekUntil = n + 1400; Z.sfx.bad();
+        Z.say(`Bu **${KEYLBL[s.key]}** pedi. ${KEYLBL[q.key].includes('GND') || q.key.startsWith('gnd') ? 'GND pedleri kabuğa en yakın, koyu pedler.' : ARROW[q.key] ? 'Yön pedleri **sol** kolda.' : 'Bu ped **sağ** kolda.'}`, 'think');
+      }
+    },
     check(Z) {
       const tid = Z.task(), need = NEED1[tid];
       if (!need || !need.every((k) => Z.data.hit.has(k))) return;
@@ -141,11 +180,23 @@
         yon: 'Dört yön tamam! Bu pedler klavyedeki **ok tuşları** gibi çalışır.',
         sag: 'Sağ kol hem klavye (**Space, Enter**) hem **fare** (sol tık, sağ tık).',
         gnd: '**GND** pedleri devrenin dönüş yolu. Halka Meydanı\'nda çok işimize yarayacak!',
-        govde: 'LED ekranla resim çizer, piyanoyla şarkı çalarım. Sahnede deneyeceğiz!',
+        govde: 'LED ekranla resim çizer, piyanoyla şarkı çalarım. Şimdi seni sınayayım: **ped avı**!',
       }[tid]);
+      this.tick(Z);
     },
-    prog(tid, Z) { const n = NEED1[tid]; return n ? `${n.filter((k) => Z.data.hit.has(k)).length}/${n.length}` : ''; },
+    /* görev değişince ped avını başlat */
+    tick(Z) {
+      if (Z.task() === 'bul' && !Z.data.quiz) { Z.data.quiz = { n: 0, key: null, asked: new Set(), miss: 0 }; this.ask(Z); }
+    },
+    prog(tid, Z) {
+      if (tid === 'bul') { this.tick(Z); return `${Z.data.quiz ? Z.data.quiz.n : 0}/5`; }
+      const n = NEED1[tid]; return n ? `${n.filter((k) => Z.data.hit.has(k)).length}/${n.length}` : '';
+    },
     guide(tid, Z) {
+      if (tid === 'bul') {
+        this.tick(Z); const q = Z.data.quiz, s = q && this.spots().find((x) => x.key === q.key);
+        return s ? { pt: { x: s.x, y: s.y, r: 24, t: KEYLBL[q.key] } } : null;
+      }
       const need = NEED1[tid]; if (!need) return null;
       const k = need.find((x) => !Z.data.hit.has(x)); if (!k) return null;
       let q;
@@ -157,7 +208,7 @@
 
   /* ═════════ 2 · TAK ═════════ */
   const KEYSYM = { up: '↑', down: '↓', left: '←', right: '→', X: 'X', Y: 'Y' };
-  const PLUG0 = { x: 420, y: 470 };
+  const PLUG0 = { x: 404, y: 404 };
   /* USB fişi: büyük siyah gövde (üstünde USB yazısı), gümüş uç sağa bakar. (x, y) = gövdenin ortası */
   function usbPlug(K, x, y, o = {}) {
     K.at(x, y, 1, () => {
@@ -170,7 +221,7 @@
     });
   }
   KAMP.def('tak', {
-    geo: () => ({ ps: 1.2, pox: 40, poy: 564 - 262 * 1.2, cs: 1.3, cox: 560, coy: 564 - 224 * 1.3 }),
+    geo: () => ({ ps: 1.2, pox: 40, poy: 564 - 262 * 1.2, cs: 1.6, cox: 500, coy: 564 - 224 * 1.6 }),
     port() { const g = this.geo(); return { x: g.cox + 40 * g.cs, y: g.coy + 186 * g.cs }; },
     start() { const g = this.geo(); return { x: g.pox + 214 * g.ps, y: g.poy + 140 * g.ps }; },
     btns() { const g = this.geo(); return [...P.dpad, ...P.xy].map((q) => ({ ...pg(g.pox, g.poy, g.ps, q), key: q.key })); },
@@ -184,7 +235,7 @@
     },
     init(Z) {
       const conn = Z.isDone('usb');
-      Z.data = { plug: conn ? this.seat() : { ...PLUG0 }, conn, drag: false, moved: conn, log: [], seen: new Set(), btn: null, btnUntil: 0, hello: 0 };
+      Z.data = { plug: conn ? this.seat() : { ...PLUG0 }, conn, drag: false, moved: conn, log: [], seen: new Set(), btn: null, btnUntil: 0, hello: 0, g: { c: 1, r: 2, coin: { c: 5, r: 1 }, score: 0, jump: 0, col: 0 } };
     },
     draw(K, t, Z) {
       const d = Z.data, g = this.geo(), n = now(), c = K.ctx;
@@ -198,7 +249,9 @@
       // Patara ve Bilgi
       K.at(g.pox, g.poy, g.ps, () => CH.patara.draw(K, { state: d.btnUntil > n ? 'happy' : d.conn ? 'idle' : 'think', btn: d.btnUntil > n ? d.btn : null }));
       const pcState = d.hello > n ? 'happy' : d.conn ? 'idle' : 'think';
-      K.at(g.cox, g.coy, g.cs, () => CH.pc.draw(K, { state: pcState, key: d.btnUntil > n ? KEYSYM[d.btn] : d.conn ? '⌨' : '…' }));
+      const game = d.conn && d.hello < n ? (ctx) => this.screen(ctx, d, t) : null;
+      K.at(g.cox, g.coy, g.cs, () => CH.pc.draw(K, { state: pcState, key: d.btnUntil > n ? KEYSYM[d.btn] : d.conn ? '⌨' : '…', screen: game }));
+      if (game && !d.log.length) bubble(K, 'Tuşlara bas: oyunu sen yönet!', g.cox + 120 * g.cs, g.coy + 20);
       // USB girişi: Bilgi'nin ayağında, etiketli
       const pt = this.port(), hot = d.drag && near(d.plug, this.seat(), 70);
       if (!d.conn) {
@@ -218,7 +271,7 @@
         c.beginPath(); c.moveTo(a.x + 56, a.y); c.quadraticCurveTo(m.x, m.y, b.x, b.y); c.stroke(); c.restore();
         const f = (t * 0.6) % 1, q = qpt(a, m, b, ease(f));
         c.save(); c.globalAlpha = 0.28 * Math.sin(f * Math.PI); usbPlug(K, q.x, q.y); c.restore();
-        tag(K, 'USB fişi', a.x + 8, a.y + 48, { fill: C.SHEET, size: 14 });
+        tag(K, 'USB fişi', a.x + 4, a.y + 44, { fill: C.SHEET, size: 14 });
       }
       usbPlug(K, d.plug.x, d.plug.y, { ring: !d.conn && !d.drag });
       if (d.hello > n) bubble(K, 'Yeni klavye ve fare bulundu!', g.cox + 120 * g.cs, g.coy + 20);
@@ -230,7 +283,7 @@
       if (b) {
         if (!d.conn) { Z.say('Önce kabloyu tak: Bilgi henüz Patara\'yı görmüyor.', 'think'); Z.sfx.bad(); return; }
         d.btn = b.key; d.btnUntil = now() + 700; d.seen.add(b.key); d.log.push(KEYSYM[b.key]); Z.sfx.key();
-        this.check(Z); return;
+        d.hello = 0; this.play(b.key, Z); this.check(Z); return;
       }
     },
     move(p, Z) { const d = Z.data; if (d.drag && p) d.plug = { x: p.x + d.off.x, y: p.y + d.off.y }; },
@@ -241,6 +294,34 @@
         d.plug = this.seat(); d.conn = true; d.hello = now() + 2800; Z.sfx.win();
         Z.done('usb', 'Tık! Bilgi beni hemen tanıdı: **yeni klavye ve fare**. Program kurmaya gerek yok.');
       } else Z.say('Fişin gümüş ucunu Bilgi\'nin ayağındaki **USB girişine** yaklaştır ve bırak.', 'think');
+    },
+    /* Bilgi'nin ekranındaki mini oyun: oklar piksel Patara'yı yürütür, X zıplatır, Y rengini değiştirir */
+    play(key, Z) {
+      const d = Z.data, G = d.g, n = now(), dir = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] }[key];
+      if (dir) {
+        G.c = Math.max(0, Math.min(6, G.c + dir[0])); G.r = Math.max(0, Math.min(3, G.r + dir[1]));
+        if (G.c === G.coin.c && G.r === G.coin.r) {
+          G.score++; Z.sfx.good();
+          do G.coin = { c: Math.floor(Math.random() * 7), r: Math.floor(Math.random() * 4) }; while (G.coin.c === G.c && G.coin.r === G.r);
+        }
+      } else if (key === 'X') G.jump = n + 500;
+      else if (key === 'Y') G.col = (G.col + 1) % 3;
+    },
+    screen(ctx, d, t) {
+      const G = d.g, n = now(), x0 = 54, y0 = 44, cw = 19, ch = 22, P = '#ffd77a';
+      ctx.fillStyle = 'rgba(255,215,122,.10)';
+      for (let c = 0; c < 7; c++) for (let r = 0; r < 4; r++) ctx.fillRect(x0 + c * cw + 8, y0 + r * ch + 10, 2, 2);
+      ctx.fillStyle = P; ctx.font = '500 10px "JetBrains Mono", ui-monospace, monospace'; ctx.textAlign = 'right'; ctx.textBaseline = 'alphabetic';
+      ctx.fillText(`★ ${G.score}`, 188, 41);
+      // altın
+      const cx = x0 + G.coin.c * cw + 9, cy = y0 + G.coin.r * ch + 11, k = 0.6 + 0.4 * Math.sin(t * 6);
+      ctx.shadowColor = P; ctx.shadowBlur = 6; ctx.fillRect(cx - 2, cy - 5, 4, 10); ctx.fillRect(cx - 5 * k, cy - 2, 10 * k, 4); ctx.shadowBlur = 0;
+      // piksel Patara
+      const jy = G.jump > n ? -Math.sin(((G.jump - n) / 500) * Math.PI) * 12 : 0, px = x0 + G.c * cw + 2, py = y0 + G.r * ch + 4 + jy;
+      ctx.fillStyle = ['#7fd36b', '#ff8a5c', '#7ab8ff'][G.col]; ctx.fillRect(px, py, 14, 14);
+      ctx.fillStyle = '#e8a33d'; ctx.fillRect(px - 1, py - 3, 16, 3);
+      ctx.fillStyle = '#1d2a33'; ctx.fillRect(px + 3, py + 4, 2, 3); ctx.fillRect(px + 9, py + 4, 2, 3);
+      if (d.btnUntil > n) { ctx.fillStyle = P; ctx.font = '500 11px "JetBrains Mono", ui-monospace, monospace'; ctx.textAlign = 'left'; ctx.fillText(KEYSYM[d.btn], 52, 136); }
     },
     check(Z) {
       const tid = Z.task(), d = Z.data;
@@ -281,7 +362,7 @@
         const o = done ? OBJ[i] : first && k === 'up' ? OBJ[0] : null;
         at[k] = o ? o.id : null; pos[k] = o ? this.bite(o) : this.idle(i);
       });
-      Z.data = { at, pos, drag: null, chomp: {}, ask: pick(OBJ.slice(1)) };
+      Z.data = { at, pos, drag: null, chomp: {}, ask: pick(OBJ.slice(1)), log: [], press: null, pressAt: 0, tried: new Set() };
     },
     keys(Z) {
       const d = Z.data, L = [];
@@ -297,7 +378,14 @@
       paper(K, 560);
       K.shape('M14 540 L 446 540 L 446 556 L 14 556 Z', { lit: '#b08654', w: 2.6 });
       K.line('M34 556 L 34 600 M426 556 L 426 600', { w: 5, color: '#7a5434', trace: false });
-      K.at(g.ox, g.oy, g.s, () => CH.patara.draw(K, { state: 'idle', pad: d.drag }));
+      const pf = d.press ? (n - d.pressAt) / 600 : 2; // dokunuştan sonra kıvılcım kablodan pede gider
+      // Bilgi'nin gördüğü: nesneye dokununca gelen tuş
+      c.fillStyle = 'rgba(29,42,51,.92)'; c.strokeStyle = C.INK; c.lineWidth = 2.4;
+      c.beginPath(); c.roundRect ? c.roundRect(40, 22, 820, 54, 10) : c.rect(40, 22, 820, 54); c.fill(); c.stroke();
+      text(K, "Bilgi'nin gördüğü:", 58, 56, { size: 22, color: '#ffd77a' });
+      if (!d.log.length) text(K, 'bağlı bir nesneye dokun…', 250, 56, { size: 20, color: 'rgba(255,215,122,.55)' });
+      d.log.slice(-12).forEach((k, i) => tag(K, k, 270 + i * 48, 49, { fill: '#ffd77a', size: 16 }));
+      K.at(g.ox, g.oy, g.s, () => CH.patara.draw(K, { state: pf < 1.6 && pf >= 1 ? 'happy' : 'idle', pad: d.drag || (pf >= 1 && pf < 1.6 ? d.press : null) }));
       OBJ.forEach((o) => {
         const busy = PADKEYS.find((k) => d.at[k] === o.id);
         charAt(K, o.id, o.x, KGY - 188 * KS, KS, { state: busy && d.chomp[busy] > n ? 'happy' : 'idle', ph: o.x });
@@ -308,7 +396,8 @@
       });
       PADKEYS.forEach((k) => {
         const bite = d.pos[k], h = clipHead(K, bite, -1, CLS, { state: d.chomp[k] > n ? 'happy' : 'idle' });
-        wire(K, this.pad(k), h.tail, WIRE[k], 30, 4);
+        const m = wire(K, this.pad(k), h.tail, WIRE[k], 30, 4);
+        if (d.press === k && pf < 1) { const q = qpt(h.tail, m, this.pad(k), ease(Math.max(0, pf))); miniSpark(K, q.x, q.y - 4, 0.2); }
         clipHead(K, bite, -1, CLS, { state: d.chomp[k] > n ? 'happy' : 'idle' });
         if (!d.at[k] && d.drag !== k) tag(K, ARROW[k], bite.x + 2, bite.y - 34, { fill: WIRE[k], size: 13 });
       });
@@ -318,7 +407,14 @@
       const k = PADKEYS.find((key) => near(p, clipGrab(d.pos[key], -1, CLS), 38));
       if (k) { d.drag = k; d.at[k] = null; d.off = { x: d.pos[k].x - p.x, y: d.pos[k].y - p.y }; Z.sfx.tick(); return; }
       const o = OBJ.find((ob) => p.x > ob.x && p.x < ob.x + 104 * KS && p.y > KGY - 170 * KS && p.y < KGY);
-      if (o) { const busy = PADKEYS.find((key) => d.at[key] === o.id); Z.say(busy ? `Bu ${o.ad} artık **${ARROW[busy]}** tuşu.` : `${o.ad[0].toUpperCase() + o.ad.slice(1)} henüz hiçbir pede bağlı değil.`); }
+      if (o) {
+        const busy = PADKEYS.find((key) => d.at[key] === o.id);
+        if (!busy) { Z.sfx.bad(); Z.say(`${o.ad[0].toUpperCase() + o.ad.slice(1)} henüz hiçbir pede bağlı değil: dokunsan da Bilgi bir şey görmez.`, 'think'); return; }
+        d.press = busy; d.pressAt = now(); d.chomp[busy] = now() + 900; d.log.push(ARROW[busy]); d.tried.add(o.id); Z.sfx.key();
+        if (Z.task() === 'dene' && OBJ.every((x) => d.tried.has(x.id))) { Z.done('dene', 'Muz ↑, elma ←, hamur →, kaşık ↓… Bilgi için bunlar sadece **tuş**. Mutfaktan bir kumanda yaptın!'); return; }
+        if (Z.task() === 'dene') Z.refresh();
+        Z.say(`${o.dat[0].toUpperCase() + o.dat.slice(1)} dokundun: kıvılcım kablodan **${KEYLBL[busy]}** pedine gitti, Bilgi **${ARROW[busy]}** gördü.`, 'happy');
+      }
     },
     move(p, Z) { const d = Z.data; if (d.drag && p) d.pos[d.drag] = { x: p.x + d.off.x, y: p.y + d.off.y }; },
     up(p, Z) {
@@ -338,6 +434,7 @@
         Z.done('hepsi', 'Dört nesne, dört tuş. Mutfaktan bir **oyun kumandası** yaptın!');
       }
     },
+    prog(tid, Z) { return tid === 'dene' ? `${Z.data.tried.size}/4` : ''; },
     ctl(host, Z) {
       if (Z.task() !== 'oku') return;
       const o = Z.data.ask;
@@ -358,6 +455,7 @@
         return { how: { ...h, r: 30, t: 'sürükle' }, pt: { ...b, r: 26, t: o.ad, below: true }, drag: [h, b] };
       }
       if (tid === 'oku') { const key = PADKEYS.find((k) => d.at[k] === d.ask.id); const q = key && this.pad(key); return q ? { pt: { ...q, r: 20, t: 'bu ped' }, answer: key } : null; }
+      if (tid === 'dene') { const o = OBJ.find((x) => !d.tried.has(x.id)); if (!o) return null; const q = { x: o.x + 52 * KS, y: KGY - 70 }; return { how: { ...q, r: 40, t: 'dokun' }, pt: { ...q, r: 40, t: o.ad } }; }
       return null;
     },
   });
@@ -499,7 +597,7 @@
         c.strokeStyle = lit(i + 1) && !(broken) ? C.AMBER : broken ? C.SEAL : C.INK; c.lineWidth = lit(i + 1) ? 6 : 3;
         if (broken) c.setLineDash([8, 8]);
         c.beginPath(); c.moveTo(nodes[a][1] + 62, Y); c.lineTo(nodes[b][1] - 62, Y); c.stroke(); c.setLineDash([]);
-        text(K, broken ? 'kopuk!' : l, (nodes[a][1] + nodes[b][1]) / 2, Y - 14, { size: 18, align: 'center', color: broken ? C.SEAL : C.INK });
+        text(K, broken ? 'kopuk!' : l, (nodes[a][1] + nodes[b][1]) / 2, Y - 30, { size: 18, align: 'center', color: broken ? C.SEAL : C.INK });
       });
       const back = d.phase !== 'idle' && out === 'ok' && f >= 0.999;
       c.strokeStyle = back ? C.AMBER : 'rgba(23,20,17,.45)'; c.lineWidth = back ? 5 : 2.4; c.setLineDash([4, 6]);
@@ -660,8 +758,11 @@
         else if (ti.il) q = qpt(rh.tail, m2, gnd, (tf - 0.5) / 0.5);
         else { const b = (tf - 0.5) / 0.5; q = { x: lh.tail.x - Math.sin(b * Math.PI) * 30, y: lh.tail.y - Math.sin(b * Math.PI) * 26 }; }
         miniSpark(K, q.x, q.y - 4, 0.2, res === 'ok' ? 'happy' : res === 'no' ? 'sad' : 'idle');
-        if (res) tag(K, res === 'ok' ? `${ti.ad}: Kıvılcım geçti · İLETKEN` : `${ti.ad}: geçemedi · YALITKAN`, 640, 70, { fill: res === 'ok' ? C.AMBER : '#bccbd8', size: 15 });
+        if (res) tag(K, res === 'ok' ? `${ti.ad}: Kıvılcım geçti · İLETKEN` : `${ti.ad}: geçemedi · YALITKAN`, 716, 112, { fill: res === 'ok' ? C.AMBER : '#bccbd8', size: 15 });
       }
+      // lamba: devre tamamlanınca yanar
+      K.at(530, 168, 1.6, () => PT.town.led(K, { lit: res === 'ok', state: res === 'ok' ? 'happy' : res === 'no' ? 'sad' : 'idle', col: '#ff6a4a' }));
+      text(K, res === 'ok' ? 'lamba yandı!' : res === 'no' ? 'lamba sönük' : 'lamba', 530, 194, { size: 19, align: 'center', color: res === 'ok' ? C.DEEP : 'rgba(23,20,17,.6)' });
       // raf
       K.shape('M30 352 L 870 352 L 870 366 L 30 366 Z', { lit: '#b08654', w: 2.4 });
       text(K, 'nesneleri sürükle: önce test yerine, sonra sepete', 450, 400, { size: 20, align: 'center', color: 'rgba(23,20,17,.6)' });
@@ -682,6 +783,7 @@
         const it = d.items[i], s = it.at === 'bin' ? 0.75 : 1;
         K.at(it.x, it.y, s, () => ICON[it.id](K));
         if (it.at === 'shelf' || i === d.drag) text(K, it.ad, it.x, it.y + 48, { size: 16, align: 'center' });
+        if (it.tested && it.at === 'shelf' && i !== d.drag) tag(K, it.il ? '✓ geçti' : '✗ geçmedi', it.x, it.y - 44, { fill: it.il ? C.AMBER : '#bccbd8', size: 11 });
       });
     },
     keys(Z) {
@@ -703,7 +805,7 @@
         Z.sfx.zap();
         setTimeout(() => {
           if (!KAMP.Z || KAMP.Z.sid !== 'iletken' || !d.test || d.test.i !== i) return;
-          it.il ? Z.sfx.good() : Z.sfx.bad();
+          it.il ? Z.sfx.good() : Z.sfx.bad(); it.tested = true;
           if (Z.task() === 'test') Z.done('test', `${it.il ? 'Kıvılcım geçti, ↑ basıldı' : 'Kıvılcım geçemedi, tuş basılmadı'}. ${it.why} Şimdi hepsini sepetlere ayır.`);
           else Z.say(`${it.ad}: ${it.il ? '**iletken**' : '**yalıtkan**'}. ${it.why}`, it.il ? 'happy' : 'idle');
         }, 1650);
@@ -766,7 +868,8 @@
       c.beginPath(); c.roundRect ? c.roundRect(GX - 12, GY - 12, GC * 5 + 24, GC * 5 + 24, 14) : c.rect(GX - 12, GY - 12, GC * 5 + 24, GC * 5 + 24); c.fill(); c.stroke();
       d.grid.forEach((on, i) => {
         const x = GX + (i % 5) * GC + GC / 2, y = GY + Math.floor(i / 5) * GC + GC / 2;
-        if (on) { c.save(); c.shadowColor = '#ff4a3a'; c.shadowBlur = 16; K.dot(x, y, 17, '#ff5040'); c.restore(); } else K.dot(x, y, 15, '#3a2a24');
+        const sh = d.show > n && Math.floor((d.show - n) / 220) % 2 === 1; // gösteri: ışıklar yanıp söner
+        if (on && !sh) { c.save(); c.shadowColor = '#ff4a3a'; c.shadowBlur = 16; K.dot(x, y, 17, '#ff5040'); c.restore(); } else K.dot(x, y, 15, '#3a2a24');
       });
       // örnek
       if (!Z.isDone('ciz')) {
@@ -785,6 +888,16 @@
         text(K, NOTE[i], x + kw / 2, PIA.y + PIA.h - 16, { size: 24, align: 'center' });
       }
       c.fillStyle = C.INK; [1, 2, 4, 5, 6].forEach((i) => c.fillRect(PIA.x + i * kw - 18, PIA.y, 36, 86));
+      // melodi kutuları: doğru çalınan notalar dolar
+      if (Z.task() === 'melodi') {
+        text(K, 'melodi:', GX - 12, 372, { size: 20, color: 'rgba(23,20,17,.6)' });
+        d.mel.forEach((k, i) => {
+          const x = GX + 62 + i * 52, ok = i < d.mpos;
+          c.fillStyle = ok ? '#ffd77a' : C.SHEET; c.strokeStyle = C.INK; c.lineWidth = 2.2;
+          c.beginPath(); c.roundRect ? c.roundRect(x, 348, 42, 34, 8) : c.rect(x, 348, 42, 34); c.fill(); c.stroke();
+          text(K, ok ? NOTE[k] : '?', x + 21, 366, { mono: true, size: 16, align: 'center', base: 'middle', color: ok ? C.INK : 'rgba(23,20,17,.4)' });
+        });
+      }
     },
     down(p, Z) {
       const d = Z.data, i = this.cell(p);
@@ -813,7 +926,8 @@
       const s = host.querySelector('#sShow');
       if (s) s.addEventListener('click', () => {
         const k = Z.data.grid.reduce((a, b) => a + b, 0);
-        if (k >= 8) { Z.data.show = now() + 2400; Z.done('serbest', `Harika bir resim: ${k} ışık! Kod yazarak LED ekrana kendi animasyonlarını da çizebilirsin.`); }
+        if (Z.data.grid.join('') === Z.data.target.join('')) { Z.sfx.bad(); Z.say('Bu örnekteki resmin aynısı! **Kendi** resmini çiz: ışıkları değiştir, yeni bir şekil yap.', 'think'); return; }
+        if (k >= 8) { Z.data.show = now() + 2400; [0, 2, 4, 7].forEach((i, j) => setTimeout(() => Z.sfx.note(i), j * 150)); Z.done('serbest', `Harika bir resim: ${k} ışık! Kod yazarak LED ekrana kendi animasyonlarını da çizebilirsin.`); }
         else { Z.sfx.bad(); Z.say(`Şu an ${k} ışık yanıyor. En az **8** olsun.`, 'think'); }
       });
     },
